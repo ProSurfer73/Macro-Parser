@@ -1,0 +1,211 @@
+# depslib dependency file v1.0
+1660487053 source:c:\users\divouxje\documents\define_expander\main.cpp
+	<iostream>
+	<fstream>
+	"hexa.hpp"
+	"stringeval.hpp"
+	"filesystem.hpp"
+	"command.hpp"
+
+1660482265 source:c:\users\divouxje\documents\define_expander\hexa.cpp
+	"hexa.hpp"
+
+1660467863 c:\users\divouxje\documents\define_expander\hexa.hpp
+	<stdio.h>
+	<math.h>
+	<string.h>
+	<iostream>
+	<string>
+	"config.hpp"
+
+1660484850 c:\users\divouxje\documents\define_expander\stringeval.hpp
+	<vector>
+	<string>
+	<sstream>
+	<regex>
+	<cassert>
+	"config.hpp"
+	"hexa.hpp"
+
+1660641244 source:c:\users\divouxje\documents\define_expander\stringeval.cpp
+	"stringeval.hpp"
+	<iostream>
+
+1660642336 c:\users\divouxje\documents\define_expander\config.hpp
+
+1660642311 source:c:\users\divouxje\documents\define_expander\filesystem.cpp
+	"filesystem.hpp"
+
+1660496456 c:\users\divouxje\documents\define_expander\filesystem.hpp
+	<string>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	"stringeval.hpp"
+	"config.hpp"
+
+1660504322 source:c:\users\divouxje\documents\define_expander\command.cpp
+	"command.hpp"
+
+1660483705 c:\users\divouxje\documents\define_expander\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	"filesystem.hpp"
+	"stringeval.hpp"
+
+1661805089 source:c:\git\work-tools\macroparser\command.cpp
+	"command.hpp"
+
+1661778497 c:\git\work-tools\macroparser\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	<map>
+	"filesystem.hpp"
+	"stringeval.hpp"
+	"options.hpp"
+
+1661777368 c:\git\work-tools\macroparser\filesystem.hpp
+	<string>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	<iomanip>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	"stringeval.hpp"
+	"config.hpp"
+	"command.hpp"
+
+1661773453 c:\git\work-tools\macroparser\stringeval.hpp
+	<vector>
+	<string>
+	<sstream>
+	<regex>
+	<cassert>
+	"config.hpp"
+	"hexa.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1661773647 c:\git\work-tools\macroparser\config.hpp
+
+1661779496 c:\git\work-tools\macroparser\hexa.hpp
+	<stdio.h>
+	<math.h>
+	<string.h>
+	<iostream>
+	<string>
+	"config.hpp"
+	"options.hpp"
+
+1661804132 source:c:\git\work-tools\macroparser\filesystem.cpp
+	"filesystem.hpp"
+
+1661781402 source:c:\git\work-tools\macroparser\hexa.cpp
+	"hexa.hpp"
+
+1661786712 source:c:\git\work-tools\macroparser\main.cpp
+	<iostream>
+	<fstream>
+	"hexa.hpp"
+	"stringeval.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1661794958 source:c:\git\work-tools\macroparser\stringeval.cpp
+	"stringeval.hpp"
+	<iostream>
+
+1661533807 source:c:\users\divouxje\desktop\t\work-tools\macroparser\command.cpp
+	"command.hpp"
+
+1661604964 c:\users\divouxje\desktop\t\work-tools\macroparser\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	<map>
+	"filesystem.hpp"
+	"stringeval.hpp"
+
+1661375567 c:\users\divouxje\desktop\t\work-tools\macroparser\filesystem.hpp
+	<string>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	<iomanip>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	"stringeval.hpp"
+	"config.hpp"
+	"command.hpp"
+
+1661516211 c:\users\divouxje\desktop\t\work-tools\macroparser\stringeval.hpp
+	<vector>
+	<string>
+	<sstream>
+	<regex>
+	<cassert>
+	"config.hpp"
+	"hexa.hpp"
+	"command.hpp"
+
+1661611188 c:\users\divouxje\desktop\t\work-tools\macroparser\config.hpp
+
+1660467863 c:\users\divouxje\desktop\t\work-tools\macroparser\hexa.hpp
+	<stdio.h>
+	<math.h>
+	<string.h>
+	<iostream>
+	<string>
+	"config.hpp"
+
+1661611519 source:c:\users\divouxje\desktop\t\work-tools\macroparser\filesystem.cpp
+	"filesystem.hpp"
+
+1661600196 source:c:\users\divouxje\desktop\t\work-tools\macroparser\hexa.cpp
+	"hexa.hpp"
+
+1661600300 source:c:\users\divouxje\desktop\t\work-tools\macroparser\stringeval.cpp
+	"stringeval.hpp"
+	<iostream>
+
+1661611154 source:c:\users\divouxje\desktop\t\work-tools\macroparser\main.cpp
+	<iostream>
+	<fstream>
+	"hexa.hpp"
+	"stringeval.hpp"
+	"command.hpp"
+
+1661795381 source:c:\git\work-tools\macroparser\options.cpp
+	"options.hpp"
+
+1661786291 c:\git\work-tools\macroparser\options.hpp
+	<fstream>
+	<string>
+	<iostream>
+	"config.hpp"
+
