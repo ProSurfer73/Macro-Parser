@@ -65,26 +65,36 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     if(str.empty())
         {}
-    else if(str == "clearall" || str == "clear all"){
-        macroContainer.defines.clear();
-        macroContainer.redefinedMacros.clear();
-        macroContainer.incorrectMacros.clear();
-    }
-    else if(str == "clearre" || str == "clear re"){
-        macroContainer.redefinedMacros.clear();
-    }
-    else if(str == "clearin" || str == "clear in"){
-        macroContainer.incorrectMacros.clear();
-    }
-    else if(str == "clearok" || str =="clear ok"){
-        // Delete all macros that are at the smae time not contained in the incorrect and redefined lists
-        for(auto it=macroContainer.defines.begin(); it!=macroContainer.defines.end();){
-            if(std::find(macroContainer.incorrectMacros.begin(), macroContainer.incorrectMacros.end(), it->first) == macroContainer.incorrectMacros.end()
-            && std::find(macroContainer.redefinedMacros.begin(), macroContainer.redefinedMacros.end(), it->first) == macroContainer.redefinedMacros.end())
-                it=macroContainer.defines.erase(it);
-            else
-                ++it;
+    else if(str.substr(0,5) == "clear")
+    {
+        std::vector<std::string> parameters;
+        extractList(parameters, str.substr(5));
+
+        bool eraseRe=false;
+        bool eraseIn=false;
+        bool eraseOk=false;
+
+        for(const std::string& param: parameters)
+        {
+            if(param=="ok")
+                eraseOk=true;
+            else if(param=="in")
+                eraseIn=true;
+            else if(param=="re")
+                eraseRe=true;
+            else if(param=="all")
+                eraseOk=eraseIn=eraseRe=true;
+            else {
+                cout << "Incorrect option parameter '" << param << "'.\n" << endl;
+                return true;
+            }
         }
+        if(!eraseRe && !eraseOk && !eraseIn)
+        {
+            cout << "No option parameter was given. No list was erased." << endl;
+            cout << "Try 'list all' or 'list ok' or 'list in'" << endl;
+        }
+        macroContainer.clearDatabase(eraseOk, eraseRe, eraseIn);
     }
     else if(str == "help")
         printHelp();
@@ -217,17 +227,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     else if(str.substr(0,7) == "search " && str.size()>8){
         std::vector<std::string> wordsToFind;
         extractList(wordsToFind, str.substr(7));
-
-        for(const auto& p: macroContainer.defines)
-        {
-            bool okay=true;
-            for(const auto& s: wordsToFind){
-                if(p.first.find(s) == std::string::npos)
-                    okay=false;
-            }
-            if(okay)
-                cout << " - " << p.first << " => " << p.second << '\'' << endl;
-        }
+        macroContainer.searchKeywords(wordsToFind, std::cout);
     }
     else if(str == "options"){
         // Print the configuration

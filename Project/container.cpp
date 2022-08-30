@@ -67,3 +67,30 @@ void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::st
     }
 }
 
+void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults)
+{
+    for(const auto& p: defines)
+    {
+        bool okay=true;
+        for(const std::string& keyword: keywords)
+        {
+            if(p.first.find(keyword) == std::string::npos){
+                okay=false;
+                break;
+            }
+        }
+        if(okay)
+            outputStreamResults << " - " << p.first << " => " << p.second << '\'' << endl;
+    }
+}
+
+void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
+{
+    if(clearDefines)
+        defines.clear();
+    if(clearRedefined)
+        redefinedMacros.clear();
+    if(clearIncorrect)
+        incorrectMacros.clear();
+}
+
