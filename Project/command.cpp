@@ -159,17 +159,18 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     bool okay = calculateExpression(output, macroContainer, displayPbInfo, configuration);
                     if(!okay)
                         cout << "/!\\ The expression can't be calculated. /!\\\n";
-                    cout << "output: " << output;
                     if(displayPbInfo){
                         cout << "possible output: " << output << "???" << endl;
                         cout << "\nIt seems that you are using macros that seem incorrect or have been redefined. The output can't be trsuted." << endl;
                         cout << "You can look for the values available for that specific macro by typing 'search [macro]'." << endl;
                         cout << "And finally you address the issue by correcting its value by typing 'define [macro] [value]'." << endl;
                     }
+                    else
+                        cout << "output: " << output;
                     if(okay){
                         string hexaRepresentation;
                         try { hexaRepresentation = convertDeciToHexa(std::stoi(output)); }
-                        catch(std::exception ex){}
+                        catch(const std::exception& ex){}
                         if(!hexaRepresentation.empty())
                             cout << " (hexa: 0x" << hexaRepresentation << ')';
                     }
