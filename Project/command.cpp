@@ -10,10 +10,10 @@ static void printHelp()
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
     cout << "- define [macro] [value] : add/replace a specific macro" << endl;
     cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
-    cout << "- listall/listok/listre/listin : print the list of all/okay/redefined/incorrect macros" << endl;
+    cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
     cout << "- changeoption [name] [value] : change an option name" << endl;
-    cout << "- clean : delete all macros registered" << endl;
+    cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- cls : clear console" << endl;
     cout << "- exit : quit the program" << endl;
 }
@@ -65,10 +65,26 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     if(str.empty())
         {}
-    else if(str == "clean"){
+    else if(str == "clearall" || str == "clear all"){
         macroContainer.defines.clear();
         macroContainer.redefinedMacros.clear();
         macroContainer.incorrectMacros.clear();
+    }
+    else if(str == "clearre" || str == "clear re"){
+        macroContainer.redefinedMacros.clear();
+    }
+    else if(str == "clearin" || str == "clear in"){
+        macroContainer.incorrectMacros.clear();
+    }
+    else if(str == "clearok" || str =="clear ok"){
+        // Delete all macros that are at the smae time not contained in the incorrect and redefined lists
+        for(auto it=macroContainer.defines.begin(); it!=macroContainer.defines.end();){
+            if(std::find(macroContainer.incorrectMacros.begin(), macroContainer.incorrectMacros.end(), it->first) == macroContainer.incorrectMacros.end()
+            && std::find(macroContainer.redefinedMacros.begin(), macroContainer.redefinedMacros.end(), it->first) == macroContainer.redefinedMacros.end())
+                it=macroContainer.defines.erase(it);
+            else
+                ++it;
+        }
     }
     else if(str == "help")
         printHelp();
@@ -81,7 +97,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         cout << "The command 'list' does not exist." << endl;
         cout << "Did you mean listok ? listre ? listin ?" << endl;
     }
-    else if(str == "listall"){
+    else if(str == "listall" || str == "list all"){
         unsigned nbPrinted=0;
         for(const auto& p: macroContainer.defines){
             cout << p.first << " => " << p.second << endl;
@@ -93,14 +109,14 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
 
     // List only the macros that are at the same time not incorrect and not redefined
-    else if(str == "listok"){
+    else if(str == "listok" || str == "list ok"){
         for(const auto& p: macroContainer.defines){
             if(std::find(macroContainer.incorrectMacros.begin(), macroContainer.incorrectMacros.end(), p.first) == macroContainer.incorrectMacros.end()
             && std::find(macroContainer.redefinedMacros.begin(), macroContainer.redefinedMacros.end(), p.first) == macroContainer.redefinedMacros.end())
                 std::cout << p.first << " => " << p.second << endl;
         }
     }
-    else if(str == "listre"){
+    else if(str == "listre" || str == "list re"){
         for(const string& str: macroContainer.redefinedMacros){
             cout << " - " << str;
             for(const pair<string,string>& p: macroContainer.defines){
@@ -112,7 +128,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             cout << endl;
         }
     }
-    else if(str == "listin"){
+    else if(str == "listin" || str == "list in"){
         for(const string& str: macroContainer.incorrectMacros){
             cout << " - " << str;
             for(const pair<string,string>& p: macroContainer.defines){
