@@ -18,6 +18,7 @@ public:
     std::vector< std::string > incorrectMacros;
 
 private:
+    static void removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName);
     static void removeFromVector(std::vector<std::string>& v, const std::string& str);
 };
 

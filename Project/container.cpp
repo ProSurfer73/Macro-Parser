@@ -39,24 +39,28 @@ void MacroContainer::emplace(const std::string& macroName, const std::string& ma
 
 void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
-    for(auto it=defines.begin(); it!=defines.end();){
-        if(it->first == macroName)
-            it=defines.erase(it);
-        else
-            ++it;
-    }
+    removeFromVector(defines, macroName);
     removeFromVector(incorrectMacros, macroName);
-    removeFromVector(redefinedMacros, macroValue);
+    removeFromVector(redefinedMacros, macroName);
     defines.emplace_back(macroName, macroValue);
 }
 
+void MacroContainer::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
+{
+    for(auto it=v.begin(); it!=v.end();){
+        if(it->first == macroName)
+            it=v.erase(it);
+        else
+            ++it;
+    }
+}
 
-void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::string& str)
+void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::string& macroName)
 {
 
     for(auto it=v.begin(); it!=v.end();)
     {
-        if(*it == str)
+        if(*it == macroName)
             it = v.erase(it);
         else
             ++it;

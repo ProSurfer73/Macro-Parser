@@ -35,6 +35,8 @@
 		<Unit filename="command.cpp" />
 		<Unit filename="command.hpp" />
 		<Unit filename="config.hpp" />
+		<Unit filename="container.cpp" />
+		<Unit filename="container.hpp" />
 		<Unit filename="filesystem.cpp" />
 		<Unit filename="filesystem.hpp" />
 		<Unit filename="hexa.cpp" />
