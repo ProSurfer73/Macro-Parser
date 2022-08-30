@@ -54,6 +54,9 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
     char elifStr[] = "#elif ";
     unsigned posElifStr=0;
 
+    char elseStr[] = "#else";
+    unsigned posElseStr=0;
+
     char endifStr[] = "#endif";
     unsigned posEndifStr=0;
 
@@ -61,7 +64,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
     int posLineComment=0;
 
-    std::vector<bool> hasPriority={false};
+    std::vector<char> keepTrack={1};
 
     std::vector<std::string> localMacroNames;
 
@@ -193,15 +196,10 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                 }
 
                 // If the importer has priority order
-                if(hasPriority.back()
-                // And if this macro has now yet been defined in other files
-                && macroContainer.countMacroName(str1)==std::count(localMacroNames.begin(), localMacroNames.end(), str1))
-                    // We force emplace
-                    macroContainer.emplaceAndReplace(str1, str2);
-                else
+                if(keepTrack.back()>=0)
                     macroContainer.emplace(str1, str2);
 
-                if(!insideConditions || hasPriority.back())
+                if(!insideConditions || keepTrack.back()>=1)
                     localMacroNames.emplace_back(str1);
             }
 
@@ -211,11 +209,11 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             posDefineStr = 0;
         }
 
-        // Ifdef, Elif and Endif detection mechanism
+        // #ifdef, #elif, #else, #endif detection mechanism
         if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
         if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
         if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
-
+        if(characterRead == elseStr[posElseStr]){ posElseStr++; } else { posElseStr=0; }
 
         // If we detected ifdef
         if( posIfdefStr==7 )
@@ -236,26 +234,34 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
             if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
             {
-                hasPriority.push_back(true);
+                keepTrack.push_back(1);
             }
             else
             {
-                hasPriority.push_back(false);
+                keepTrack.push_back(0);
+            }
+        }
+
+        // If we detected elif
+        if(posElifStr==6 || posElseStr==5)
+        {
+            //
+            if(keepTrack.back()==1)
+            {
+                keepTrack[keepTrack.size()-1] = -1;
+                posElifStr=0;
+                posElseStr=0;
             }
         }
 
         // If we detected endif
         if(posEndifStr == 6)
         {
-            posEndifStr++;
             string str1;
 
-            if(posEndifStr==6)
-            {
-                posEndifStr=0;
-                insideConditions=false;
-                hasPriority.pop_back();
-            }
+            insideConditions=keepTrack.size()>1;
+            keepTrack.pop_back();
+            posEndifStr=0;
         }
     }
 
