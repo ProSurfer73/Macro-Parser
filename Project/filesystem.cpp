@@ -32,6 +32,8 @@ BOOL DirectoryExists(LPCTSTR szPath)
          (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+
+
 bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 {
     ifstream file(pathToFile);
@@ -59,12 +61,13 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
     int posLineComment=0;
 
+    std::vector<bool> hasPriority={false};
+
     std::vector<std::string> localMacroNames;
-    std::vector<std::string> priorityMacros;
+
+
 
     bool insideConditions=false;
-    bool hasPriority=false;
-    bool ignoreUntilEnd=true;
 
     while(file.get(characterRead))
     {
@@ -156,7 +159,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                 clearSpaces(str2);
 
                 // Ignore single letter macro and empty ones
-                if(str2.empty() || str1.size()==1)
+                if(str1.size()==1)
                     continue;
 
 
@@ -189,9 +192,16 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                     }
                 }
 
-                macroContainer.emplace(str1, str2);
+                // If the importer has priority order
+                if(hasPriority.back()
+                // And if this macro has now yet been defined in other files
+                && macroContainer.countMacroName(str1)==std::count(localMacroNames.begin(), localMacroNames.end(), str1))
+                    // We force emplace
+                    macroContainer.emplaceAndReplace(str1, str2);
+                else
+                    macroContainer.emplace(str1, str2);
 
-                if(!insideConditions)
+                if(!insideConditions || hasPriority.back())
                     localMacroNames.emplace_back(str1);
             }
 
@@ -201,49 +211,41 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             posDefineStr = 0;
         }
 
-        // Ifdef detection mechanism
-        if(characterRead == ifdefStr[posIfdefStr]) posIfdefStr++;
-        else posIfdefStr=0;
+        // Ifdef, Elif and Endif detection mechanism
+        if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
+        if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
+        if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
 
-        // Elif detection mechanism
-        if(characterRead == elifStr[posElifStr]) posElifStr++;
-        else posElifStr=0;
 
-        // If we had detected ifdef or elif
-        if( (posIfdefStr==7 || posElifStr==6) )
+        // If we detected ifdef
+        if( posIfdefStr==7 )
         {
-            // If it is another #ifdef inside this ifdef
-            if(ignoreUntilEnd || (insideConditions && posIfdefStr==7) )
-            {
-                ignoreUntilEnd=true;
-                hasPriority=false;
+            insideConditions=true;
+            posIfdefStr=0;
 
-                // Skip spaces first, and then macro value definition
-                while(file.get(characterRead) && characterRead==' ');
-                while(file.get(characterRead) && isMacroCharacter(characterRead) );
+            string macroNameRead;
+            while(file.get(characterRead))
+            {
+                if(characterRead == ' ' && !macroNameRead.empty())
+                    break;
+                else if(isMacroCharacter(characterRead))
+                    macroNameRead += characterRead;
+                else
+                    break;
+            }
+
+            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            {
+                hasPriority.push_back(true);
             }
             else
             {
-                string str1;
-                insideConditions=true;
-
-                while(file.get(characterRead) && isMacroCharacter(characterRead))
-                {
-                    str1+=characterRead;
-                }
-
-                if(std::find(localMacroNames.begin(), localMacroNames.end(), str1)!=localMacroNames.end())
-                {
-                    hasPriority=true;
-                }
-
-                posIfdefStr=0;
+                hasPriority.push_back(false);
             }
-
         }
 
-
-        if(characterRead == endifStr[posEndifStr])
+        // If we detected endif
+        if(posEndifStr == 6)
         {
             posEndifStr++;
             string str1;
@@ -251,19 +253,9 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             if(posEndifStr==6)
             {
                 posEndifStr=0;
-
-                if(ignoreUntilEnd)
-                {
-                    hasPriority=true;
-                    ignoreUntilEnd=false;
-                }
-                else
-                    insideConditions=false;
+                insideConditions=false;
+                hasPriority.pop_back();
             }
-        }
-        else
-        {
-            posEndifStr=0;
         }
     }
 

@@ -48,6 +48,16 @@ void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::
     defines.emplace_back(macroName, macroValue);
 }
 
+void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
+{
+    if(clearDefines)
+        defines.clear();
+    if(clearRedefined)
+        redefinedMacros.clear();
+    if(clearIncorrect)
+        incorrectMacros.clear();
+}
+
 void MacroContainer::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
 {
     for(auto it=v.begin(); it!=v.end();){
@@ -70,7 +80,7 @@ void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::st
     }
 }
 
-// Commands methods
+// Lookup commands
 
 void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const
 {
@@ -89,15 +99,20 @@ void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, st
     }
 }
 
-void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
+
+unsigned MacroContainer::countMacroName(const std::string& macroName) const
 {
-    if(clearDefines)
-        defines.clear();
-    if(clearRedefined)
-        redefinedMacros.clear();
-    if(clearIncorrect)
-        incorrectMacros.clear();
+    unsigned nb=0;
+    for(const std::pair<std::string,std::string>& p : defines)
+    {
+        if(p.first == macroName)
+            nb++;
+    }
+    return nb;
 }
+
+
+
 
 // Getters
 

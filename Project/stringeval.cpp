@@ -41,6 +41,10 @@ static void func(double &result, char op, double num)
 
 bool doesExprLookOk(const string& expr)
 {
+    // Empty => it doesn't look good
+    if(expr.empty())
+        return false;
+
     // Check parenthesis
     int remainingParenthesis=0;
     for(unsigned i=0; i<expr.size(); ++i){
