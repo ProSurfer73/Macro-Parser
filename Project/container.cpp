@@ -1,5 +1,6 @@
 #include "container.hpp"
 
+// Default constructor
 
 MacroContainer::MacroContainer()
 {
@@ -9,6 +10,8 @@ MacroContainer::MacroContainer()
     redefinedMacros.reserve(1000);
     incorrectMacros.reserve(1000);
 }
+
+// Modification methods
 
 void MacroContainer::emplace(const std::string& macroName, const std::string& macroValue)
 {
@@ -67,6 +70,8 @@ void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::st
     }
 }
 
+// Commands methods
+
 void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults)
 {
     for(const auto& p: defines)
@@ -92,5 +97,22 @@ void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool 
         redefinedMacros.clear();
     if(clearIncorrect)
         incorrectMacros.clear();
+}
+
+// Getters
+
+const std::vector< std::pair< std::string, std::string> >& MacroContainer::getDefines() const
+{
+    return defines;
+}
+
+const std::vector< std::string >& MacroContainer::getRedefinedMacros() const
+{
+    return redefinedMacros;
+}
+
+const std::vector< std::string >& MacroContainer::getIncorrectMacros() const
+{
+    return incorrectMacros;
 }
 

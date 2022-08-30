@@ -103,9 +103,9 @@ double evaluateArithmeticExpr(const string& expr)
 
 bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config)
 {
-    const auto& dictionary = macroContainer.defines;
-    const auto& redefinedMacros = macroContainer.redefinedMacros;
-    const auto& incorrectMacros = macroContainer.incorrectMacros;
+    const auto& dictionary = macroContainer.getDefines();
+    const auto& redefinedMacros = macroContainer.getRedefinedMacros();
+    const auto& incorrectMacros = macroContainer.getIncorrectMacros();
 
 
     /// 0. Is the expression okay ?
@@ -138,7 +138,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
         size_t maxSizeReplaceSig = 0;
 
         // Look for the longest word to replace
-        for(const pair<string,string>& p: macroContainer.defines)
+        for(const pair<string,string>& p: dictionary)
         {
             const string& mac = p.first;
 
@@ -168,7 +168,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
         {
 
         // Replace it
-        for(pair<string,string> p: macroContainer.defines)
+        for(pair<string,string> p: dictionary)
         {
             if(p.first.size() == maxSizeReplace && expr.find(p.first) != string::npos && doesExprLookOk(p.second))
             {

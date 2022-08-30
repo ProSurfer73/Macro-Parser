@@ -44,17 +44,6 @@ static void extractList(std::vector<std::string>& outputList, const std::string&
     }
 }
 
-static void removeFromVector(std::vector<std::string>& v, const std::string& str)
-{
-    for(auto it=v.begin(); it!=v.end();)
-    {
-        if(*it == str)
-            it = v.erase(it);
-        else
-            ++it;
-    }
-}
-
 
 
 bool runCommand(string str, MacroContainer& macroContainer, Options& configuration)
@@ -99,9 +88,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     else if(str == "help")
         printHelp();
     else if(str == "stat"){
-        cout << macroContainer.defines.size() << " macros were loaded." << endl;
-        cout << "|-> " << macroContainer.redefinedMacros.size() << " macros have been redefined." << endl;
-        cout << "|-> " << macroContainer.incorrectMacros.size() << " macros seem incorrect." << endl;
+        cout << macroContainer.getDefines().size() << " macros were loaded." << endl;
+        cout << "|-> " << macroContainer.getRedefinedMacros().size() << " macros have been redefined." << endl;
+        cout << "|-> " << macroContainer.getIncorrectMacros().size() << " macros seem incorrect." << endl;
     }
     else if(str == "list"){
         cout << "The command 'list' does not exist." << endl;
@@ -109,7 +98,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
     else if(str == "listall" || str == "list all"){
         unsigned nbPrinted=0;
-        for(const auto& p: macroContainer.defines){
+        for(const auto& p: macroContainer.getDefines()){
             cout << p.first << " => " << p.second << endl;
             if(++nbPrinted >= 1000){
                 cout << "/!\\ Only printed the 1000 first results /!\\" << endl;
@@ -120,16 +109,16 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     // List only the macros that are at the same time not incorrect and not redefined
     else if(str == "listok" || str == "list ok"){
-        for(const auto& p: macroContainer.defines){
-            if(std::find(macroContainer.incorrectMacros.begin(), macroContainer.incorrectMacros.end(), p.first) == macroContainer.incorrectMacros.end()
-            && std::find(macroContainer.redefinedMacros.begin(), macroContainer.redefinedMacros.end(), p.first) == macroContainer.redefinedMacros.end())
+        for(const auto& p: macroContainer.getDefines()){
+            if(std::find(macroContainer.getIncorrectMacros().begin(), macroContainer.getIncorrectMacros().end(), p.first) == macroContainer.getIncorrectMacros().end()
+            && std::find(macroContainer.getRedefinedMacros().begin(), macroContainer.getRedefinedMacros().end(), p.first) == macroContainer.getRedefinedMacros().end())
                 std::cout << p.first << " => " << p.second << endl;
         }
     }
     else if(str == "listre" || str == "list re"){
-        for(const string& str: macroContainer.redefinedMacros){
+        for(const string& str: macroContainer.getRedefinedMacros()){
             cout << " - " << str;
-            for(const pair<string,string>& p: macroContainer.defines){
+            for(const pair<string,string>& p: macroContainer.getDefines()){
                 if(p.first == str){
                     cout << " => " << p.second;
                     break;
@@ -139,9 +128,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         }
     }
     else if(str == "listin" || str == "list in"){
-        for(const string& str: macroContainer.incorrectMacros){
+        for(const string& str: macroContainer.getIncorrectMacros()){
             cout << " - " << str;
-            for(const pair<string,string>& p: macroContainer.defines){
+            for(const pair<string,string>& p: macroContainer.getDefines()){
                 if(p.first == str){
                     cout << " => " << p.second;
                     break;
@@ -167,7 +156,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     else if(str.substr(0, 5) == "look ")
     {
-        if(macroContainer.defines.empty())
+        if(macroContainer.getDefines().empty())
             cout << "No macros were imported yet." << endl;
         else
         {
@@ -175,7 +164,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
             bool found = false;
 
-            for(auto& p : macroContainer.defines)
+            for(auto& p : macroContainer.getDefines())
             {
                 if(p.first == userInput)
                 {

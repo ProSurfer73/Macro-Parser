@@ -8,11 +8,21 @@
 class MacroContainer
 {
 public:
+    // Default constructor
     MacroContainer();
+
+    // Modification methods
     void emplace(const std::string& macroName, const std::string& macroValue);
     void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
-    void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults);
     void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
+
+    // Lookup commands
+    void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults);
+
+    // Getters
+    const std::vector< std::pair< std::string, std::string> >& getDefines() const;
+    const std::vector< std::string >& getRedefinedMacros() const;
+    const std::vector< std::string >& getIncorrectMacros() const;
 
 private:
     static void removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName);
@@ -22,8 +32,8 @@ private:
     std::vector< std::string > redefinedMacros;
     std::vector< std::string > incorrectMacros;
 
-friend bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config);
-friend bool runCommand(string str, MacroContainer& macroContainer, Options& configuration);
+//friend bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config);
+//friend bool runCommand(string str, MacroContainer& macroContainer, Options& configuration);
 };
 
 
