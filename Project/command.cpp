@@ -212,16 +212,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             str2=str.substr(6+ss.tellg());
         if(!doesExprLookOk(str2))
             cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
-
-        for(auto it=macroContainer.defines.begin(); it!=macroContainer.defines.end();){
-            if(it->first == str1)
-                it=macroContainer.defines.erase(it);
-            else
-                ++it;
-        }
-        removeFromVector(macroContainer.incorrectMacros, str1);
-        removeFromVector(macroContainer.redefinedMacros, str1);
-        macroContainer.defines.emplace_back(str1, str2);
+        macroContainer.emplaceAndReplace(str1, str2);
     }
     else if(str.substr(0,7) == "search " && str.size()>8){
         std::vector<std::string> wordsToFind;

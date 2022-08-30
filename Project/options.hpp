@@ -25,6 +25,7 @@ public:
     bool doesImportMacroCommented() const;
     bool doesPrintReplacements() const;
     bool doesPrintExprAtEveryStep() const;
+    bool doKeepListRedefinedMacros() const;
 
 private:
     bool saveToFile(const char* filename) const;
@@ -36,6 +37,7 @@ private:
     bool importMacroCommented; // should macro that are inside comment such as // and /* be imported ?
     bool printReplacements; //
     bool printExprAtEveryStep;
+    bool keepListRedefinedMacros;
 
 friend void askUserAboutConfig(Options& options);
 };
