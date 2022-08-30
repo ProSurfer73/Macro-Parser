@@ -12,7 +12,7 @@ static bool isOperationCharacter(char c)
     return (c=='+'||c=='-'||c=='*'||c=='/');
 }
 
-static bool isMacroCharacter(char c)
+bool isMacroCharacter(char c)
 {
     return (isalpha(c)||(c>='0' && c<='9')||(c=='_'));
 }

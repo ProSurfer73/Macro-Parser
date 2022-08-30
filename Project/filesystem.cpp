@@ -44,11 +44,23 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
     #endif
 
     char defineStr[] = "#define ";
-    int posDefineStr = 0;
+    unsigned posDefineStr = 0;
+
+    char ifdefStr[] = "#ifdef ";
+    unsigned posIfdefStr=0;
+
+    char endifStr[] = "#endif";
+    unsigned posEndifStr=0;
 
     char characterRead;
 
     int posLineComment=0;
+
+    std::vector<std::string> localMacroNames;
+    std::vector<std::string> priorityMacros;
+
+    bool insideConditions=false;
+    bool hasPriority=false;
 
     while(file.get(characterRead))
     {
@@ -88,7 +100,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
         #endif
 
 
-        else if(characterRead == defineStr[posDefineStr])
+        if(characterRead == defineStr[posDefineStr])
         {
             posDefineStr++;
 
@@ -174,11 +186,62 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                 }
 
                 macroContainer.emplace(str1, str2);
+
+                if(!insideConditions)
+                    localMacroNames.emplace_back(str1);
             }
 
         }
-        else {
+        else
+        {
             posDefineStr = 0;
+        }
+
+        // Let's interpret #ifdef
+        if(characterRead == ifdefStr[posIfdefStr])
+        {
+            posIfdefStr++;
+
+            if(posIfdefStr==7)
+            {
+                string str1;
+                insideConditions=true;
+
+                while(file.get(characterRead) && isMacroCharacter(characterRead))
+                {
+                    str1+=characterRead;
+                }
+
+                if(std::find(localMacroNames.begin(), localMacroNames.end(), str1)!=localMacroNames.end())
+                {
+
+                }
+
+                posIfdefStr=0;
+            }
+        }
+        else
+        {
+            posIfdefStr=0;
+        }
+
+
+        if(characterRead == endifStr[posEndifStr])
+        {
+            posEndifStr++;
+            string str1;
+
+            if(posEndifStr==6)
+            {
+                posEndifStr=0;
+
+                insideConditions=false;
+
+            }
+        }
+        else
+        {
+            posEndifStr=0;
         }
     }
 

@@ -17,6 +17,8 @@ using namespace std;
 
 struct MacroContainer;
 
+bool isMacroCharacter(char c);
+
 void clearSpaces(string& str);
 
 bool doesExprLookOk(const string& expr);

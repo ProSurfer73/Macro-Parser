@@ -72,7 +72,7 @@ void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::st
 
 // Commands methods
 
-void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults)
+void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const
 {
     for(const auto& p: defines)
     {
