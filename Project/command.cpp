@@ -160,7 +160,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     if(!okay)
                         cout << "/!\\ The expression can't be calculated. /!\\\n";
                     if(displayPbInfo){
-                        cout << "possible output: " << output << "???" << endl;
+                        cout << "possible output: " << output << "??? ";
                                             }
                     else
                         cout << "output: " << output;
@@ -171,12 +171,12 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                         if(!hexaRepresentation.empty())
                             cout << " (hexa: 0x" << hexaRepresentation << ')';
                     }
+                    cout << endl;
                     if(displayPbInfo){
-                        cout << "\nIt seems that you are using macros that seem incorrect or have been redefined. The output can't be trsuted." << endl;
+                        cout << "\nIt seems that you are using macros that seem incorrect or have been redefined. The output can't be trusted." << endl;
                         cout << "You can look for the values available for that specific macro by typing 'search [macro]'." << endl;
                         cout << "And finally you address the issue by correcting its value by typing 'define [macro] [value]'." << endl;
                     }
-                    cout << endl;
 
                     found=true;
                     break;
