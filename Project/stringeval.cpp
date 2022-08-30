@@ -393,13 +393,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
     if(result != -3)
     {
         if(result == static_cast<double>(static_cast<int>(result)) )
-        {
-            if(result < 1000)
-                expr = to_string(static_cast<int>(result));
-            else
-                expr = string("0x") + convertDeciToHexa(result);
-        }
-
+            expr = to_string(static_cast<int>(result));
         else
             expr = to_string(result);
     }
