@@ -49,6 +49,9 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
     char ifdefStr[] = "#ifdef ";
     unsigned posIfdefStr=0;
 
+    char elifStr[] = "#elif ";
+    unsigned posElifStr=0;
+
     char endifStr[] = "#endif";
     unsigned posEndifStr=0;
 
@@ -61,6 +64,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
     bool insideConditions=false;
     bool hasPriority=false;
+    bool ignoreUntilEnd=true;
 
     while(file.get(characterRead))
     {
@@ -197,12 +201,28 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             posDefineStr = 0;
         }
 
-        // Let's interpret #ifdef
-        if(characterRead == ifdefStr[posIfdefStr])
-        {
-            posIfdefStr++;
+        // Ifdef detection mechanism
+        if(characterRead == ifdefStr[posIfdefStr]) posIfdefStr++;
+        else posIfdefStr=0;
 
-            if(posIfdefStr==7)
+        // Elif detection mechanism
+        if(characterRead == elifStr[posElifStr]) posElifStr++;
+        else posElifStr=0;
+
+        // If we had detected ifdef or elif
+        if( (posIfdefStr==7 || posElifStr==6) )
+        {
+            // If it is another #ifdef inside this ifdef
+            if(ignoreUntilEnd || (insideConditions && posIfdefStr==7) )
+            {
+                ignoreUntilEnd=true;
+                hasPriority=false;
+
+                // Skip spaces first, and then macro value definition
+                while(file.get(characterRead) && characterRead==' ');
+                while(file.get(characterRead) && isMacroCharacter(characterRead) );
+            }
+            else
             {
                 string str1;
                 insideConditions=true;
@@ -214,15 +234,12 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
                 if(std::find(localMacroNames.begin(), localMacroNames.end(), str1)!=localMacroNames.end())
                 {
-
+                    hasPriority=true;
                 }
 
                 posIfdefStr=0;
             }
-        }
-        else
-        {
-            posIfdefStr=0;
+
         }
 
 
@@ -235,8 +252,13 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             {
                 posEndifStr=0;
 
-                insideConditions=false;
-
+                if(ignoreUntilEnd)
+                {
+                    hasPriority=true;
+                    ignoreUntilEnd=false;
+                }
+                else
+                    insideConditions=false;
             }
         }
         else
