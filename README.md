@@ -21,6 +21,7 @@ I had to go through very complex macros defined over hundreds of headers.
 - Customizable options
 - Clear and easy-to-use command line interface
 - Warnings and errors
+- Silent local conditional expression evaluation
 
 # How to run for the first time
 Go to the release page.\
