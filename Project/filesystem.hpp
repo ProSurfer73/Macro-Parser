@@ -21,6 +21,7 @@
 #include "stringeval.hpp"
 #include "config.hpp"
 #include "command.hpp"
+#include "options.hpp"
 
 //#define ENABLE_MUTEX_LOADINGBAR
 
@@ -34,8 +35,8 @@ struct MacroContainer;
 
 BOOL DirectoryExists(LPCTSTR szPath);
 
-bool readFile(const string& pathToFile, MacroContainer& macroContainer);
+bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config);
 
-bool readDirectory(string dir, MacroContainer& macroContainer, const bool loadOnlySourceFile);
+bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config);
 
 #endif // FILESYSTEM_HPP

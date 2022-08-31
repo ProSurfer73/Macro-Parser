@@ -26,6 +26,7 @@ public:
     bool doesPrintReplacements() const;
     bool doesPrintExprAtEveryStep() const;
     bool doKeepListRedefinedMacros() const;
+    bool doDisableInterpretations() const;
 
 private:
     bool saveToFile(const char* filename) const;
@@ -38,6 +39,7 @@ private:
     bool printReplacements; //
     bool printExprAtEveryStep;
     bool keepListRedefinedMacros;
+    bool disableInterpretations;
 
 friend void askUserAboutConfig(Options& options);
 };

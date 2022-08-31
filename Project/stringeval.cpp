@@ -12,7 +12,7 @@ static bool isOperationCharacter(char c)
     return (c=='+'||c=='-'||c=='*'||c=='/');
 }
 
-static bool isMacroCharacter(char c)
+bool isMacroCharacter(char c)
 {
     return (isalpha(c)||(c>='0' && c<='9')||(c=='_'));
 }
@@ -41,6 +41,10 @@ static void func(double &result, char op, double num)
 
 bool doesExprLookOk(const string& expr)
 {
+    // Empty => it doesn't look good
+    if(expr.empty())
+        return false;
+
     // Check parenthesis
     int remainingParenthesis=0;
     for(unsigned i=0; i<expr.size(); ++i){
