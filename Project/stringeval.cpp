@@ -17,6 +17,11 @@ bool isMacroCharacter(char c)
     return (isalpha(c)||(c>='0' && c<='9')||(c=='_'));
 }
 
+bool isNumberCharacter(char c)
+{
+    return (isdigit(c)||c=='.');
+}
+
 static void func(double &result, char op, double num)
 {
     switch (op)
@@ -280,7 +285,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
 
 
-    // 2. Can the expression be evaluated ?
+    /// 2. Can the expression be evaluated ?
 
     #ifdef DEBUG_LOG_STRINGEVAL
     cout << "blv:" << expr << endl;
@@ -299,7 +304,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
 
 
-    // 3. Arithmetic operation
+    /// 3. Arithmetic operations
 
     #ifdef PARENTHESIS_EVALUATION
 
@@ -315,7 +320,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     {
         size_t posClosePar = expr.find_first_of(')');
         size_t posOpenPar = posClosePar;
-
         for(;expr[posOpenPar]!='('; posOpenPar--);
 
         string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
@@ -340,13 +344,26 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         }
         else
         {
-            // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
+            // If it is a number,
+            bool isNumber=true;
+            for(char c: toBeCalculated){
+                if(!isdigit(c)&&c!='.')
+                    isNumber=false;
+            }
 
-            string begStr = expr.substr(0,posOpenPar);
-            string midStr = toBeCalculated;
-            string endStr = &expr[posClosePar+1];
+            if(isNumber)
+            {
+                // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
 
-            expr = begStr + midStr + endStr;
+                string begStr = expr.substr(0,posOpenPar);
+                string midStr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 ) ;
+                string endStr = &expr[posClosePar+1];
+
+                expr = begStr + midStr + endStr;
+            }
+            else
+                break;
+
         }
 
         #ifdef DEBUG_ENABLE_ASSERTIONS
@@ -366,18 +383,121 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     #endif
 
+
+    // 4. Conditional operations
+
+    cout << "start:" << expr << endl;
+
+    unsigned searchedCharacter;
+    string begStr;
+    string subExpr;
+    string endStr;
+
+    counter=0;
+
+    do
+    {
+        repeat=false;
+
+        // Let's delete parenthesis
+        if(expr.find('(')!=std::string::npos
+        && expr.find(')')!=std::string::npos)
+        {
+            size_t posClosePar = expr.find_first_of(')');
+            size_t posOpenPar = posClosePar;
+            for(;expr[posOpenPar]!='('; posOpenPar--);
+
+            begStr = expr.substr(0,posOpenPar);
+            subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
+            endStr = &expr[posClosePar+1];
+
+            cout << "subExpr1:" << subExpr << endl;
+
+            repeat=true;
+        }
+        else
+        {
+            subExpr = expr;
+        }
+        cout << "subExpr:" << subExpr << endl;
+
+
+        searchedCharacter = subExpr.find('>');
+
+        // treat '>' character
+        if(searchedCharacter != std::string::npos)
+        {
+            std::string str1=subExpr.substr(0,searchedCharacter-1);
+            std::string str2=subExpr.substr(searchedCharacter+2);
+
+            bool conversionOkay=true;
+            double value1=-1, value2=-1;
+
+            try
+            {
+                value1=std::stod(str1);
+                value2=std::stod(str2);
+            }
+            catch(const std::exception& ex)
+            {
+                conversionOkay = false;
+            }
+
+            if(conversionOkay)
+            {
+                std::string str3;
+
+                if(value1 > value2)
+                    str3 = "true";
+                else
+                    str3 = "false";
+
+                expr=begStr+str1+str3+str2+endStr;
+                cout << expr << endl;
+
+                repeat=true;
+            }
+
+        }
+
+        //Sleep(2000);
+
+
+
+
+        ++counter;
+    }
+    while(repeat && counter < 100);
+
     #ifdef DEBUG_LOG_STRINGEVAL
     std::cout << "final:" << expr+"+0" << endl;
     #endif
 
-    double result=evaluateSimpleArithmeticExpr(expr+"+0");
+    double result;
 
-    if(result != -3)
+    try
+    {
+        result = std::stod(expr);
+    }
+    catch(const std::exception& ex)
+    {
+        // Then it is not a numerical expression
+
+        if(expr != "true" && expr != "false")
+            status = CalculationStatus::EVAL_ERROR;
+
+        return status;
+    }
+
+
+
+
+    // 5. If it is an integer, convert it to an integer.
+
+    if(status != CalculationStatus::EVAL_ERROR)
     {
         if(result == static_cast<double>(static_cast<int>(result)) )
             expr = to_string(static_cast<int>(result));
-        else
-            expr = to_string(result);
     }
 
     return status;
