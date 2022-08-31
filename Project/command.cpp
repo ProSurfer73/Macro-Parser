@@ -269,7 +269,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
         if(macroContainer.countMacroName(str)>1)
         {
-            std::cout << "This macro needs to be interpreted." << endl;
+            std::cout << "This macro has been redefined and needs to be interpreted." << endl;
             std::cout << "Type 'interpret " << str << "'." << endl;
         }
         else if(macroContainer.getDefines().empty())
@@ -304,9 +304,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     }
                     cout << endl;
                     if(displayPbInfo){
-                        cout << "\nIt seems that you are using macros that seem incorrect or have been redefined. The output can't be trusted." << endl;
-                        cout << "You can look for the values available for that specific macro by typing 'search [macro]'." << endl;
-                        cout << "And finally you address the issue by correcting its value by typing 'define [macro] [value]'." << endl;
+                        cout << "\nIt seems that you are using macros that seem incorrect or have been redefined." << endl;
+                        cout << "The output can't be trusted." << endl;
+                        cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
                     }
 
                     found=true;

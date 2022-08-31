@@ -458,9 +458,19 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
-            if(!readFile(str, macroContainer, config)){
-                std::cerr << "Couldn't read/open file : " << str << endl;
+            try
+            {
+                if(!readFile(str, macroContainer, config)){
+                    std::cerr << "Couldn't read/open file : " << str << endl;
+                }
             }
+            catch(std::exception ex)
+            {
+                std::cerr << "An error has occured while trying to interpret this source file:" << endl;
+                std::cerr << str << endl;
+                std::cerr << "Exception message: " << ex.what() << endl;
+            }
+
 
 
         }
