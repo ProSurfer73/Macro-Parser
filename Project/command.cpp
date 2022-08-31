@@ -81,7 +81,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         if(!eraseRe && !eraseOk && !eraseIn)
         {
             cout << "No option parameter was given. No list was erased." << endl;
-            cout << "Try 'list all' or 'list ok' or 'list in'" << endl;
+            cout << "Try 'clear all' or 'clear ok' or 'clear in'." << endl;
         }
         macroContainer.clearDatabase(eraseOk, eraseRe, eraseIn);
     }
@@ -92,55 +92,87 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         cout << "|-> " << macroContainer.getRedefinedMacros().size() << " macros have been redefined." << endl;
         cout << "|-> " << macroContainer.getIncorrectMacros().size() << " macros seem incorrect." << endl;
     }
-    else if(str == "list"){
-        cout << "The command 'list' does not exist." << endl;
-        cout << "Did you mean listok ? listre ? listin ?" << endl;
-    }
-    else if(str == "listall" || str == "list all"){
+
+    else if(str.substr(0,4) == "list")
+    {
+        std::vector<std::string> parameters;
+        extractList(parameters, str.substr(5));
+
+        bool listRe=false;
+        bool listIn=false;
+        bool listOk=false;
+
+        for(const std::string& param: parameters)
+        {
+            if(param=="ok")
+                listOk=true;
+            else if(param=="in")
+                listIn=true;
+            else if(param=="re")
+                listRe=true;
+            else if(param=="all")
+                listOk=listIn=listRe=true;
+            else {
+                cout << "Incorrect option parameter '" << param << "'.\n" << endl;
+                return true;
+            }
+        }
+        if(!listRe && !listOk && !listIn)
+        {
+            cout << "No option parameter was given. No list was erased." << endl;
+            cout << "Try 'list all' or 'list ok' or 'list in' instead." << endl;
+        }
+
         unsigned nbPrinted=0;
-        for(const auto& p: macroContainer.getDefines()){
-            cout << p.first << " => " << p.second << endl;
-            if(++nbPrinted >= 1000){
-                cout << "/!\\ Only printed the 1000 first results /!\\" << endl;
+
+        for(const auto& p : macroContainer.getDefines())
+        {
+            if(listRe)
+            {
+                for(const string& str: macroContainer.getRedefinedMacros())
+                {
+                    if(p.first == str){
+                        cout << " - " << p.first << " => " << p.second << endl;
+                        ++nbPrinted;
+                        continue;
+                    }
+                }
+            }
+
+            if(listIn)
+            {
+                for(const string& str: macroContainer.getIncorrectMacros())
+                {
+                    if(p.first == str){
+                        cout << " - " << p.first << " => " << p.second << endl;
+                        ++nbPrinted;
+                        continue;
+                    }
+                }
+            }
+
+            if(listOk)
+            {
+                if(std::find(macroContainer.getIncorrectMacros().begin(), macroContainer.getIncorrectMacros().end(), p.first)==macroContainer.getIncorrectMacros().end()
+                && std::find(macroContainer.getRedefinedMacros().begin(), macroContainer.getRedefinedMacros().end(), p.first)==macroContainer.getRedefinedMacros().end())
+                {
+                    cout << " - " << p.first << " => " << p.second << endl;
+                    ++nbPrinted;
+                    continue;
+                }
+            }
+
+            if(nbPrinted >= 1000)
+            {
+                std::cout << "Only printed the first 1000 results." << endl;
                 break;
             }
         }
+
     }
 
-    // List only the macros that are at the same time not incorrect and not redefined
-    else if(str == "listok" || str == "list ok"){
-        for(const auto& p: macroContainer.getDefines()){
-            if(std::find(macroContainer.getIncorrectMacros().begin(), macroContainer.getIncorrectMacros().end(), p.first) == macroContainer.getIncorrectMacros().end()
-            && std::find(macroContainer.getRedefinedMacros().begin(), macroContainer.getRedefinedMacros().end(), p.first) == macroContainer.getRedefinedMacros().end())
-                std::cout << p.first << " => " << p.second << endl;
-        }
-    }
-    else if(str == "listre" || str == "list re"){
-        for(const string& str: macroContainer.getRedefinedMacros()){
-            cout << " - " << str;
-            for(const pair<string,string>& p: macroContainer.getDefines()){
-                if(p.first == str){
-                    cout << " => " << p.second;
-                    break;
-                }
-            }
-            cout << endl;
-        }
-    }
-    else if(str == "listin" || str == "list in"){
-        for(const string& str: macroContainer.getIncorrectMacros()){
-            cout << " - " << str;
-            for(const pair<string,string>& p: macroContainer.getDefines()){
-                if(p.first == str){
-                    cout << " => " << p.second;
-                    break;
-                }
-            }
-            cout << endl;
-        }
-    }
     else if(str.substr(0, 11) == "importfile "){
-        if(!readFile(str.substr(11), macroContainer))
+        if(!readFile(str.substr(11), macroContainer, configuration))
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
         else {
             runCommand("stat", macroContainer, configuration);
@@ -149,7 +181,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        readDirectory(str.substr(13), macroContainer, configuration.doesImportOnlySourceFileExtension());
+        readDirectory(str.substr(13), macroContainer, configuration);
         runCommand("stat", macroContainer, configuration);
         return true;
     }

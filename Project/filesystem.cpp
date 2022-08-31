@@ -34,7 +34,7 @@ BOOL DirectoryExists(LPCTSTR szPath)
 
 
 
-bool readFile(const string& pathToFile, MacroContainer& macroContainer)
+bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
 {
     ifstream file(pathToFile);
 
@@ -59,6 +59,11 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
 
     char endifStr[] = "#endif";
     unsigned posEndifStr=0;
+
+    char ifndefStr[] = "#ifndef ";
+    unsigned posIfndefStr=0;
+
+    unsigned posIfStr=0;
 
     char characterRead;
 
@@ -199,8 +204,10 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                 if(keepTrack.back()>=0)
                     macroContainer.emplace(str1, str2);
 
-                if(!insideConditions || keepTrack.back()>=1)
+                if(!config.doDisableInterpretations() && keepTrack.back()>=1){
                     localMacroNames.emplace_back(str1);
+                }
+
             }
 
         }
@@ -209,11 +216,34 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             posDefineStr = 0;
         }
 
+        if(!config.doDisableInterpretations())
+        {
+
         // #ifdef, #elif, #else, #endif detection mechanism
         if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
         if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
         if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
         if(characterRead == elseStr[posElseStr]){ posElseStr++; } else { posElseStr=0; }
+        if(characterRead == ifndefStr[posIfndefStr]){ posIfndefStr++; } else { posIfndefStr=0; }
+
+        // If we detected #if
+        if((posIfStr == 0 && characterRead=='#')
+         ||(posIfStr == 1 && characterRead=='i')
+         ||(posIfStr == 2 && characterRead=='f')
+         ||(posIfStr == 3 && (characterRead==' ' || characterRead == '(')))
+        {
+            ++posIfStr;
+
+            if(posIfStr >= 3){
+                insideConditions=true;
+                keepTrack.push_back(0);
+                posIfStr=0;
+            }
+
+
+        }
+        else
+            posIfStr=0;
 
         // If we detected ifdef
         if( posIfdefStr==7 )
@@ -232,9 +262,38 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                     break;
             }
 
+            clearSpaces(macroNameRead);
+
             if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
             {
                 keepTrack.push_back(1);
+            }
+            else
+            {
+                keepTrack.push_back(0);
+            }
+        }
+
+        // If we detected ifndef
+        else if(posIfndefStr == 8)
+        {
+            insideConditions=true;
+            posIfndefStr=0;
+
+            string macroNameRead;
+            while(file.get(characterRead))
+            {
+                if(characterRead == ' ' && !macroNameRead.empty())
+                    break;
+                else if(isMacroCharacter(characterRead))
+                    macroNameRead += characterRead;
+                else
+                    break;
+            }
+
+            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            {
+                keepTrack.push_back(-1);
             }
             else
             {
@@ -252,6 +311,12 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
                 posElifStr=0;
                 posElseStr=0;
             }
+            else if(keepTrack.back()==-1)
+            {
+                keepTrack[keepTrack.size()-1] = -1;
+                posElifStr=0;
+                posElseStr=0;
+            }
         }
 
         // If we detected endif
@@ -262,6 +327,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer)
             insideConditions=keepTrack.size()>1;
             keepTrack.pop_back();
             posEndifStr=0;
+        }
+
         }
     }
 
@@ -366,7 +433,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 #endif
 
-bool readDirectory(string dir, MacroContainer& macroContainer, const bool loadOnlySourceFile)
+bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config)
 {
     stringvec fileCollection;
 
@@ -389,9 +456,9 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const bool loadOn
 
     for(const string& str: fileCollection)
     {
-        if(!loadOnlySourceFile || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
+        if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
-            if(!readFile(str, macroContainer)){
+            if(!readFile(str, macroContainer, config)){
                 std::cerr << "Couldn't read/open file : " << str << endl;
             }
 

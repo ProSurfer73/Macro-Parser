@@ -14,6 +14,7 @@ void Options::resetToDefault()
     printReplacements = false;
     printExprAtEveryStep = false;
     keepListRedefinedMacros = true;
+    disableInterpretations = false;
 }
 
 
@@ -46,6 +47,10 @@ bool Options::loadFromFile(const char* filename)
             else if(line.substr(0,24) == "keepListRedefinedMacros=")
             {
                 loadBooleanValue(line.substr(24), keepListRedefinedMacros);
+            }
+            else if(line.substr(0,23) == "disableInterpretations=")
+            {
+                loadBooleanValue(line.substr(23), disableInterpretations);
             }
         }
 
@@ -80,6 +85,7 @@ void Options::toStream(std::ostream& stream) const
     stream << "printReplacements=" << printReplacements << std::endl;
     stream << "printExprAtEveryStep=" << printExprAtEveryStep << std::endl;
     stream << "keepListRedefinedMacros=" << keepListRedefinedMacros << std::endl;
+    stream << "disableInterpretations=" << disableInterpretations << std::endl;
 }
 
 
@@ -127,6 +133,9 @@ bool Options::changeOption(const std::string& s1, const std::string& s2)
     else if(s1=="keepListRedefinedMacros"){
         keepListRedefinedMacros=valueToBeSet;
     }
+    else if(s1=="disableInterpretations"){
+        disableInterpretations=valueToBeSet;
+    }
     else {
         std::cout << "Error setting the option: the option does not exists." << std::endl;
         return false;
@@ -162,4 +171,9 @@ bool Options::doesPrintExprAtEveryStep() const
 bool Options::doKeepListRedefinedMacros() const
 {
     return keepListRedefinedMacros;
+}
+
+bool Options::doDisableInterpretations() const
+{
+    return disableInterpretations;
 }
