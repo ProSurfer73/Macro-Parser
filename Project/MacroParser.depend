@@ -234,7 +234,7 @@
 	"command.hpp"
 	"options.hpp"
 
-1661935146 c:\git\macro-parser\project\stringeval.hpp
+1661961952 c:\git\macro-parser\project\stringeval.hpp
 	<vector>
 	<string>
 	<sstream>
@@ -275,7 +275,7 @@
 1661935146 source:c:\git\macro-parser\project\hexa.cpp
 	"hexa.hpp"
 
-1661786712 source:c:\git\macro-parser\project\main.cpp
+1661966917 source:c:\git\macro-parser\project\main.cpp
 	<iostream>
 	<fstream>
 	"hexa.hpp"
@@ -286,11 +286,11 @@
 1661935146 source:c:\git\macro-parser\project\options.cpp
 	"options.hpp"
 
-1661935146 source:c:\git\macro-parser\project\stringeval.cpp
+1661966883 source:c:\git\macro-parser\project\stringeval.cpp
 	"stringeval.hpp"
 	<iostream>
 
-1661947236 source:c:\git\macro-parser\project\command.cpp
+1661960376 source:c:\git\macro-parser\project\command.cpp
 	"command.hpp"
 
 1661935716 c:\git\macro-parser\project\container.hpp
@@ -300,4 +300,10 @@
 
 1661938543 source:c:\git\macro-parser\project\container.cpp
 	"container.hpp"
+
+1661953014 source:c:\git\macro-parser\project\booleval.cpp
+	"booleval.hpp"
+
+1661953026 c:\git\macro-parser\project\booleval.hpp
+	<string>
 

@@ -214,7 +214,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             }
             else
             {
-                std:cout << "Type the number definition you would like to apply to this macro:" << endl;
+                std::cout << "Type the number definition you would like to apply to this macro:" << endl;
 
                 for(unsigned i=0; i<possibleValues.size(); ++i)
                 {
@@ -230,7 +230,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     int result = std::atoi(str.c_str());
                     //cout << "result= " << result << endl;
 
-                    if(result > possibleValues.size())
+                    if(result > static_cast<int>(possibleValues.size()))
                     {
                         cout << "Number out of range." << endl;
                     }
@@ -286,16 +286,15 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                 {
                     cout << "first definition: " << p.second << endl;
                     string output = p.second;
-                    bool displayPbInfo = false;
-                    bool okay = calculateExpression(output, macroContainer, displayPbInfo, configuration);
-                    if(!okay)
+                    auto status = calculateExpression(output, macroContainer, configuration);
+                    if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\\n";
-                    if(displayPbInfo){
+                    if(status == CalculationStatus::EVAL_WARNING){
                         cout << "possible output: " << output << "??? ";
-                                            }
+                    }
                     else
                         cout << "output: " << output;
-                    if(okay){
+                    if(status == CalculationStatus::EVAL_OKAY){
                         string hexaRepresentation;
                         try { hexaRepresentation = convertDeciToHexa(std::stoi(output)); }
                         catch(const std::exception& ex){}
@@ -303,7 +302,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                             cout << " (hexa: 0x" << hexaRepresentation << ')';
                     }
                     cout << endl;
-                    if(displayPbInfo){
+                    if(status == CalculationStatus::EVAL_WARNING){
                         cout << "\nIt seems that you are using macros that seem incorrect or have been redefined." << endl;
                         cout << "The output can't be trusted." << endl;
                         cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;

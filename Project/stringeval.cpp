@@ -75,7 +75,7 @@ bool doesExprLookOk(const string& expr)
 }
 
 // The arithmetic expression must be correct and must NOT contain spaces.
-double evaluateArithmeticExpr(const string& expr)
+double evaluateSimpleArithmeticExpr(const string& expr)
 {
     stringstream mathStrm(expr);
     double result = (-3);
@@ -95,18 +95,17 @@ double evaluateArithmeticExpr(const string& expr)
     return result;
 }
 
-
-
 /** \brief
  *
  * \param expr: macro given in input
  * \param macroContainer
- * \return true is the expression has been calculated, or false
+ * \return status
  *
  */
-
-bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config)
+enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config)
 {
+    CalculationStatus status = CalculationStatus::EVAL_OKAY;
+
     const auto& dictionary = macroContainer.getDefines();
     const auto& redefinedMacros = macroContainer.getRedefinedMacros();
     const auto& incorrectMacros = macroContainer.getIncorrectMacros();
@@ -115,7 +114,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
     /// 0. Is the expression okay ?
 
     if(expr[0] == '?')
-        return false;
+        return CalculationStatus::EVAL_ERROR;
 
     // Remove spaces
     clearSpaces(expr);
@@ -186,21 +185,19 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
                 || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)){
                     // Then there is a problem, we stop the evaluation here.
 
-                    return false;
+                    return CalculationStatus::EVAL_ERROR;
                 }
 
                 expr = std::regex_replace(expr, std::regex(p.first), p.second); // replace 'def' -> 'klm'
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     cout << "/!\\ Warning: the macro " << p.first << " you are using have been redefined /!\\" << endl;
-                    shouldDisplayPbInfo = true;
-
-                    //
+                    status = CalculationStatus::EVAL_WARNING;
                 }
 
                 if(std::find(incorrectMacros.begin(), incorrectMacros.end(), p.first) != incorrectMacros.end()){
                     cout << "/!\\ Warning: the macro " << p.first << "you are using seem incorrect. /!\\" << endl;
-                    shouldDisplayPbInfo = true;
+                    status = CalculationStatus::EVAL_WARNING;
                 }
 
                 if(config.doesPrintExprAtEveryStep())
@@ -297,7 +294,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
 
     if(thereIsLetter)
     {
-        return false;
+        return CalculationStatus::EVAL_ERROR;
     }
 
 
@@ -314,76 +311,57 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
     unsigned counter = 0;
     #endif
 
-        while(expr.find('(') != string::npos && expr.find(')') != string::npos)
-        {
-            // n'importe quoi formule a revoir
-            //string toBeCalculated = expr.substr(expr.find_last_of('(')+1, expr.find_first_of(')')-(expr.find_last_of('(')) );
+    while(expr.find('(') != string::npos && expr.find(')') != string::npos)
+    {
+        size_t posClosePar = expr.find_first_of(')');
+        size_t posOpenPar = posClosePar;
+
+        for(;expr[posOpenPar]!='('; posOpenPar--);
+
+        string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
 
 
-
-            size_t posClosePar = expr.find_first_of(')');
-            size_t posOpenPar = posClosePar;
-
-            for(;expr[posOpenPar]!='('; posOpenPar--);
-
-            string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
-
-
-            bool thereIsOperation=false;
-            for(unsigned m=0;m<toBeCalculated.size();++m){
-                if(isOperationCharacter(toBeCalculated[m]))
-                    thereIsOperation=true;
-            }
-
-            #ifdef DEBUG_LOG_STRINGEVAL
-                cout << "thereisop: " << thereIsOperation << endl;
-            #endif
-
-
-            if(thereIsOperation)
-            {
-                double value = evaluateArithmeticExpr(toBeCalculated);
-
-                string afterDeletion = (expr.substr(0,posOpenPar) + to_string(value)) + expr.substr(posClosePar+1);
-
-                expr = afterDeletion;
-
-
-
-            }
-            else
-            {
-                // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
-                //toBeCalculated = expr.substr(expr.find_last_of('(')+1, expr.find_last_of(')')-(expr.find_last_of('(')+1) );
-
-                string begStr = expr.substr(0,posOpenPar);
-                string midStr = toBeCalculated;
-                string endStr = &expr[posClosePar+1];
-
-                string afterDeletion = begStr + midStr + endStr;
-
-                #ifdef DEBUG_LOG_STRINGEVAL
-                cout << "after:" << afterDeletion << endl;
-                cout << "b:" << begStr << ":" << midStr << ":" << endStr << endl;
-                #endif
-
-                expr = afterDeletion;
-            }
-
-            #ifdef DEBUG_ENABLE_ASSERTIONS
-                ++counter;
-                assert(counter < 100);
-            #endif // DEBUG_ENABLE_ASSERTIONS
-
-
-            clearSpaces(expr);
-
-            if(config.doesPrintExprAtEveryStep())
-                cout << expr << endl;
+        bool thereIsOperation=false;
+        for(unsigned m=0;m<toBeCalculated.size();++m){
+            if(isOperationCharacter(toBeCalculated[m]))
+                thereIsOperation=true;
         }
 
-        if(!doesExprLookOk(expr))
-            return false;
+        #ifdef DEBUG_LOG_STRINGEVAL
+            cout << "thereisop: " << thereIsOperation << endl;
+        #endif
+
+
+        if(thereIsOperation)
+        {
+            double value = evaluateSimpleArithmeticExpr(toBeCalculated);
+
+            expr = (expr.substr(0,posOpenPar) + to_string(value)) + expr.substr(posClosePar+1);
+        }
+        else
+        {
+            // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
+
+            string begStr = expr.substr(0,posOpenPar);
+            string midStr = toBeCalculated;
+            string endStr = &expr[posClosePar+1];
+
+            expr = begStr + midStr + endStr;
+        }
+
+        #ifdef DEBUG_ENABLE_ASSERTIONS
+            ++counter;
+            assert(counter < 100);
+        #endif // DEBUG_ENABLE_ASSERTIONS
+
+        clearSpaces(expr);
+
+        if(config.doesPrintExprAtEveryStep())
+            cout << expr << endl;
+    }
+
+    if(!doesExprLookOk(expr))
+        return CalculationStatus::EVAL_ERROR;
 
 
     #endif
@@ -392,7 +370,7 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
     std::cout << "final:" << expr+"+0" << endl;
     #endif
 
-    double result=evaluateArithmeticExpr(expr+"+0");
+    double result=evaluateSimpleArithmeticExpr(expr+"+0");
 
     if(result != -3)
     {
@@ -402,5 +380,5 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
             expr = to_string(result);
     }
 
-    return true;
+    return status;
 }

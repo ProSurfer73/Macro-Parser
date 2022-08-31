@@ -13,6 +13,8 @@ using namespace std;
 
 int main()
 {
+
+
     // Welcoming message
     std::cout << "WELCOME TO MACRO PARSER." << endl;
     std::cout << "Type 'help' to see the available commands.\n" << endl;
