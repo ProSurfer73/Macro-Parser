@@ -461,6 +461,16 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
             if(!readFile(str, macroContainer, config)){
                 std::cerr << "Couldn't read/open file : " << str << endl;
             }
+<<<<<<< Updated upstream
+=======
+            catch(const std::exception& ex)
+            {
+                std::cerr << "An error has occured while trying to interpret this source file:" << endl;
+                std::cerr << str << endl;
+                std::cerr << "Exception message: " << ex.what() << endl;
+            }
+
+>>>>>>> Stashed changes
 
 
         }

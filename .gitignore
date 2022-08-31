@@ -5,3 +5,5 @@
 *.obj
 config.txt
 *.layout
+
+/bin/Debug/

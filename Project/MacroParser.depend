@@ -209,7 +209,11 @@
 	<iostream>
 	"config.hpp"
 
+<<<<<<< Updated upstream
 1661931090 source:c:\git\macro-parser\project\filesystem.cpp
+=======
+1661968452 source:c:\git\macro-parser\project\filesystem.cpp
+>>>>>>> Stashed changes
 	"filesystem.hpp"
 
 1661930632 c:\git\macro-parser\project\filesystem.hpp
@@ -275,7 +279,11 @@
 1661884078 source:c:\git\macro-parser\project\hexa.cpp
 	"hexa.hpp"
 
+<<<<<<< Updated upstream
 1661786712 source:c:\git\macro-parser\project\main.cpp
+=======
+1661970807 source:c:\git\macro-parser\project\main.cpp
+>>>>>>> Stashed changes
 	<iostream>
 	<fstream>
 	"hexa.hpp"
@@ -286,7 +294,11 @@
 1661930952 source:c:\git\macro-parser\project\options.cpp
 	"options.hpp"
 
+<<<<<<< Updated upstream
 1661894378 source:c:\git\macro-parser\project\stringeval.cpp
+=======
+1661970788 source:c:\git\macro-parser\project\stringeval.cpp
+>>>>>>> Stashed changes
 	"stringeval.hpp"
 	<iostream>
 
