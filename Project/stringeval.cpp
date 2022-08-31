@@ -384,6 +384,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     #endif
 
 
+    #ifdef DEV
+
     // 4. Conditional operations
 
     cout << "start:" << expr << endl;
@@ -468,6 +470,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         ++counter;
     }
     while(repeat && counter < 100);
+
+    #endif
 
     #ifdef DEBUG_LOG_STRINGEVAL
     std::cout << "final:" << expr+"+0" << endl;
