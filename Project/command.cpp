@@ -228,7 +228,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                 if(isAllDigits(str))
                 {
                     int result = std::atoi(str.c_str());
-                    cout << "result= " << result << endl;
+                    //cout << "result= " << result << endl;
 
                     if(result > possibleValues.size())
                     {
