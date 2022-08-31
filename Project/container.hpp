@@ -19,6 +19,7 @@ public:
     // Lookup commands
     void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
     unsigned countMacroName(const std::string& macroName) const;
+    bool isRedefined(std::string macroName) const;
 
     // Getters
     const std::vector< std::pair< std::string, std::string> >& getDefines() const;

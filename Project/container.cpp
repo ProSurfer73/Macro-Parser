@@ -111,6 +111,19 @@ unsigned MacroContainer::countMacroName(const std::string& macroName) const
     return nb;
 }
 
+bool MacroContainer::isRedefined(std::string macroName) const
+{
+    unsigned nb=0;
+    for(const std::pair<std::string,std::string>& p : defines)
+    {
+        if(p.first == macroName){
+            if(++nb >= 2)
+                return true;
+        }
+    }
+    return false;
+}
+
 
 
 

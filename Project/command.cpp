@@ -9,6 +9,7 @@ static void printHelp()
     cout << "- stat : print the number of macros imported" << endl;
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
     cout << "- define [macro] [value] : add/replace a specific macro" << endl;
+    cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
     cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
     cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
@@ -42,6 +43,16 @@ static void extractList(std::vector<std::string>& outputList, const std::string&
     {
         outputList.emplace_back(str);
     }
+}
+
+static bool isAllDigits(const std::string& str)
+{
+    for(char c: str)
+    {
+        if(!isdigit(c))
+            return false;
+    }
+    return true;
 }
 
 
@@ -96,7 +107,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     else if(str.substr(0,4) == "list")
     {
         std::vector<std::string> parameters;
-        extractList(parameters, str.substr(5));
+        extractList(parameters, str.substr(4));
 
         bool listRe=false;
         bool listIn=false;
@@ -171,6 +182,71 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     }
 
+    else if(str.substr(0,10) == "interpret ")
+    {
+        string macroName = str.substr(10);
+        clearSpaces(macroName);
+
+        if(macroName.empty())
+        {
+            cout << "You need to specify a existing macro name to this command." << endl;
+        }
+        else
+        {
+            std::vector<std::string> possibleValues;
+
+            for(const auto& p: macroContainer.getDefines())
+            {
+                if(p.first == macroName)
+                {
+                    possibleValues.emplace_back(p.second);
+                }
+            }
+
+            if(possibleValues.empty())
+            {
+                std::cout << "This macro does not seem to exist." << endl;
+            }
+            else if(possibleValues.size()==1)
+            {
+                std::cout << "No need to interpret this macro." << endl;
+                std::cout << "This macro has already one definition." << endl;
+            }
+            else
+            {
+                std:cout << "Type the number definition you would like to apply to this macro:" << endl;
+
+                for(unsigned i=0; i<possibleValues.size(); ++i)
+                {
+                    std::cout << i+1 << ". \"" << possibleValues[i] << '\"' << endl;
+                }
+
+                std::cout << "0. Cancel, don't interpret this macro." << endl;
+
+                getline(cin, str);
+
+                if(isAllDigits(str))
+                {
+                    int result = std::atoi(str.c_str());
+                    cout << "result= " << result << endl;
+
+                    if(result > possibleValues.size())
+                    {
+                        cout << "Number out of range." << endl;
+                    }
+                    else if(result > 0)
+                    {
+                        macroContainer.emplaceAndReplace(macroName, possibleValues[result-1]);
+                    }
+                    else if(result != 0)
+                    {
+                        cout << "The macro was not interpreted." << endl;
+                    }
+                }
+            }
+        }
+    }
+
     else if(str.substr(0, 11) == "importfile "){
         if(!readFile(str.substr(11), macroContainer, configuration))
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
@@ -188,11 +264,19 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
     else if(str.substr(0, 5) == "look ")
     {
-        if(macroContainer.getDefines().empty())
+        str=str.substr(5);
+        clearSpaces(str);
+
+        if(macroContainer.countMacroName(str)>1)
+        {
+            std::cout << "This macro needs to be interpreted." << endl;
+            std::cout << "Type 'interpret " << str << "'." << endl;
+        }
+        else if(macroContainer.getDefines().empty())
             cout << "No macros were imported yet." << endl;
         else
         {
-            string userInput = str.substr(5);
+            string userInput = str;
 
             bool found = false;
 
@@ -231,7 +315,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             }
 
             if(!found)
-                cout << "No macro was found with this name." << endl;
+                cout << "No macro was found with this name '" << str << "'." << endl;
         }
     }
     else if(str.substr(0,7) == "define " && str.size()>=10){
