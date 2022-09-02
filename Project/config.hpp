@@ -11,7 +11,6 @@
 
 // Config parameters for the string evaluation
 
-#define PARENTHESIS_EVALUATION
 #define READ_HEXADECIMAL
 
 /// Debugging options

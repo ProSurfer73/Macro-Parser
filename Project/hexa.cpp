@@ -2,6 +2,15 @@
 
 using namespace std;
 
+static bool isStrictHexaLetter(char c)
+{
+    return ( (c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F') );
+}
+
+bool isHexaLetter(char c)
+{
+    return isStrictHexaLetter(c)||c=='x';
+}
 
 
 // This function looks for hexadecimal numbers and try to replace them by decimal number
@@ -15,7 +24,7 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
     {
 
         unsigned k=searchedX;
-        while(isHexaLetter(str[++k]));
+        while(isStrictHexaLetter(str[++k]));
 
         string endStr=string(&str[k]);
         string begStr=str.substr(0, searchedX-1);
@@ -87,10 +96,6 @@ long long convertHexaToDeci(const std::string& hex)
 }
 
 
-bool isHexaLetter(char c)
-{
-    return ( (c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F') );
-}
 
 string convertDeciToHexa(long int num)
 {

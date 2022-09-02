@@ -31,6 +31,8 @@ void dealWithUser(MacroContainer& macroContainer, Options& configuration)
         getline(cin, userInput);
 
         running = runCommand(userInput, macroContainer, configuration);
+
+        cout << endl;
     }
 }
 
@@ -85,8 +87,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             else if(param=="all")
                 eraseOk=eraseIn=eraseRe=true;
             else {
-                cout << "Incorrect option parameter '" << param << "'.\n" << endl;
-                return true;
+                cout << "Incorrect option parameter '" << param << "'." << endl;
             }
         }
         if(!eraseRe && !eraseOk && !eraseIn)
@@ -124,8 +125,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             else if(param=="all")
                 listOk=listIn=listRe=true;
             else {
-                cout << "Incorrect option parameter '" << param << "'.\n" << endl;
-                return true;
+                cout << "Incorrect option parameter '" << param << "'." << endl;
             }
         }
         if(!listRe && !listOk && !listIn)
@@ -173,9 +173,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                 }
             }
 
-            if(nbPrinted >= 1000)
+            if(nbPrinted >= 5000)
             {
-                std::cout << "Only printed the first 1000 results." << endl;
+                std::cout << "Only printed the first 5000 results." << endl;
                 break;
             }
         }
@@ -252,12 +252,12 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
         else {
             runCommand("stat", macroContainer, configuration);
-            return true;
         }
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        readDirectory(str.substr(13), macroContainer, configuration);
+        if(!readDirectory(str.substr(13), macroContainer, configuration))
+            cout << "/!\\ Error: can't open that directory. /!\\" << endl;
         runCommand("stat", macroContainer, configuration);
         return true;
     }
@@ -294,8 +294,8 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     }
                     else
                         cout << "output: " << output;
-                    if(status == CalculationStatus::EVAL_OKAY){
-                        string hexaRepresentation;
+                    if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
+                        std::string hexaRepresentation;
                         try { hexaRepresentation = convertDeciToHexa(std::stoi(output)); }
                         catch(const std::exception& ex){}
                         if(!hexaRepresentation.empty())
@@ -317,16 +317,21 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                 cout << "No macro was found with this name '" << str << "'." << endl;
         }
     }
-    else if(str.substr(0,7) == "define " && str.size()>=10){
+    else if(str.substr(0,7) == "define " && str.size()>=8){
         std::istringstream ss(str.substr(6));
         string str1;
         ss >> str1;
-        string str2;
-        if(ss.tellg() != (-1))
-            str2=str.substr(6+ss.tellg());
-        if(!doesExprLookOk(str2))
-            cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
-        macroContainer.emplaceAndReplace(str1, str2);
+        if(str1.empty())
+            std::cout << "Error: no parameter was given to the define command." << endl;
+        else
+        {
+            string str2;
+            if(ss.tellg() != (-1))
+                str2=str.substr(6+ss.tellg());
+            if(!doesExprLookOk(str2))
+                cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
+            macroContainer.emplaceAndReplace(str1, str2);
+        }
     }
     else if(str.substr(0,7) == "search " && str.size()>8){
         std::vector<std::string> wordsToFind;
@@ -351,15 +356,12 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
     else if(str == "cls"){
         system("cls");
-        return true;
     }
     else if(str == "exit")
         return false;
     else {
         cout << "This command is unknown." << endl;
     }
-
-    cout << endl;
 
     return true;
 }

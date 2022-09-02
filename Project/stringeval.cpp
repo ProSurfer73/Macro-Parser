@@ -100,6 +100,55 @@ double evaluateSimpleArithmeticExpr(const string& expr)
     return result;
 }
 
+
+static bool simpleReplace(std::string& str, const std::string& from, const std::string& to)
+{
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
+
+static bool treatOperationChar(std::string& str, std::string operation, bool (*operateur)(double, double))
+{
+    std::size_t searchedCharacter = str.find(operation);
+
+    if(searchedCharacter != std::string::npos)
+    {
+        std::string str1=str.substr(0,searchedCharacter);
+        std::string str2=str.substr(searchedCharacter+operation.length());
+
+        double value1=-1, value2=-1;
+
+        try
+        {
+            value1=std::stod(str1);
+            value2=std::stod(str2);
+        }
+        catch(const std::exception& ex)
+        {
+            if(operation=="==" && str1==str2)
+            {
+                str="true";
+                return true;
+            }
+
+            return false;
+        }
+
+        if((*operateur)(value1,value2))
+            str = "true";
+        else
+            str = "false";
+
+        return true;
+    }
+
+    return false;
+}
+
 /** \brief
  *
  * \param expr: macro given in input
@@ -114,6 +163,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     const auto& dictionary = macroContainer.getDefines();
     const auto& redefinedMacros = macroContainer.getRedefinedMacros();
     const auto& incorrectMacros = macroContainer.getIncorrectMacros();
+
+    unsigned counter = 0;
 
 
     /// 0. Is the expression okay ?
@@ -193,7 +244,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     return CalculationStatus::EVAL_ERROR;
                 }
 
-                expr = std::regex_replace(expr, std::regex(p.first), p.second); // replace 'def' -> 'klm'
+                //expr = std::regex_replace(expr, std::regex(p.first), p.second); // replace 'def' -> 'klm'
+                simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     cout << "/!\\ Warning: the macro " << p.first << " you are using have been redefined /!\\" << endl;
@@ -239,12 +291,13 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     {
                         // We delete the mac from the expr string
                         string cop1 = expr;
-                        cop1 = std::regex_replace(cop1, std::regex(mac.substr(0,mac.size()-3)), ""); // replace 'def' -> 'klm'
+                        //cop1 = std::regex_replace(cop1, std::regex(mac.substr(0,mac.size()-3)), ""); // replace 'def' -> 'klm'
+                        simpleReplace(cop1, mac.substr(0,mac.size()-3), "");
 
                         // In string p.second ; replace '(x)' <= expr
                         string cop2 = p.second;
                         //cop2 = std::regex_replace(cop2, std::regex("(x)"), cop1); // replace 'def' -> 'klm'
-                        cop1 = std::regex_replace(cop2, std::regex("(x)"), cop1); // replace 'def' -> 'klm'
+                        simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
 
                         if(config.doesPrintReplacements()){
                             cout << "replaced '" << p.first << "' by '" << p.second << '\'' << endl;
@@ -253,7 +306,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                         #ifdef DEBUG_LOG_STRINGEVAL
                         cout << "before: " << expr << "==" << mac << endl;
                         #endif
-                        expr = cop1;
+                        expr = cop2;
 
                         #ifdef DEBUG_LOG_STRINGEVAL
                         cout << "after: " << expr << endl;
@@ -275,6 +328,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             }
 
             repeat = true;
+
         }
 
 
@@ -299,7 +353,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     if(thereIsLetter)
     {
-        return CalculationStatus::EVAL_ERROR;
+        //cout << "thereisLetter" << endl;
+        goto skipArithmeticOperations;
     }
 
 
@@ -312,9 +367,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     cout << "c:" << expr << endl;
     #endif
 
-    #ifdef DEBUG_ENABLE_ASSERTIONS
-    unsigned counter = 0;
-    #endif
 
     while(expr.find('(') != string::npos && expr.find(')') != string::npos)
     {
@@ -377,29 +429,39 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             cout << expr << endl;
     }
 
-    if(!doesExprLookOk(expr))
-        return CalculationStatus::EVAL_ERROR;
+    //if(!doesExprLookOk(expr))return CalculationStatus::EVAL_ERROR;
 
 
     #endif
 
+    skipArithmeticOperations:
 
+    #define DEV
     #ifdef DEV
 
     // 4. Conditional operations
 
-    cout << "start:" << expr << endl;
 
     unsigned searchedCharacter;
-    string begStr;
-    string subExpr;
-    string endStr;
 
     counter=0;
 
     do
     {
+
+        string begStr;
+        string subExpr;
+        string endStr;
+
         repeat=false;
+
+        // Treat the '!' binary operator
+
+        if(simpleReplace(expr, "!false", "true")
+        ||simpleReplace(expr, "!true", "false")
+        ||simpleReplace(expr, "(true)", "true")
+        ||simpleReplace(expr, "(false)", "false"))
+            repeat=true;
 
         // Let's delete parenthesis
         if(expr.find('(')!=std::string::npos
@@ -412,66 +474,30 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             begStr = expr.substr(0,posOpenPar);
             subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
             endStr = &expr[posClosePar+1];
-
-            cout << "subExpr1:" << subExpr << endl;
-
-            repeat=true;
         }
         else
         {
             subExpr = expr;
         }
-        cout << "subExpr:" << subExpr << endl;
 
-
-        searchedCharacter = subExpr.find('>');
-
-        // treat '>' character
-        if(searchedCharacter != std::string::npos)
+        if(treatOperationChar(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
+        || treatOperationChar(subExpr, "<", [](double d1, double d2){ return d1<d2; } )
+        || treatOperationChar(subExpr, "==", [](double d1, double d2){ return d1==d2; } )
+        || treatOperationChar(subExpr, "!=", [](double d1, double d2){ return d1!=d2; } )
+        || treatOperationChar(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
+        || treatOperationChar(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } ))
         {
-            std::string str1=subExpr.substr(0,searchedCharacter-1);
-            std::string str2=subExpr.substr(searchedCharacter+2);
-
-            bool conversionOkay=true;
-            double value1=-1, value2=-1;
-
-            try
-            {
-                value1=std::stod(str1);
-                value2=std::stod(str2);
-            }
-            catch(const std::exception& ex)
-            {
-                conversionOkay = false;
-            }
-
-            if(conversionOkay)
-            {
-                std::string str3;
-
-                if(value1 > value2)
-                    str3 = "true";
-                else
-                    str3 = "false";
-
-                expr=begStr+str1+str3+str2+endStr;
-                cout << expr << endl;
-
-                repeat=true;
-            }
-
+            expr = begStr+subExpr+endStr;
+            repeat=true;
         }
 
-        //Sleep(2000);
-
-
-
-
-        ++counter;
+        if(repeat && config.doesPrintExprAtEveryStep()){
+            cout << expr << endl;
+        }
     }
     while(repeat && counter < 100);
 
-    #endif
+    #endif // DEV
 
     #ifdef DEBUG_LOG_STRINGEVAL
     std::cout << "final:" << expr+"+0" << endl;
