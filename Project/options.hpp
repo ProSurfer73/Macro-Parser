@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "config.hpp"
 
 class Options
@@ -18,7 +19,7 @@ class Options
 public:
     Options();
     void toStream(std::ostream& stream) const;
-    bool changeOption(const std::string& s1, const std::string& s2);
+    bool changeOption(const std::string& s1, std::string& s2);
 
     // Getters
     bool doesImportOnlySourceFileExtension() const;

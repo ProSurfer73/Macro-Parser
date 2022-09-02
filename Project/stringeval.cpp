@@ -9,7 +9,7 @@ void clearSpaces(string& str)
 
 static bool isOperationCharacter(char c)
 {
-    return (c=='+'||c=='-'||c=='*'||c=='/');
+    return (c=='+'||c=='-'||c=='*'||c=='/'||c=='%');
 }
 
 bool isMacroCharacter(char c)
@@ -37,6 +37,17 @@ static void func(double &result, char op, double num)
             break;
         case '/':
             result /= num;
+            break;
+        case '%':
+            if(num<=0)
+            {
+                std::cout << "error: %0" << endl;
+                break;
+            }
+
+            while(result>num){
+                result -= num;
+            }
             break;
         default:
             std::cout << "Unrecognized character: " << op << std::endl;
@@ -101,7 +112,7 @@ double evaluateSimpleArithmeticExpr(const string& expr)
 }
 
 
-static bool simpleReplace(std::string& str, const std::string& from, const std::string& to)
+bool simpleReplace(std::string& str, const std::string& from, const std::string& to)
 {
     size_t start_pos = str.find(from);
     if(start_pos == std::string::npos)
@@ -111,7 +122,7 @@ static bool simpleReplace(std::string& str, const std::string& from, const std::
 }
 
 
-static bool treatOperationChar(std::string& str, std::string operation, bool (*operateur)(double, double))
+static bool treatOperationDouble(std::string& str, std::string operation, bool (*operateur)(double, double))
 {
     std::size_t searchedCharacter = str.find(operation);
 
@@ -169,8 +180,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     /// 0. Is the expression okay ?
 
-    if(expr[0] == '?')
-        return CalculationStatus::EVAL_ERROR;
+    //if(expr[0] == '?')return CalculationStatus::EVAL_ERROR;
 
     // Remove spaces
     clearSpaces(expr);
@@ -239,9 +249,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 // If replacement strings aren't correct
                 if((p.first.find('(') != string::npos && p.first.find(')') == string::npos)
                 || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)){
-                    // Then there is a problem, we stop the evaluation here.
+                    // Then there is a problem, we skip.
 
-                    return CalculationStatus::EVAL_ERROR;
+                    //return CalculationStatus::EVAL_ERROR;
+                    continue;
                 }
 
                 //expr = std::regex_replace(expr, std::regex(p.first), p.second); // replace 'def' -> 'klm'
@@ -338,6 +349,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
 
 
+    restartArithmeticEval:
 
     /// 2. Can the expression be evaluated ?
 
@@ -361,11 +373,11 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     /// 3. Arithmetic operations
 
-    #ifdef PARENTHESIS_EVALUATION
 
     #ifdef DEBUG_LOG_STRINGEVAL
     cout << "c:" << expr << endl;
     #endif
+
 
 
     while(expr.find('(') != string::npos && expr.find(')') != string::npos)
@@ -376,6 +388,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
 
+        //cout << "toBeCalculated: " << toBeCalculated << endl;
 
         bool thereIsOperation=false;
         for(unsigned m=0;m<toBeCalculated.size();++m){
@@ -413,8 +426,11 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
                 expr = begStr + midStr + endStr;
             }
-            else
+            else{
+                //cout << "is not number" << endl;
                 break;
+            }
+
 
         }
 
@@ -432,7 +448,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     //if(!doesExprLookOk(expr))return CalculationStatus::EVAL_ERROR;
 
 
-    #endif
+
 
     skipArithmeticOperations:
 
@@ -445,6 +461,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     unsigned searchedCharacter;
 
     counter=0;
+
 
     do
     {
@@ -469,6 +486,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         {
             size_t posClosePar = expr.find_first_of(')');
             size_t posOpenPar = posClosePar;
+
             for(;expr[posOpenPar]!='('; posOpenPar--);
 
             begStr = expr.substr(0,posOpenPar);
@@ -480,22 +498,44 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             subExpr = expr;
         }
 
-        if(treatOperationChar(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
-        || treatOperationChar(subExpr, "<", [](double d1, double d2){ return d1<d2; } )
-        || treatOperationChar(subExpr, "==", [](double d1, double d2){ return d1==d2; } )
-        || treatOperationChar(subExpr, "!=", [](double d1, double d2){ return d1!=d2; } )
-        || treatOperationChar(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
-        || treatOperationChar(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } ))
+
+        if(
+        // Treat double comparaison operations
+           treatOperationDouble(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
+        || treatOperationDouble(subExpr, "<", [](double d1, double d2){ return d1<d2; } )
+        || treatOperationDouble(subExpr, "==", [](double d1, double d2){ return d1==d2; } )
+        || treatOperationDouble(subExpr, "!=", [](double d1, double d2){ return d1!=d2; } )
+        || treatOperationDouble(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
+        || treatOperationDouble(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } )
+
+        // Treat AND boolean operations
+        || simpleReplace(subExpr, "false&&false", "false")
+        || simpleReplace(subExpr, "true&&true", "true")
+        || simpleReplace(subExpr, "true&&false", "false")
+        || simpleReplace(subExpr, "false&&true", "true")
+
+        // Treat OR boolean operations
+        || simpleReplace(subExpr, "false||false", "false")
+        || simpleReplace(subExpr, "||true", "")
+        || simpleReplace(subExpr, "true||", ""))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
         }
 
-        if(repeat && config.doesPrintExprAtEveryStep()){
-            cout << expr << endl;
+        if(repeat)
+        {
+            counter++;
+
+            if( config.doesPrintExprAtEveryStep()){
+                cout << expr << endl;
+            }
         }
     }
     while(repeat && counter < 100);
+
+    if(counter > 0) goto restartArithmeticEval;
+
 
     #endif // DEV
 

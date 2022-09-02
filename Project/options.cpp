@@ -101,9 +101,13 @@ bool Options::saveToFile(const char* filename) const
     return true;
 }
 
-bool Options::changeOption(const std::string& s1, const std::string& s2)
+
+bool Options::changeOption(const std::string& s1, std::string& s2)
 {
     bool valueToBeSet=false;
+
+    // lower s2
+    std::transform(s2.begin(), s2.end(), s2.begin(), [](unsigned char c){ return std::tolower(c); });
 
     // Interpret s2
     if(s2=="1"||s2=="true"){

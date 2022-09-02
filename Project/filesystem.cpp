@@ -73,6 +73,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
 
     std::vector<std::string> localMacroNames;
 
+    bool firstIntrusction = true;
+
 
 
     bool insideConditions=false;
@@ -80,7 +82,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
     while(file.get(characterRead))
     {
         /// avoid to load defines that are commented
-        if(characterRead == '/')
+        if(characterRead == '/' && config.doesImportMacroCommented())
         {
             posLineComment++;
 
@@ -94,9 +96,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             }
         }
 
-        #ifdef IGNORE_MACRO_INSIDE_LONG_COMMENT
-
-        else if(characterRead == '*' && posLineComment==1)
+        else if(characterRead == '*' && posLineComment==1 && config.doesImportMacroCommented())
         {
             // We skip everything until we reach the end of comment "*/"
             char previousRead='r';
@@ -112,7 +112,6 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             posLineComment=0;
         }
 
-        #endif
 
 
         if(characterRead == defineStr[posDefineStr])
@@ -122,6 +121,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             //
             if(posDefineStr >= 8)
             {
+                firstIntrusction = false;
+
                 posDefineStr = 0;
 
                 string str1;
@@ -131,16 +132,19 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
                 // We skip spaces first
                 while(file.get(characterRead)){
                     if(characterRead == '\n')
-                        continue;
+                        break;
                     else if(characterRead != ' '){
                         str1 += characterRead;
                         break;
                     }
                 }
+                if(characterRead == '\n' && str1.empty())
+                    continue;
+
                 // Then we load the identifier (the complete word)
                 while(file.get(characterRead) && characterRead != ' '){
                         if(characterRead == '\n')
-                            continue;
+                            break;
                         str1 += characterRead;
                 }
 
@@ -232,14 +236,83 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
          ||(posIfStr == 2 && characterRead=='f')
          ||(posIfStr == 3 && (characterRead==' ' || characterRead == '(')))
         {
+            firstIntrusction=false;
+
             ++posIfStr;
 
-            if(posIfStr >= 3){
-                insideConditions=true;
+            if(posIfStr >= 4 && config.doDisableInterpretations())
+            {
                 keepTrack.push_back(0);
+                insideConditions=true;
                 posIfStr=0;
             }
 
+            else if(posIfStr >= 4)
+            {
+                insideConditions=true;
+
+
+            string conditionStr;
+            conditionStr += characterRead;
+
+            while(file.get(characterRead) && characterRead != '\n')
+            {
+                conditionStr += characterRead;
+            }
+
+            clearSpaces(conditionStr);
+
+            // Let's create a new container with our local defines
+
+            for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }
+
+            MacroContainer localContainer;
+
+            for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
+            {
+                if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
+                    localContainer.emplace(p.first, p.second);
+            }
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+
+            auto status = calculateExpression(conditionStr, localContainer, config);
+
+            /*for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }*/
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+
+            if(status == CalculationStatus::EVAL_OKAY )
+            {
+                if(conditionStr == "true")
+                {
+                    //std::cout << 1 << endl;
+                    keepTrack.push_back(1);
+                }
+                else if(conditionStr=="false")
+                {
+                    //std::cout << -1 << endl;
+                    keepTrack.push_back(-1);
+                }
+
+            }
+            else
+            {
+                //std::cout << "Not interpreted: " << conditionStr << endl;
+                keepTrack.push_back(0);
+            }
+
+
+                posIfStr=0;
+            }
 
         }
         else
@@ -248,6 +321,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
         // If we detected ifdef
         if( posIfdefStr==7 )
         {
+            firstIntrusction=false;
+
             insideConditions=true;
             posIfdefStr=0;
 
@@ -272,13 +347,16 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             {
                 keepTrack.push_back(0);
             }
+            firstIntrusction=false;
         }
 
         // If we detected ifndef
         else if(posIfndefStr == 8)
         {
+            if(!firstIntrusction)
+            {
+
             insideConditions=true;
-            posIfndefStr=0;
 
             string macroNameRead;
             while(file.get(characterRead))
@@ -299,6 +377,11 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             {
                 keepTrack.push_back(0);
             }
+
+            }
+
+            posIfndefStr=0;
+            firstIntrusction=false;
         }
 
         // If we detected elif
@@ -325,14 +408,15 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             string str1;
 
             insideConditions=keepTrack.size()>1;
-            keepTrack.pop_back();
+            if(keepTrack.size()>1)
+                keepTrack.pop_back();
             posEndifStr=0;
         }
 
         }
     }
 
-
+    //cout << keepTrack.size() << endl;
 
     return true;
 }

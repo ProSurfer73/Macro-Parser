@@ -26,11 +26,11 @@ void clearSpaces(string& str);
 
 void splitString(std::vector<std::string>& outputVector, std::string initialStr);
 
-enum CalculationStatus calculateBoolExpression(string& expr, const MacroContainer& macroContainer, const Options& config);
-
 bool doesExprLookOk(const string& expr);
 
 double evaluateSimpleArithmeticExpr(const std::string& expr);
+
+bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
 
 
