@@ -29,7 +29,7 @@ Download the latest version.\
 Double-click on the executable and you're done !
 
 # Screenshots
-![Screenshot1_v2](https://raw.githubusercontent.com/ProSurfer73/Work-tools/main/Screenshots/MacroParser1_v2.png)
-![Screenshot2_v2](https://raw.githubusercontent.com/ProSurfer73/Work-tools/main/Screenshots/MacroParser2_v2.png)
+![Screenshot1_v2](https://raw.githubusercontent.com/ProSurfer73/Macro-Parser/main/Screenshots/MacroParser1.png)
+![Screenshot2_v2](https://raw.githubusercontent.com/ProSurfer73/Macro-Parser/main/Screenshots/MacroParser2.png)
 
 
