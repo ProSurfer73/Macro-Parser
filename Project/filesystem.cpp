@@ -236,7 +236,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
          ||(posIfStr == 2 && characterRead=='f')
          ||(posIfStr == 3 && (characterRead==' ' || characterRead == '(')))
         {
-            firstIntrusction=false;
+
 
             ++posIfStr;
 
@@ -250,6 +250,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
             else if(posIfStr >= 4)
             {
                 insideConditions=true;
+                firstIntrusction=false;
 
 
             string conditionStr;
@@ -589,7 +590,7 @@ bool importDirectory(string dir, MacroContainer& macroContainer, const Options& 
     return true;
 }
 
-bool searchFile(const char* pathToFile, const std::string& macroName, const Options& config)
+bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config)
 {
     std::ifstream file(pathToFile);
 
@@ -623,7 +624,7 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
 
     for(const std::string& str: fileCollection)
     {
-        if(searchFile(str.c_str(), macroName, config))
+        if(searchFile(str, macroName, config))
         {
             std::cout << str << endl;
             ++nbResults;

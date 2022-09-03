@@ -226,7 +226,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             else if(mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
                 && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
             {
-                std::cout << "maxSizeReplaceSig = " << mac << endl;
                 maxSizeReplaceSig = mac;
             }
         }

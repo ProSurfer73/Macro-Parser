@@ -39,7 +39,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
 
 bool importDirectory(string dir, MacroContainer& macroContainer, const Options& config);
 
-bool searchFile(const char* pathToFile, const std::string& macroName, const Options& config);
+bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
 
 bool searchDirectory(string dir, const std::string& macroName, const Options& config);
 
