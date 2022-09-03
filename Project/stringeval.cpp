@@ -212,7 +212,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         {
             const string& mac = p.first;
 
-            if(expr.find(p.first) != string::npos)
+            if(expr.find(p.first) != string::npos && doesExprLookOk(p.second))
             {
                 #ifdef DEBUG_LOG_STRINGEVAL
                     cout << "found\n";
@@ -226,7 +226,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             else if(mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
                 && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
             {
-                //std::cout << "maxSizeReplaceSig = " << mac << endl;
+                std::cout << "maxSizeReplaceSig = " << mac << endl;
                 maxSizeReplaceSig = mac;
             }
         }
@@ -289,6 +289,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         }
         else if(!maxSizeReplaceSig.empty())
         {
+            std::cout << "almost there" << endl;
+
             // Look for single parameter macro
             for(pair<string,string> p: dictionary)
             {

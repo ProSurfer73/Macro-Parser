@@ -593,8 +593,8 @@ bool searchFile(const char* pathToFile, const std::string& macroName, const Opti
 {
     std::ifstream file(pathToFile);
 
-    if(file.is_open())
-        return true;
+    if(!file.is_open())
+        return false;
 
     string str;
 
