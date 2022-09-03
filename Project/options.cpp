@@ -107,7 +107,8 @@ bool Options::changeOption(const std::string& s1, std::string& s2)
     bool valueToBeSet=false;
 
     // lower s2
-    std::transform(s2.begin(), s2.end(), s2.begin(), [](unsigned char c){ return std::tolower(c); });
+    for(unsigned i=0;i<s2.size(); ++i)
+        s2[i] = std::tolower(s2[i]);
 
     // Interpret s2
     if(s2=="1"||s2=="true"){

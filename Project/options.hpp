@@ -41,8 +41,6 @@ private:
     bool printExprAtEveryStep;
     bool keepListRedefinedMacros;
     bool disableInterpretations;
-
-friend void askUserAboutConfig(Options& options);
 };
 
 

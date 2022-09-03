@@ -34,7 +34,7 @@ BOOL DirectoryExists(LPCTSTR szPath)
 
 
 
-bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
+bool importFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
 {
     ifstream file(pathToFile);
 
@@ -517,7 +517,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 #endif
 
-bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config)
+bool importDirectory(string dir, MacroContainer& macroContainer, const Options& config)
 {
     stringvec fileCollection;
 
@@ -544,7 +544,7 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
         {
             try
             {
-                if(!readFile(str, macroContainer, config)){
+                if(!importFile(str, macroContainer, config)){
                     std::cerr << "Couldn't read/open file : " << str << endl;
                 }
             }
@@ -585,6 +585,52 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
     cout << "Import time: " << importTime << " ms.\n";
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
+
+    return true;
+}
+
+bool searchFile(const char* pathToFile, const std::string& macroName, const Options& config)
+{
+    std::ifstream file(pathToFile);
+
+    if(file.is_open())
+        return true;
+
+    string str;
+
+    while(file >> str)
+    {
+        if(str == "#define")
+        {
+            if(file >> str && str == macroName)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool searchDirectory(string dir, const std::string& macroName, const Options& config)
+{
+    stringvec fileCollection;
+
+    explore_directory(dir, fileCollection);
+
+    if(fileCollection.empty())
+        return false;
+
+    unsigned nbResults=0;
+
+    for(const std::string& str: fileCollection)
+    {
+        if(searchFile(str.c_str(), macroName, config))
+        {
+            std::cout << str << endl;
+            ++nbResults;
+        }
+    }
+
+    std::cout << nbResults << " results found." << endl;
 
     return true;
 }

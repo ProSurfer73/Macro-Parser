@@ -93,7 +93,7 @@ bool doesExprLookOk(const string& expr)
 // The arithmetic expression must be correct and must NOT contain spaces.
 double evaluateSimpleArithmeticExpr(const string& expr)
 {
-    stringstream mathStrm(expr);
+    istringstream mathStrm(expr);
     double result = (-3);
     mathStrm >> result;
     char op;
@@ -255,7 +255,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     continue;
                 }
 
-                //expr = std::regex_replace(expr, std::regex(p.first), p.second); // replace 'def' -> 'klm'
+
                 simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
@@ -302,12 +302,12 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     {
                         // We delete the mac from the expr string
                         string cop1 = expr;
-                        //cop1 = std::regex_replace(cop1, std::regex(mac.substr(0,mac.size()-3)), ""); // replace 'def' -> 'klm'
+
                         simpleReplace(cop1, mac.substr(0,mac.size()-3), "");
 
                         // In string p.second ; replace '(x)' <= expr
                         string cop2 = p.second;
-                        //cop2 = std::regex_replace(cop2, std::regex("(x)"), cop1); // replace 'def' -> 'klm'
+
                         simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
 
                         if(config.doesPrintReplacements()){

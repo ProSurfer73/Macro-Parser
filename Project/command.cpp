@@ -15,6 +15,7 @@ static void printHelp()
     cout << "- options : display the options used for file import and string evaluation" << endl;
     cout << "- changeoption [name] [value] : change an option name" << endl;
     cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
+    cout << "- where [macro] [folderpath] : look for a macro definition inside a folder" << endl;
     cout << "- cls : clear console" << endl;
     cout << "- exit : quit the program" << endl;
 }
@@ -248,7 +249,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
 
     else if(str.substr(0, 11) == "importfile "){
-        if(!readFile(str.substr(11), macroContainer, configuration))
+        if(!importFile(str.substr(11), macroContainer, configuration))
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
         else {
             runCommand("stat", macroContainer, configuration);
@@ -256,7 +257,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        if(!readDirectory(str.substr(13), macroContainer, configuration))
+        if(!importDirectory(str.substr(13), macroContainer, configuration))
             cout << "/!\\ Error: can't open that directory. /!\\" << endl;
         runCommand("stat", macroContainer, configuration);
         return true;
@@ -354,9 +355,30 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             configuration.changeOption(s1,s2);
         }
     }
+    else if(str.substr(0,6)=="where ")
+    {
+        stringstream ss(str.substr(6));
+        string str1;
+
+        if(!(ss>>str1) || ss.tellg()==(-1))
+        {
+            cout << "Error" << endl;
+        }
+        else
+        {
+            if(!searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration))
+            {
+                std::cout << "Can't open the directory given as the second parameter." << endl;
+                cout << str.substr(ss.tellg()+6+1
+                                   ) << endl;
+            }
+        }
+    }
+    #ifdef _WIN32 || _WIN64
     else if(str == "cls"){
         system("cls");
     }
+    #endif
     else if(str == "exit")
         return false;
     else {

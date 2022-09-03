@@ -35,8 +35,13 @@ struct MacroContainer;
 
 BOOL DirectoryExists(LPCTSTR szPath);
 
-bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config);
+bool importFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config);
 
-bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config);
+bool importDirectory(string dir, MacroContainer& macroContainer, const Options& config);
+
+bool searchFile(const char* pathToFile, const std::string& macroName, const Options& config);
+
+bool searchDirectory(string dir, const std::string& macroName, const Options& config);
+
 
 #endif // FILESYSTEM_HPP
