@@ -80,12 +80,12 @@ bool doesExprLookOk(const string& expr)
     for(unsigned i=1; i<expr.size(); ++i){
         if(isOperationCharacter(expr[i]) && isOperationCharacter(expr[i-1]))
             return false;
-
-        // It contains # => Incorrect
-        // Our program doesn't deal with ## yet.
-        if(expr[i] == '#')
-            return false;
     }
+
+    // It contains # => Incorrect
+    // Our program doesn't deal with ## yet.
+    if(expr.find('#') != std::string::npos)
+        return false;
 
     return true;
 }
@@ -203,8 +203,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     do {
         repeat = false;
         string save_expr = expr;
-        size_t maxSizeReplace = 0;
-        size_t maxSizeReplaceSig = 0;
+        string maxSizeReplace;
+        string maxSizeReplaceSig;
+
 
         // Look for the longest word to replace
         for(const pair<string,string>& p: dictionary)
@@ -218,14 +219,15 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     cout << p.first.size() << " --- " << maxSizeReplace << endl;
                 #endif // DEBUG_LOG_STRINGEVAL
 
-                if(p.first.size() >= maxSizeReplace){
-                    maxSizeReplace = p.first.size();
+                if(p.first.size() >= maxSizeReplace.size()){
+                    maxSizeReplace = p.first;
                 }
             }
             else if(mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
                 && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
             {
-                maxSizeReplaceSig = mac.size();
+                //std::cout << "maxSizeReplaceSig = " << mac << endl;
+                maxSizeReplaceSig = mac;
             }
         }
 
@@ -233,26 +235,29 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         cout << "g:" << maxSizeReplace << endl;
         #endif
 
-        if(maxSizeReplace != 0)
+        if(!maxSizeReplace.empty())
         {
+
+
 
         // Replace it
         for(pair<string,string> p: dictionary)
         {
-            if(p.first.size() == maxSizeReplace && expr.find(p.first) != string::npos && doesExprLookOk(p.second))
+            if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/ && doesExprLookOk(p.second))
             {
-                if(config.doesPrintReplacements()){
-                    std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
-                }
-
 
                 // If replacement strings aren't correct
                 if((p.first.find('(') != string::npos && p.first.find(')') == string::npos)
-                || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)){
+                || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)
+                || (!doesExprLookOk(p.second))){
                     // Then there is a problem, we skip.
 
                     //return CalculationStatus::EVAL_ERROR;
                     continue;
+                }
+
+                if(config.doesPrintReplacements()){
+                    std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
                 }
 
 
@@ -282,7 +287,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         #endif
 
         }
-        else if(maxSizeReplaceSig != 0)
+        else if(!maxSizeReplaceSig.empty())
         {
             // Look for single parameter macro
             for(pair<string,string> p: dictionary)
@@ -290,7 +295,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 string& mac = p.first;
 
                 // if the string has at the end "(x)", then it's a single param macro
-                if(maxSizeReplaceSig == mac.size()
+                if(maxSizeReplaceSig == mac
                 && mac[mac.size()-1] == ')'
                 && mac[mac.size()-2] == 'x'
                 && mac[mac.size()-3] == '(')
@@ -311,7 +316,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                         simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
 
                         if(config.doesPrintReplacements()){
-                            cout << "replaced '" << p.first << "' by '" << p.second << '\'' << endl;
+                            cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << endl;
                         }
 
                         #ifdef DEBUG_LOG_STRINGEVAL

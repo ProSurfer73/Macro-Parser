@@ -369,8 +369,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             if(!searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration))
             {
                 std::cout << "Can't open the directory given as the second parameter." << endl;
-                cout << str.substr(ss.tellg()+6+1
-                                   ) << endl;
+                cout << str.substr(ss.tellg()+6+1) << endl;
             }
         }
     }
