@@ -24,7 +24,8 @@ bool isNumberCharacter(char c)
 
 void lowerString(std::string& str)
 {
-
+    for(unsigned i=0;i<str.size();++i)
+        str[i] = std::tolower(str[i]);
 }
 
 static void func(double &result, char op, double num)
@@ -41,12 +42,14 @@ static void func(double &result, char op, double num)
             result *= num;
             break;
         case '/':
+            if(num==0)
+                throw std::runtime_error("division by 0");
             result /= num;
             break;
         case '%':
             if(num<=0)
             {
-                std::cout << "error: %0" << endl;
+                throw std::runtime_error("modulo < 0");
                 break;
             }
 
@@ -100,7 +103,8 @@ double evaluateSimpleArithmeticExpr(const string& expr)
 {
     istringstream mathStrm(expr);
     double result = (-3);
-    mathStrm >> result;
+    if(!(mathStrm >> result))
+        throw std::runtime_error("getting first argument simple arthmetic expression.");
     char op;
     double num;
     while (mathStrm >> op >> num)
@@ -180,10 +184,11 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     const auto& redefinedMacros = macroContainer.getRedefinedMacros();
     const auto& incorrectMacros = macroContainer.getIncorrectMacros();
 
-
     unsigned counter = 0;
 
     std::vector<std::string> macroRedefinedWarning;
+
+    try {
 
     /// 0. Is the expression okay ?
 
@@ -593,4 +598,14 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     }
 
     return status;
+
+
+    }
+    catch(std::exception const& ex)
+    {
+        if(printWarnings)
+            std::cout << "Eval error: " << ex.what() << endl;
+
+        return CalculationStatus::EVAL_ERROR;
+    }
 }
