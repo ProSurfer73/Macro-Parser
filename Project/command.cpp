@@ -10,6 +10,7 @@ static void printHelp()
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
     cout << "- define [macro] [value] : add/replace a specific macro" << endl;
     cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
+    cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
     cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
     cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
