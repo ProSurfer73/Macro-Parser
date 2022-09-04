@@ -20,7 +20,8 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
 
     // As long as there is an hexadecimal number ( we locate it by the 'x' character and the 2 digits around it)
     while(searchedX != std::string::npos
-    && isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
+    //&& isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
+    && isHexaLetter(str[searchedX-1]) && isHexaLetter(str[searchedX+1]))
     {
 
         unsigned k=searchedX;
