@@ -101,20 +101,40 @@ bool doesExprLookOk(const string& expr)
 // The arithmetic expression must be correct and must NOT contain spaces.
 double evaluateSimpleArithmeticExpr(const string& expr)
 {
+    std::vector<double> numbers;
+    std::vector<char> operators;
+
     istringstream mathStrm(expr);
     double result = (-3);
     if(!(mathStrm >> result))
         throw std::runtime_error("getting first argument simple arthmetic expression.");
+    numbers.push_back(result);
     char op;
     double num;
     while (mathStrm >> op >> num)
     {
-        func(result, op, num);
+        operators.push_back(op);
+        numbers.push_back(num);
+    }
 
-        #ifdef DEBUG_LOG_STRINGEVAL
-            std::cout << "==op=" << op << endl;
-            std::cout << "==num=" << num << endl;
-        #endif
+    while(!operators.empty())
+    {
+        unsigned curPos = 0;
+
+        /// Look for the best position
+
+        // If there are * or / or % operators
+        for(unsigned i=1;i<operators.size();++i){
+            if(operators[i] == '*' || operators[i]=='/' || operators[i]=='%')
+                curPos=i;
+        }
+
+        result = numbers[curPos];
+        func(result, operators[curPos], numbers[1+curPos]);
+        numbers.erase(numbers.begin()+curPos);
+        numbers.erase(numbers.begin()+curPos);
+        numbers.insert(numbers.begin()+curPos, result);
+        operators.erase(operators.begin()+curPos);
     }
 
     return result;
@@ -605,6 +625,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     {
         if(printWarnings)
             std::cout << "Eval error: " << ex.what() << endl;
+
+        //else throw;
 
         return CalculationStatus::EVAL_ERROR;
     }
