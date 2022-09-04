@@ -363,7 +363,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
 
         if(!(ss>>str1) || ss.tellg()==(-1))
         {
-            cout << "Error" << endl;
+            cout << "Error: incorrect parameters." << endl;
         }
         else
         {
@@ -373,6 +373,39 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                 cout << str.substr(ss.tellg()+6+1) << endl;
             }
         }
+    }
+    else if(str.substr(0,9) == "evaluate ")
+    {
+        string expr = str.substr(9);
+
+        auto status = calculateExpression(expr, macroContainer, configuration);
+
+        if(status == CalculationStatus::EVAL_WARNING){
+            std::cout << "possible ";
+        }
+        cout << "output: " << expr;
+
+        if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
+            std::string hexaRepresentation;
+            try { hexaRepresentation = convertDeciToHexa(std::stoi(expr)); }
+            catch(const std::exception& ex){}
+            if(!hexaRepresentation.empty())
+                cout << " (hexa: 0x" << hexaRepresentation << ')';
+        }
+        if(status == CalculationStatus::EVAL_WARNING)
+        {
+            cout << " ???" << endl;
+            cout << "It seems that you are using macros that seem incorrect or have been redefined." << endl;
+            cout << "The output can't be trusted." << endl;
+            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+        }
+        else if(status == CalculationStatus::EVAL_ERROR)
+        {
+            cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
+        }
+
+
+        cout << endl;
     }
     #ifdef _WIN32 || _WIN64
     else if(str == "cls"){
