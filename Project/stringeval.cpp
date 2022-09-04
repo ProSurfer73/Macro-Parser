@@ -167,7 +167,7 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
  * \return status
  *
  */
-enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config)
+enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings)
 {
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
@@ -263,7 +263,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
-                    cout << "/!\\ Warning: the macro " << p.first << " you are using have been redefined /!\\" << endl;
+                    if(printWarnings)
+                        cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
                     status = CalculationStatus::EVAL_WARNING;
                 }
 
@@ -288,8 +289,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         }
         else if(!maxSizeReplaceSig.empty())
         {
-            std::cout << "almost there" << endl;
-
             // Look for single parameter macro
             for(pair<string,string> p: dictionary)
             {
@@ -350,6 +349,12 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
 
         clearSpaces(expr);
+
+        ++counter;
+        if(counter > 1000){
+            status = CalculationStatus::EVAL_ERROR;
+            break;
+        }
     }
     while(repeat);
 

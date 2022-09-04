@@ -33,7 +33,7 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
 
 
 
-enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config);
+enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings=true);
 
 
 #endif // STRINGEVAL_HPP

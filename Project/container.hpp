@@ -27,6 +27,8 @@ public:
     const std::vector< std::string >& getIncorrectMacros() const;
 
 private:
+    static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);
+    static bool emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue);
     static void removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName);
     static void removeFromVector(std::vector<std::string>& v, const std::string& str);
 

@@ -15,29 +15,25 @@ MacroContainer::MacroContainer()
 
 void MacroContainer::emplace(const std::string& macroName, const std::string& macroValue)
 {
-    bool isTheSame = false;
+    bool alreadyExists=false;
 
-    for(const std::pair<std::string,std::string>& p: defines)
+    for(const auto& p: defines)
     {
-        if(p.first == macroName)
-        {
-            if(p.second != macroValue)
-                redefinedMacros.emplace_back(macroName);
-            else
-                isTheSame=true;
+        if(p.first == macroName && p.second!=macroValue){
+            alreadyExists=true;
             break;
         }
     }
 
-    if(!isTheSame)
+    if(alreadyExists)
     {
-        // Add the couple to the define list
-        defines.emplace_back( macroName, macroValue );
-
-        if(!doesExprLookOk(macroValue)){
-            incorrectMacros.emplace_back(macroName);
-        }
+        emplaceOnce(redefinedMacros, macroName);
     }
+    if(!doesExprLookOk(macroValue))
+    {
+        emplaceOnce(incorrectMacros, macroName);
+    }
+    emplaceOnce(defines, macroName, macroValue);
 }
 
 void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
@@ -56,6 +52,47 @@ void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool 
         redefinedMacros.clear();
     if(clearIncorrect)
         incorrectMacros.clear();
+}
+
+bool MacroContainer::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
+{
+    if(v.empty()){
+        v.emplace_back(macroName);
+        return true;
+    }
+
+    if(std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.emplace_back(macroName);
+        return true;
+    }
+
+    return false;
+}
+
+bool MacroContainer::emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue)
+{
+    if(v.empty()){
+        v.emplace_back(macroName, macroValue);
+        return true;
+    }
+
+
+    bool exists=false;
+    for(auto it=v.begin(); it!=v.end(); ++it)
+    {
+        if(it->first == macroName && it->second == macroValue)
+        {
+            exists=true;
+        }
+    }
+
+    if(!exists)
+    {
+        v.emplace_back(macroName, macroValue);
+    }
+
+    return !exists;
 }
 
 void MacroContainer::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)

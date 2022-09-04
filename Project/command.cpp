@@ -289,7 +289,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                     string output = p.second;
                     auto status = calculateExpression(output, macroContainer, configuration);
                     if(status == CalculationStatus::EVAL_ERROR)
-                        cout << "/!\\ The expression can't be calculated. /!\\\n";
+                        cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                     if(status == CalculationStatus::EVAL_WARNING){
                         cout << "possible output: " << output << "??? ";
                     }
@@ -302,12 +302,13 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
                         if(!hexaRepresentation.empty())
                             cout << " (hexa: 0x" << hexaRepresentation << ')';
                     }
-                    cout << endl;
                     if(status == CalculationStatus::EVAL_WARNING){
-                        cout << "\nIt seems that you are using macros that seem incorrect or have been redefined." << endl;
+                        cout << "\n\nIt seems that you are using macros that seem incorrect or have been redefined." << endl;
                         cout << "The output can't be trusted." << endl;
                         cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
                     }
+                    if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
+                        cout << endl;
 
                     found=true;
                     break;

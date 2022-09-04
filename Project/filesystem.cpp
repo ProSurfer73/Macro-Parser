@@ -141,20 +141,26 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
                 if(characterRead == '\n' && str1.empty())
                     continue;
 
+                string str2;
+
                 // Then we load the identifier (the complete word)
                 while(file.get(characterRead) && characterRead != ' '){
-                        if(characterRead == '\n')
-                            break;
+                        if(characterRead == '\n'){
+                            goto avoidValueGetting;
+                        }
                         str1 += characterRead;
                 }
 
-                string str2;
+
 
                 // We get the value
                 while(file.get(characterRead) && characterRead != '\n')
                 {
                     str2 += characterRead;
                 }
+
+                avoidValueGetting:
+
 
                 // Deal with comment that could appear on str2
                 auto look = str2.find("//");
@@ -169,10 +175,6 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
 
                 clearSpaces(str1);
                 clearSpaces(str2);
-
-                // Ignore single letter macro and empty ones
-                if(str1.size()==1)
-                    continue;
 
 
                 // If it is a multiple line macro
@@ -281,7 +283,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
 
             //std::cout << "conditionStr: " << conditionStr << endl;
 
-            auto status = calculateExpression(conditionStr, localContainer, config);
+            auto status = calculateExpression(conditionStr, localContainer, config, false);
 
             /*for(const string& str : localMacroNames)
             {
@@ -301,7 +303,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
                 else if(conditionStr=="false")
                 {
                     //std::cout << -1 << endl;
-                    keepTrack.push_back(-1);
+                    keepTrack.push_back(-2);
                 }
 
             }
@@ -385,7 +387,7 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
             firstIntrusction=false;
         }
 
-        // If we detected elif
+        // If we detected elif or else
         if(posElifStr==6 || posElseStr==5)
         {
             //
@@ -395,9 +397,9 @@ bool importFile(const string& pathToFile, MacroContainer& macroContainer, const 
                 posElifStr=0;
                 posElseStr=0;
             }
-            else if(keepTrack.back()==-1)
+            else if(keepTrack.back()==-2)
             {
-                keepTrack[keepTrack.size()-1] = -1;
+                keepTrack[keepTrack.size()-1] = 0;
                 posElifStr=0;
                 posElseStr=0;
             }
