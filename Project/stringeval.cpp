@@ -180,8 +180,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     const auto& redefinedMacros = macroContainer.getRedefinedMacros();
     const auto& incorrectMacros = macroContainer.getIncorrectMacros();
 
+
     unsigned counter = 0;
 
+    std::vector<std::string> macroRedefinedWarning;
 
     /// 0. Is the expression okay ?
 
@@ -268,8 +270,14 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
-                    if(printWarnings)
-                        cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
+                    if(printWarnings){
+                        if(macroRedefinedWarning.empty()
+                        || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end()){
+                            cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
+                            macroRedefinedWarning.emplace_back(p.first);
+                        }
+                    }
+
                     status = CalculationStatus::EVAL_WARNING;
                 }
 
