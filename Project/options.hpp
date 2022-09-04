@@ -12,7 +12,9 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
+
 #include "config.hpp"
+#include "stringeval.hpp"
 
 class Options
 {
@@ -32,7 +34,7 @@ public:
 private:
     bool saveToFile(const char* filename) const;
     bool loadFromFile(const char* filename);
-    static bool loadBooleanValue(const std::string& input, bool& boolean);
+    static bool loadBooleanValue(std::string input, bool& boolean);
     void resetToDefault();
 
     bool importOnlySourceFileExtension;

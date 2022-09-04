@@ -22,6 +22,11 @@ bool isNumberCharacter(char c)
     return (isdigit(c)||c=='.');
 }
 
+void lowerString(std::string& str)
+{
+
+}
+
 static void func(double &result, char op, double num)
 {
     switch (op)
@@ -468,8 +473,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     // 4. Conditional operations
 
-
-    unsigned searchedCharacter;
 
     counter=0;
 

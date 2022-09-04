@@ -52,6 +52,10 @@ bool Options::loadFromFile(const char* filename)
             {
                 loadBooleanValue(line.substr(23), disableInterpretations);
             }
+            else
+            {
+                std::cout << "/!\\ Warning: Unrecognized option name '" << line << "' in the config file. /!\\\n" << std::endl;
+            }
         }
 
 
@@ -64,8 +68,11 @@ bool Options::loadFromFile(const char* filename)
     return false;
 }
 
-bool Options::loadBooleanValue(const std::string& input, bool& booleanValue)
+bool Options::loadBooleanValue(std::string input, bool& booleanValue)
 {
+    clearSpaces(input);
+    lowerString(input);
+
     if(input=="1" || input=="true"){
         booleanValue = true;
         return true;
@@ -75,6 +82,7 @@ bool Options::loadBooleanValue(const std::string& input, bool& booleanValue)
         return true;
     }
 
+    std::cout << "/!\\ Warning: Unrecognized boolean value '" << input << "' in the config file /!\\" << std::endl;
     return false;
 }
 
@@ -107,8 +115,7 @@ bool Options::changeOption(const std::string& s1, std::string& s2)
     bool valueToBeSet=false;
 
     // lower s2
-    for(unsigned i=0;i<s2.size(); ++i)
-        s2[i] = std::tolower(s2[i]);
+    lowerString(s2);
 
     // Interpret s2
     if(s2=="1"||s2=="true"){

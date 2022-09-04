@@ -19,6 +19,8 @@ enum class CalculationStatus { EVAL_ERROR, EVAL_WARNING, EVAL_OKAY };
 
 bool isMacroCharacter(char c);
 
+void lowerString(std::string& str);
+
 void searchAndReplaceMacros(std::string& expr);
 
 void clearSpaces(string& str);

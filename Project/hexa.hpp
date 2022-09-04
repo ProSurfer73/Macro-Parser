@@ -10,7 +10,7 @@
 #include "config.hpp"
 #include "options.hpp"
 
-void locateAndReplaceHexa(std::string& str, const Options& options);
+void locateAndReplaceHexa(std::string& str, const class Options& options);
 
 long long convertHexaToDeci(const std::string& hex);
 
