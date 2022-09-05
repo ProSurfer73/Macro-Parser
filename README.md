@@ -9,7 +9,7 @@ This tool is only working on Windows for now, but ports can be easily created.
 
 # About the tool
 
-It's a tool I made during my apprenticeship at ST-Microelectronics.
+It's a tool I made during my apprenticeship at ST-Microelectronics.\
 I had to go through very complex macros defined over hundreds of headers.
 
 # Features
@@ -22,7 +22,7 @@ I had to go through very complex macros defined over hundreds of headers.
 - Silent local conditional expression evaluation
 
 # How to run for the first time
-Go to the release page.\
+Go to the [release page](https://github.com/ProSurfer73/Macro-Parser/releases).\
 Download the latest stable version.\
 Double-click on the executable and you're done !
 
