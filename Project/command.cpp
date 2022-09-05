@@ -392,6 +392,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
             catch(const std::exception& ex){}
             if(!hexaRepresentation.empty())
                 cout << " (hexa: 0x" << hexaRepresentation << ')';
+            cout << endl;
         }
         if(status == CalculationStatus::EVAL_WARNING)
         {
@@ -406,7 +407,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         }
 
 
-        cout << endl;
+
     }
     #ifdef _WIN32 || _WIN64
     else if(str == "cls"){

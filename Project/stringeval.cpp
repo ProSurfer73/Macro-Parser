@@ -174,6 +174,27 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
                 str="true";
                 return true;
             }
+            else if(operation=="=="
+                 &&((str1=="true" && str2=="false")
+                 || (str1=="false"&& str2=="true")))
+            {
+                str="false";
+                return true;
+            }
+            else if(operation == "!="
+                &&((str1=="true" && str2=="false")
+                 ||(str1=="false"&& str2=="true")))
+            {
+                str="true";
+                return true;
+            }
+            else if(operation=="!="
+                 ||(str1=="true" && str2=="true")
+                 ||(str1=="false" && str2=="false"))
+            {
+                str="false";
+                return true;
+            }
 
             return false;
         }
