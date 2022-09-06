@@ -82,6 +82,59 @@ static void func(double &result, char op, double num)
     }
 }
 
+static string extractRightPart(string expr, size_t pos)
+{
+    return expr.substr(pos);
+}
+
+static string extractLeftPart(string expr, size_t pos)
+{
+    std::size_t i=0;
+    for(; pos-i >= 0 && isMacroCharacter(expr[pos-i-1]); ++i);
+    return expr.substr(pos-i, i);
+}
+
+
+static bool evaluateSimpleBooleanExpr(string& expr)
+{
+    size_t initialExprSize = expr.size();
+
+    // We don't deal with parenthesis here
+    assert(expr.find('(')==string::npos);
+
+    // First, let's treat AND operator
+    std::size_t searchedOperator;
+    while( (searchedOperator=expr.find("&&")) != string::npos)
+    {
+        string leftPart = extractLeftPart(expr,searchedOperator);
+        string rightPart = extractRightPart(expr,searchedOperator+2);
+
+        if(leftPart=="false" || rightPart=="false")
+            expr = "false";
+        else if(leftPart=="true")
+            expr = rightPart;
+        else if(rightPart=="true")
+            expr = leftPart;
+    }
+
+    // Secondly, let's treat OR operator
+    while( (searchedOperator=expr.find("||")) != string::npos )
+    {
+        string leftPart = extractLeftPart(expr,searchedOperator);
+        string rightPart = extractRightPart(expr,searchedOperator+2);
+
+        if(leftPart=="true" || rightPart=="true")
+            expr = "true";
+        else if(leftPart=="false")
+            expr = rightPart;
+        else if(rightPart=="false")
+            expr = leftPart;
+    }
+
+    // If expression does not have the same size then
+    return expr.size()!=initialExprSize;
+}
+
 bool doesExprLookOk(const string& expr)
 {
     // Empty => it doesn't look good
@@ -585,7 +638,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             subExpr = expr;
         }
 
-
         if(
         // Treat double comparaison operations
            treatOperationDouble(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
@@ -595,17 +647,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         || treatOperationDouble(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
         || treatOperationDouble(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } )
 
-        // Treat AND boolean operations
-        || simpleReplace(subExpr, "false&&false", "false")
-        || simpleReplace(subExpr, "true&&true", "true")
-        || simpleReplace(subExpr, "true&&false", "false")
-        || simpleReplace(subExpr, "false&&true", "false")
+        // Treat AND, OR boolean operations
+        || evaluateSimpleBooleanExpr(subExpr))
 
-        // Treat OR boolean operations
-        || simpleReplace(subExpr, "false||false", "false")
-        || simpleReplace(subExpr, "true||true", "true")
-        || simpleReplace(subExpr, "true||false", "true")
-        || simpleReplace(subExpr, "false||true", "true"))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
