@@ -1,6 +1,6 @@
 #include "command.hpp"
 
-static void printHelp()
+/*static void printHelp()
 {
     cout << "Here are the available commands:" << endl;
     cout << "- help : print this menu" << endl;
@@ -19,6 +19,37 @@ static void printHelp()
     cout << "- where [macro] [folderpath] : look for a macro definition inside a folder" << endl;
     cout << "- cls : clear console" << endl;
     cout << "- exit : quit the program" << endl;
+}*/
+
+static void printHelp()
+{
+    cout << "\nMAIN COMMANDS (if it's you first time using macroParser, try these ones):" << endl;
+    cout << "- help : print this menu" << endl;
+    cout << "- importfile [file] : import macros from a file to the program" << endl;
+    cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
+    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
+    cout << "- exit : quit the program" << endl;
+
+    cout << "\nINFO COMMANDS (print informations):" << endl;
+    cout << "- stat : print the number of macros imported" << endl;
+    cout << "- where [macro] [folderpath] : look for files containing a macro definition inside a folder" << endl;
+    cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
+    cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
+
+    cout << "\nADVANCED COMMANDS" << endl;
+    cout << "- define [macro] [value] : add/replace a specific macro by a specific value" << endl;
+    cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
+    cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
+    cout << "- options : display the options used for file import and string evaluation" << endl;
+    cout << "- changeoption [name] [value] : change the parameter given to an option" << endl;
+    cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
+    cout << "- cls : clear console" << endl;
+
+    cout << "\nMACRO SPACES (to store macro in separate memory spaces) (to be implemented)" << endl;
+    cout << "Add [macroSpacesName] at the end of a command to specify the command space in which you are working" << endl;
+    cout << "" << endl;
+
+
 }
 
 void dealWithUser(MacroContainer& macroContainer, Options& configuration)
