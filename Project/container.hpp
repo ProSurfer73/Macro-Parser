@@ -5,6 +5,7 @@
 #include <string>
 #include "stringeval.hpp"
 
+
 class MacroContainer
 {
 public:
@@ -35,9 +36,6 @@ private:
     std::vector< std::pair< std::string, std::string> > defines;
     std::vector< std::string > redefinedMacros;
     std::vector< std::string > incorrectMacros;
-
-//friend bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config);
-//friend bool runCommand(string str, MacroContainer& macroContainer, Options& configuration);
 };
 
 

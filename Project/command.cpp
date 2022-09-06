@@ -23,8 +23,20 @@
 
 static void printHelp()
 {
-    cout << "\nMAIN COMMANDS (if it's you first time using macroParser, try these ones):" << endl;
-    cout << "- help : print this menu" << endl;
+    cout << "\nBASIC COMMANDS:" << endl;
+    cout << "- help [all?] : print basic/all commands" << endl;
+    cout << "- importfile [file] : import macros from a file to the program" << endl;
+    cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
+    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
+    cout << "- exit : quit the program" << endl;
+
+    cout << "\nOnly basic commands were printed, to display the list of all commands, please type 'help all'." << endl;
+}
+
+static void printHelpAdvanced()
+{
+    cout << "\nBASIC COMMANDS:" << endl;
+    cout << "- help [all?] : print basic/all commands" << endl;
     cout << "- importfile [file] : import macros from a file to the program" << endl;
     cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
@@ -46,10 +58,16 @@ static void printHelp()
     cout << "- cls : clear console" << endl;
 
     cout << "\nMACRO SPACES (to store macro in separate memory spaces) (to be implemented)" << endl;
-    cout << "Add [macroSpacesName] at the end of a command to specify the command space in which you are working" << endl;
-    cout << "" << endl;
+    cout << "[command] [macrospace?]: to run the command in a macrospace, add macrospace at the end" << endl;
+    cout << "- printsources [macrospace] : list the folders from which the list origins" << endl;
+    cout << "- list spaces : list the macrospaces currently defined" << endl;
+    cout << "msall is a macrospace that designate all the macrospaces unified." << endl;
 
-
+    cout << "\nSPECIAL PARAMETERS (to be implemnted)" << endl;
+    cout << "--alphaorder : show results in an alphabetical order" << endl;
+    cout << "--increasing : show results in an increasing order" << endl;
+    cout << "--decreasing : show results in a decreasing order" << endl;
+    cout << "?: describes an optional paramater" << endl;
 }
 
 void dealWithUser(MacroContainer& macroContainer, Options& configuration)
@@ -132,6 +150,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
     else if(str == "help")
         printHelp();
+    else if(str=="helpall"||str=="help all"){
+        printHelpAdvanced();
+    }
     else if(str == "stat"){
         cout << macroContainer.getDefines().size() << " macros were loaded." << endl;
         cout << "|-> " << macroContainer.getRedefinedMacros().size() << " macros have been redefined." << endl;
