@@ -26,6 +26,14 @@ Go to the [release page](https://github.com/ProSurfer73/Macro-Parser/releases).\
 Download the latest stable version.\
 Double-click on the executable and you're done !
 
+# How to build for the first time
+Download the latest version of CodeBlocks for Windows.
+https://www.codeblocks.org/downloads/binaries/
+Choose the one with mingw preinstalled.
+Open the project file .cbp .
+Rebuild everything from scratch and run.
+You should be done !
+
 # Screenshots
 ![Screenshot1_v2](https://raw.githubusercontent.com/ProSurfer73/Macro-Parser/main/Screenshots/MacroParser1.png)
 ![Screenshot2_v2](https://raw.githubusercontent.com/ProSurfer73/Macro-Parser/main/Screenshots/MacroParser2.png)
