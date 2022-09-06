@@ -599,12 +599,13 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         || simpleReplace(subExpr, "false&&false", "false")
         || simpleReplace(subExpr, "true&&true", "true")
         || simpleReplace(subExpr, "true&&false", "false")
-        || simpleReplace(subExpr, "false&&true", "true")
+        || simpleReplace(subExpr, "false&&true", "false")
 
         // Treat OR boolean operations
         || simpleReplace(subExpr, "false||false", "false")
-        || simpleReplace(subExpr, "||true", "")
-        || simpleReplace(subExpr, "true||", ""))
+        || simpleReplace(subExpr, "true||true", "true")
+        || simpleReplace(subExpr, "true||false", "true")
+        || simpleReplace(subExpr, "false||true", "true"))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
