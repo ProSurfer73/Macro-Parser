@@ -384,8 +384,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
                 }
 
-
-                simpleReplace(expr, p.first, p.second);
+                auto searched = expr.find(p.first);
+                if(searched != string::npos && !isMacroCharacter(expr[searched+1]) && searched>=1 && !isMacroCharacter(expr[searched+1]));
+                    simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     if(printWarnings){
@@ -648,7 +649,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         || treatOperationDouble(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } )
 
         // Treat AND, OR boolean operations
-        || evaluateSimpleBooleanExpr(subExpr))
+        || evaluateSimpleBooleanExpr(subExpr)
+        )
 
         {
             expr = begStr+subExpr+endStr;
