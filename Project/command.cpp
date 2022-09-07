@@ -1,6 +1,6 @@
 #include "command.hpp"
 
-static void printHelp()
+static void printBasicHelp()
 {
     cout << "\nBASIC COMMANDS:" << endl;
     cout << "- help [all?] : print basic/all commands" << endl;
@@ -12,7 +12,7 @@ static void printHelp()
     cout << "\nOnly basic commands were printed, to display the list of all commands, please type 'help all'." << endl;
 }
 
-static void printHelpAdvanced()
+static void printAdvancedHelp()
 {
     cout << "\nBASIC COMMANDS:" << endl;
     cout << "- help [all?] : print basic/all commands" << endl;
@@ -49,7 +49,7 @@ static void printHelpAdvanced()
     cout << "?: describes an optional paramater" << endl;
 }
 
-void dealWithUser(MacroContainer& macroContainer, Options& configuration)
+void CommandManager::dealWithUser()
 {
     bool running=true;
 
@@ -60,7 +60,7 @@ void dealWithUser(MacroContainer& macroContainer, Options& configuration)
         string userInput;
         getline(cin, userInput);
 
-        running = runCommand(userInput, macroContainer, configuration);
+        running = runCommand(userInput);
 
         cout << endl;
     }
@@ -89,7 +89,7 @@ static bool isAllDigits(const std::string& str)
 
 
 
-bool runCommand(string str, MacroContainer& macroContainer, Options& configuration)
+bool CommandManager::runCommand(string str)
 {
     // lower characters related to the name of the command
     for(unsigned i=0; i<str.size() && str[i]!=' '; ++i)
@@ -128,9 +128,9 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         macroContainer.clearDatabase(eraseOk, eraseRe, eraseIn);
     }
     else if(str == "help")
-        printHelp();
+        printBasicHelp();
     else if(str=="helpall"||str=="help all"){
-        printHelpAdvanced();
+        printAdvancedHelp();
     }
     else if(str == "stat"){
         cout << macroContainer.getDefines().size() << " macros were loaded." << endl;
@@ -281,18 +281,17 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
     }
 
     else if(str.substr(0, 11) == "importfile "){
-        if(!importFile(str.substr(11), macroContainer, configuration))
+        if(!macroContainer.importFromFile(str.substr(11), configuration))//importFile(str.substr(11), macroContainer, configuration))
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
         else {
-            runCommand("stat", macroContainer, configuration);
+            runCommand("stat");
         }
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        if(!importDirectory(str.substr(13), macroContainer, configuration))
+        if(!macroContainer.importFromFolder(str.substr(13), configuration))// !importDirectory(str.substr(13), macroContainer, configuration))
             cout << "/!\\ Error: can't open that directory. /!\\" << endl;
-        runCommand("stat", macroContainer, configuration);
-        return true;
+        runCommand("stat");
     }
 
     else if(str.substr(0, 5) == "look ")
@@ -399,7 +398,7 @@ bool runCommand(string str, MacroContainer& macroContainer, Options& configurati
         }
         else
         {
-            if(!searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration))
+            if(!(searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration)))
             {
                 std::cout << "Can't open the directory given as the second parameter." << endl;
                 cout << str.substr(ss.tellg()+6+1) << endl;

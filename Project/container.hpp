@@ -4,24 +4,17 @@
 #include <vector>
 #include <string>
 #include "stringeval.hpp"
+#include "options.hpp"
 
 
-class MacroContainer
+class MacroDatabase
 {
 public:
-    // Default constructor
-    MacroContainer();
-
-    // Modification methods
+    MacroDatabase();
     void emplace(const std::string& macroName, const std::string& macroValue);
     void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
-    void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
-
-    // Lookup commands
-    void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
-    unsigned countMacroName(const std::string& macroName) const;
-    bool isRedefined(std::string macroName) const;
-
+    bool importFromFile(const std::string& filepath, const Options& config);
+    bool importFromFolder(const std::string& folderpath, const Options& config);
     // Getters
     const std::vector< std::pair< std::string, std::string> >& getDefines() const;
     const std::vector< std::string >& getRedefinedMacros() const;
@@ -38,5 +31,23 @@ protected:
     std::vector< std::string > redefinedMacros;
     std::vector< std::string > incorrectMacros;
 };
+
+class MacroContainerr : public MacroDatabase
+{
+public:
+    // Default constructor
+    MacroContainerr();
+
+    // Console commands
+
+    void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
+    void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
+    unsigned countMacroName(const std::string& macroName) const;
+    bool isRedefined(std::string macroName) const;
+
+private:
+    std::vector< std::string > origins;
+};
+
 
 #endif // CONTAINER_HPP

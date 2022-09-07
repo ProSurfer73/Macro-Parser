@@ -9,15 +9,23 @@
 #include "filesystem.hpp"
 #include "stringeval.hpp"
 #include "options.hpp"
-#include "macrospace.hpp"
+#include "container.hpp"
+#include <vector>
+#include <string>
+#include "stringeval.hpp"
+#include "options.hpp"
 
-using namespace std;
 
-class MacroSpaceContainer;
+struct CommandManager
+{
+
+    CommandManager();
+    bool runCommand(std::string str);
+    void dealWithUser();
 
 
-bool runCommand(string str, MacroContainer& macroContainer, Options& configuration);
-
-void dealWithUser(MacroSpaceContainer& macroContainer, Options& configuration);
+    Options configuration;
+    MacroContainerr macroContainer;
+};
 
 #endif // COMMAND_HPP

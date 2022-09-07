@@ -1,4 +1,4 @@
-#include "macrospace.hpp"
+#include "container.hpp"
 
 /*** MacroSpace class ***/
 
@@ -7,7 +7,7 @@ MacroSpace::MacroSpace()
 
 bool MacroSpace::importFromFile(const std::string& filepath, const Options& config)
 {
-    if(importDirectory(filepath, *this, config)){
+    if(importDirectory(filepath, *((MacroContainer*)this), config)){
         sourcesLoaded.emplace_back(filepath);
         return true;
     }
@@ -18,7 +18,7 @@ bool MacroSpace::importFromFile(const std::string& filepath, const Options& conf
 
 bool MacroSpace::importFromFolder(const std::string& folderpath, const Options& config)
 {
-    if(importDirectory(folderpath, *this, config)){
+    if(importDirectory(folderpath, *((MacroContainer*)this), config)){
         sourcesLoaded.emplace_back(folderpath);
         return true;
     }
@@ -33,7 +33,7 @@ bool MacroSpace::importFromFolder(const std::string& folderpath, const Options& 
 MacroSpaceContainer::MacroSpaceContainer()
 {}
 
-MacroSpace& MacroSpaceContainer::giveMacroSpace(string name)
+MacroSpace MacroSpaceContainer::giveMacroSpace(string name)
 {
     for(auto& p : storage){
         if(p.first == name)
