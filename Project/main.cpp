@@ -18,13 +18,13 @@ int main()
     std::cout << "Type 'help' to see the available commands.\n" << endl;
 
     // Macro database (stored in volatile memory)
-    MacroContainer macroContainer;
+    MacroSpaceContainer macroSpaceContainer;
 
     // Options of the program
     Options configuration;
 
     // Let's start the command prompt
-    dealWithUser(macroContainer, configuration);
+    dealWithUser(macroSpaceContainer, configuration);
 
     return 0;
 }

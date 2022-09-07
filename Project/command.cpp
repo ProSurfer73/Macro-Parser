@@ -1,26 +1,5 @@
 #include "command.hpp"
 
-/*static void printHelp()
-{
-    cout << "Here are the available commands:" << endl;
-    cout << "- help : print this menu" << endl;
-    cout << "- importfile [file] : import macros from a file to the program" << endl;
-    cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
-    cout << "- stat : print the number of macros imported" << endl;
-    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
-    cout << "- define [macro] [value] : add/replace a specific macro" << endl;
-    cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
-    cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
-    cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
-    cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
-    cout << "- options : display the options used for file import and string evaluation" << endl;
-    cout << "- changeoption [name] [value] : change an option name" << endl;
-    cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
-    cout << "- where [macro] [folderpath] : look for a macro definition inside a folder" << endl;
-    cout << "- cls : clear console" << endl;
-    cout << "- exit : quit the program" << endl;
-}*/
-
 static void printHelp()
 {
     cout << "\nBASIC COMMANDS:" << endl;

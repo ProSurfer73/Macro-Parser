@@ -29,8 +29,8 @@ using namespace std;
 
 typedef std::vector<std::string> stringvec;
 
-struct MacroContainer;
 class Options;
+class MacroContainer;
 
 // Fucntions available
 

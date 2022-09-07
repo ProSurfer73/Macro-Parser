@@ -33,10 +33,10 @@ private:
     static void removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName);
     static void removeFromVector(std::vector<std::string>& v, const std::string& str);
 
-    std::vector< std::pair< std::string, std::string> > defines;
+protected:
+    std::vector< std::pair<std::string,std::string> > defines;
     std::vector< std::string > redefinedMacros;
     std::vector< std::string > incorrectMacros;
 };
-
 
 #endif // CONTAINER_HPP
