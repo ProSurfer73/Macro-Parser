@@ -17,13 +17,8 @@ int main()
     std::cout << "WELCOME TO MACRO PARSER." << endl;
     std::cout << "Type 'help' to see the available commands.\n" << endl;
 
+    // Command line manager
     CommandManager cmd;
-
-    // Macro database (stored in volatile memory)
-    MacroContainer macroContainer;
-
-    // Options of the program
-    Options configuration;
 
     // Let's start the command prompt
     cmd.dealWithUser();

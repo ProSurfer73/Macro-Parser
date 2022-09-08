@@ -1,13 +1,11 @@
 #ifndef HEXA_HPP
 #define HEXA_HPP
 
-#include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <iostream>
 #include <string>
 
-#include "config.hpp"
 #include "options.hpp"
 
 void locateAndReplaceHexa(std::string& str, const class Options& options);

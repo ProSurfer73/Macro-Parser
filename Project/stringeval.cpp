@@ -1,6 +1,8 @@
 #include "stringeval.hpp"
 
 #include <iostream>
+#include "container.hpp"
+#include "options.hpp"
 
 void clearSpaces(string& str)
 {

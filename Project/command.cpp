@@ -1,52 +1,53 @@
+/**
+  ******************************************************************************
+  * @file    command.cpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #include "command.hpp"
 
-static void printBasicHelp()
+#include "container.hpp"
+#include "stringeval.hpp"
+
+CommandManager::CommandManager()
+{}
+
+CommandManager::CommandManager(const Options& options, const MacroDatabase& database)
+: configuration(options), macroContainer(database)
+{}
+
+static void printHelp()
 {
-    cout << "\nBASIC COMMANDS:" << endl;
-    cout << "- help [all?] : print basic/all commands" << endl;
+    cout << "Here are the available commands:" << endl;
+    cout << "- help : print this menu" << endl;
     cout << "- importfile [file] : import macros from a file to the program" << endl;
     cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
-    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
-    cout << "- exit : quit the program" << endl;
-
-    cout << "\nOnly basic commands were printed, to display the list of all commands, please type 'help all'." << endl;
-}
-
-static void printAdvancedHelp()
-{
-    cout << "\nBASIC COMMANDS:" << endl;
-    cout << "- help [all?] : print basic/all commands" << endl;
-    cout << "- importfile [file] : import macros from a file to the program" << endl;
-    cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
-    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
-    cout << "- exit : quit the program" << endl;
-
-    cout << "\nINFO COMMANDS (print informations):" << endl;
     cout << "- stat : print the number of macros imported" << endl;
-    cout << "- where [macro] [folderpath] : look for files containing a macro definition inside a folder" << endl;
-    cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
-    cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
-
-    cout << "\nADVANCED COMMANDS" << endl;
-    cout << "- define [macro] [value] : add/replace a specific macro by a specific value" << endl;
+    cout << "- look [macro] : calculate the value of a macro given in input" << endl;
+    cout << "- define [macro] [value] : add/replace a specific macro" << endl;
     cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
     cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
+    cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
+    cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
-    cout << "- changeoption [name] [value] : change the parameter given to an option" << endl;
+    cout << "- changeoption [name] [value] : change an option name" << endl;
     cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
+    cout << "- where [macro] [folderpath] : look for a macro definition inside a folder" << endl;
     cout << "- cls : clear console" << endl;
-
-    cout << "\nMACRO SPACES (to store macro in separate memory spaces) (to be implemented)" << endl;
-    cout << "[command] [macrospace?]: to run the command in a macrospace, add macrospace at the end" << endl;
-    cout << "- printsources [macrospace] : list the folders from which the list origins" << endl;
-    cout << "- list spaces : list the macrospaces currently defined" << endl;
-    cout << "msall is a macrospace that designate all the macrospaces unified." << endl;
-
-    cout << "\nSPECIAL PARAMETERS (to be implemnted)" << endl;
-    cout << "--alphaorder : show results in an alphabetical order" << endl;
-    cout << "--increasing : show results in an increasing order" << endl;
-    cout << "--decreasing : show results in a decreasing order" << endl;
-    cout << "?: describes an optional paramater" << endl;
+    cout << "- exit : quit the program" << endl;
 }
 
 void CommandManager::dealWithUser()
@@ -128,10 +129,7 @@ bool CommandManager::runCommand(string str)
         macroContainer.clearDatabase(eraseOk, eraseRe, eraseIn);
     }
     else if(str == "help")
-        printBasicHelp();
-    else if(str=="helpall"||str=="help all"){
-        printAdvancedHelp();
-    }
+        printHelp();
     else if(str == "stat"){
         cout << macroContainer.getDefines().size() << " macros were loaded." << endl;
         cout << "|-> " << macroContainer.getRedefinedMacros().size() << " macros have been redefined." << endl;
@@ -281,7 +279,7 @@ bool CommandManager::runCommand(string str)
     }
 
     else if(str.substr(0, 11) == "importfile "){
-        if(!macroContainer.importFromFile(str.substr(11), configuration))//importFile(str.substr(11), macroContainer, configuration))
+        if(!macroContainer.importFromFile(str.substr(11), configuration))
             cout << "/!\\ Error: can't open the given file. /!\\" << endl;
         else {
             runCommand("stat");
@@ -289,9 +287,10 @@ bool CommandManager::runCommand(string str)
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        if(!macroContainer.importFromFolder(str.substr(13), configuration))// !importDirectory(str.substr(13), macroContainer, configuration))
+        if(!macroContainer.importFromFolder(str.substr(13), configuration))
             cout << "/!\\ Error: can't open that directory. /!\\" << endl;
         runCommand("stat");
+        return true;
     }
 
     else if(str.substr(0, 5) == "look ")
@@ -398,7 +397,7 @@ bool CommandManager::runCommand(string str)
         }
         else
         {
-            if(!(searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration)))
+            if(!searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration))
             {
                 std::cout << "Can't open the directory given as the second parameter." << endl;
                 cout << str.substr(ss.tellg()+6+1) << endl;

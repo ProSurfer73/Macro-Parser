@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <string>
-#include "stringeval.hpp"
-#include "options.hpp"
 
+#include "options.hpp"
+#include "filesystem.hpp"
 
 class MacroDatabase
 {
@@ -32,14 +32,14 @@ protected:
     std::vector< std::string > incorrectMacros;
 };
 
-class MacroContainerr : public MacroDatabase
+class MacroContainer : public MacroDatabase
 {
 public:
     // Default constructor
-    MacroContainerr();
+    MacroContainer();
+    MacroContainer(const MacroDatabase&);
 
     // Console commands
-
     void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
     void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
     unsigned countMacroName(const std::string& macroName) const;
@@ -48,6 +48,8 @@ public:
 private:
     std::vector< std::string > origins;
 };
+
+#include "stringeval.hpp"
 
 
 #endif // CONTAINER_HPP

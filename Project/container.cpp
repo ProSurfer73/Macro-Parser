@@ -142,6 +142,10 @@ MacroContainer::MacroContainer()
 : MacroDatabase()
 {}
 
+MacroContainer::MacroContainer(const MacroDatabase& database)
+: MacroDatabase(database)
+{}
+
 void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
 {
     if(clearDefines)

@@ -1,6 +1,7 @@
 #include "filesystem.hpp"
 
-
+#include "options.hpp"
+#include "stringeval.hpp"
 
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
