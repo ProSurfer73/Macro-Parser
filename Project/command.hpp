@@ -34,15 +34,20 @@ class CommandManager
 public:
     // Constructors
     CommandManager();
-    CommandManager(const Options& options, const MacroDatabase& database);
+    CommandManager(const Options& options);
 
-    // Main methods
+    // Command line methods
     void dealWithUser();
     bool runCommand(string str);
+
+    // Database command
+    void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
+    MacroContainer& getMacroSpace(const std::string& macrospaceName);
 
 private:
     Options configuration;
     MacroContainer macroContainer;
+    std::vector< std::pair<std::string, MacroContainer> > macrospaces;
 };
 
 

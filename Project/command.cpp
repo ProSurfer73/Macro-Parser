@@ -25,8 +25,8 @@
 CommandManager::CommandManager()
 {}
 
-CommandManager::CommandManager(const Options& options, const MacroDatabase& database)
-: configuration(options), macroContainer(database)
+CommandManager::CommandManager(const Options& options)
+: configuration(options)
 {}
 
 static void printHelp()
@@ -452,5 +452,22 @@ bool CommandManager::runCommand(string str)
     return true;
 }
 
+void CommandManager::addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace)
+{
+    macrospaces.emplace_back(macrospaceName, macrospace);
+}
 
+MacroContainer& CommandManager::getMacroSpace(const std::string& macrospaceName)
+{
+    for(auto& p: macrospaces){
+        if(p.first == macrospaceName)
+            return p.second;
+    }
+
+    macrospaces.emplace_back(macrospaceName);
+    MacroContainer* kkk;
+    for(auto& p: macrospaces)
+        kkk = &(p.second);
+    return *kkk;
+}
 
