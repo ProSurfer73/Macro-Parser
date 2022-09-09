@@ -26,14 +26,13 @@
 #include <sstream>
 #include <cassert>
 
-#include "config.hpp"
+#include "container.hpp"
+#include "stringeval.hpp"
 #include "hexa.hpp"
-#include "command.hpp"
-#include "options.hpp"
 
 using namespace std;
 
-struct MacroContainer;
+
 enum class CalculationStatus { EVAL_ERROR, EVAL_WARNING, EVAL_OKAY };
 
 bool isMacroCharacter(char c);

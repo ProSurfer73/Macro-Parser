@@ -18,6 +18,7 @@
   */
 
 #include "options.hpp"
+#include "container.hpp"
 
 Options::Options()
 {

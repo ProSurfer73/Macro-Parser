@@ -25,18 +25,31 @@
 #include <sstream>
 #include <map>
 
-#include "filesystem.hpp"
-#include "stringeval.hpp"
-#include "options.hpp"
-#include "container.hpp"
-
 using namespace std;
 
+#include "container.hpp"
+
+class CommandManager
+{
+public:
+    // Constructors
+    CommandManager();
+    CommandManager(const Options& options);
+
+    // Command line methods
+    void dealWithUser();
+    bool runCommand(string str);
+
+    // Database command
+    void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
+    MacroContainer& getMacroSpace(const std::string& macrospaceName);
+    bool doesMacrospaceExists(const std::string& macrospaceName) const;
+
+private:
+    Options configuration;
+    std::vector< std::pair<std::string, MacroContainer> > macrospaces;
+};
 
 
-
-bool runCommand(string str, MacroContainer& macroContainer, Options& configuration);
-
-void dealWithUser(MacroContainer& macroContainer, Options& configuration);
 
 #endif // COMMAND_HPP

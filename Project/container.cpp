@@ -19,9 +19,13 @@
 
 #include "container.hpp"
 
+/*** MacroDatabase ***/
+
+
+
 // Default constructor
 
-MacroContainer::MacroContainer()
+MacroDatabase::MacroDatabase()
 {
     // Set large default presize
     // avoid reallocating small amount of memory each time
@@ -30,9 +34,7 @@ MacroContainer::MacroContainer()
     incorrectMacros.reserve(1000);
 }
 
-// Modification methods
-
-void MacroContainer::emplace(const std::string& macroName, const std::string& macroValue)
+void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
 {
     bool alreadyExists=false;
 
@@ -55,7 +57,7 @@ void MacroContainer::emplace(const std::string& macroName, const std::string& ma
     emplaceOnce(defines, macroName, macroValue);
 }
 
-void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
+void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
     removeFromVector(defines, macroName);
     removeFromVector(incorrectMacros, macroName);
@@ -63,17 +65,34 @@ void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::
     defines.emplace_back(macroName, macroValue);
 }
 
-void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
+bool MacroDatabase::importFromFile(const std::string& filepath, const Options& config)
 {
-    if(clearDefines)
-        defines.clear();
-    if(clearRedefined)
-        redefinedMacros.clear();
-    if(clearIncorrect)
-        incorrectMacros.clear();
+    return FileSystem::importFile(filepath, *this, config);
 }
 
-bool MacroContainer::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
+bool MacroDatabase::importFromFolder(const std::string& folderpath, const Options& config)
+{
+    return FileSystem::importDirectory(folderpath, *this, config);
+}
+
+// Getters
+
+const std::vector< std::pair< std::string, std::string> >& MacroDatabase::getDefines() const
+{
+    return defines;
+}
+
+const std::vector< std::string >& MacroDatabase::getRedefinedMacros() const
+{
+    return redefinedMacros;
+}
+
+const std::vector< std::string >& MacroDatabase::getIncorrectMacros() const
+{
+    return incorrectMacros;
+}
+
+bool MacroDatabase::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
 {
     if(v.empty()){
         v.emplace_back(macroName);
@@ -89,7 +108,7 @@ bool MacroContainer::emplaceOnce(std::vector< std::string >& v, const std::strin
     return false;
 }
 
-bool MacroContainer::emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue)
+bool MacroDatabase::emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue)
 {
     if(v.empty()){
         v.emplace_back(macroName, macroValue);
@@ -114,7 +133,7 @@ bool MacroContainer::emplaceOnce(std::vector< std::pair<std::string,std::string>
     return !exists;
 }
 
-void MacroContainer::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
+void MacroDatabase::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
 {
     for(auto it=v.begin(); it!=v.end();){
         if(it->first == macroName)
@@ -124,7 +143,7 @@ void MacroContainer::removeFromVector(std::vector< std::pair<std::string,std::st
     }
 }
 
-void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::string& macroName)
+void MacroDatabase::removeFromVector(std::vector<std::string>& v, const std::string& macroName)
 {
 
     for(auto it=v.begin(); it!=v.end();)
@@ -135,6 +154,28 @@ void MacroContainer::removeFromVector(std::vector<std::string>& v, const std::st
             ++it;
     }
 }
+
+/*** MacroContainer class implementation ***/
+
+MacroContainer::MacroContainer()
+: MacroDatabase(), origins()
+{}
+
+MacroContainer::MacroContainer(const MacroDatabase& database)
+: MacroDatabase(database)
+{}
+
+void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
+{
+    if(clearDefines)
+        defines.clear();
+    if(clearRedefined)
+        redefinedMacros.clear();
+    if(clearIncorrect)
+        incorrectMacros.clear();
+}
+
+
 
 // Lookup commands
 
@@ -180,23 +221,33 @@ bool MacroContainer::isRedefined(std::string macroName) const
     return false;
 }
 
-
-
-
-// Getters
-
-const std::vector< std::pair< std::string, std::string> >& MacroContainer::getDefines() const
+bool MacroContainer::importFromFile(const std::string& filepath, const Options& config)
 {
-    return defines;
+    if(MacroDatabase::importFromFile(filepath, config)){
+        origins.emplace_back(filepath);
+        return true;
+    }
+    return false;
 }
 
-const std::vector< std::string >& MacroContainer::getRedefinedMacros() const
+bool MacroContainer::importFromFolder(const std::string& folderpath, const Options& config)
 {
-    return redefinedMacros;
+    if(MacroDatabase::importFromFolder(folderpath, config)){
+        origins.emplace_back(folderpath);
+        return true;
+    }
+    return false;
 }
 
-const std::vector< std::string >& MacroContainer::getIncorrectMacros() const
+void MacroContainer::printOrigins() const
 {
-    return incorrectMacros;
+    for(const std::string& str: origins){
+        std::cout << " - " << str << endl;
+    }
 }
+
+
+
+
+
 

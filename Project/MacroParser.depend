@@ -209,10 +209,12 @@
 	<iostream>
 	"config.hpp"
 
-1662227681 source:c:\git\macro-parser\project\filesystem.cpp
+1662617262 source:c:\git\macro-parser\project\filesystem.cpp
 	"filesystem.hpp"
+	"options.hpp"
+	"stringeval.hpp"
 
-1662276219 c:\git\macro-parser\project\filesystem.hpp
+1662576300 c:\git\macro-parser\project\filesystem.hpp
 	<string>
 	<vector>
 	<fstream>
@@ -229,54 +231,43 @@
 	<iostream>
 	<thread>
 	<mutex>
-	"stringeval.hpp"
-	"config.hpp"
-	"command.hpp"
-	"options.hpp"
 
-1662301116 c:\git\macro-parser\project\stringeval.hpp
+1662619882 c:\git\macro-parser\project\stringeval.hpp
 	<vector>
 	<string>
 	<sstream>
 	<cassert>
-	"config.hpp"
+	"container.hpp"
+	"stringeval.hpp"
 	"hexa.hpp"
-	"command.hpp"
-	"options.hpp"
 
 1662109867 c:\git\macro-parser\project\config.hpp
 
-1662276173 c:\git\macro-parser\project\hexa.hpp
-	<stdio.h>
+1662576355 c:\git\macro-parser\project\hexa.hpp
 	<math.h>
 	<string.h>
 	<iostream>
 	<string>
-	"config.hpp"
 	"options.hpp"
 
-1662276219 c:\git\macro-parser\project\options.hpp
+1662576545 c:\git\macro-parser\project\options.hpp
 	<fstream>
 	<string>
 	<iostream>
 	<algorithm>
 	"config.hpp"
-	"stringeval.hpp"
 
-1661866451 c:\git\macro-parser\project\command.hpp
+1662714586 c:\git\macro-parser\project\command.hpp
 	<iostream>
 	<vector>
 	<sstream>
 	<map>
-	"filesystem.hpp"
-	"stringeval.hpp"
-	"options.hpp"
 	"container.hpp"
 
 1662296165 source:c:\git\macro-parser\project\hexa.cpp
 	"hexa.hpp"
 
-1662299366 source:c:\git\macro-parser\project\main.cpp
+1662722385 source:c:\git\macro-parser\project\main.cpp
 	<iostream>
 	<fstream>
 	"hexa.hpp"
@@ -284,22 +275,29 @@
 	"command.hpp"
 	"options.hpp"
 
-1662276801 source:c:\git\macro-parser\project\options.cpp
+1662576617 source:c:\git\macro-parser\project\options.cpp
 	"options.hpp"
+	"container.hpp"
 
-1662316489 source:c:\git\macro-parser\project\stringeval.cpp
+1662576674 source:c:\git\macro-parser\project\stringeval.cpp
 	"stringeval.hpp"
 	<iostream>
+	"container.hpp"
+	"options.hpp"
 
-1662360556 source:c:\git\macro-parser\project\command.cpp
+1662726044 source:c:\git\macro-parser\project\command.cpp
 	"command.hpp"
-
-1662228288 c:\git\macro-parser\project\container.hpp
-	<vector>
-	<string>
+	"container.hpp"
 	"stringeval.hpp"
 
-1662236902 source:c:\git\macro-parser\project\container.cpp
+1662714364 c:\git\macro-parser\project\container.hpp
+	<vector>
+	<string>
+	"options.hpp"
+	"filesystem.hpp"
+	"stringeval.hpp"
+
+1662720824 source:c:\git\macro-parser\project\container.cpp
 	"container.hpp"
 
 1661953014 source:c:\git\macro-parser\project\booleval.cpp
@@ -308,6 +306,15 @@
 1661953026 c:\git\macro-parser\project\booleval.hpp
 	<string>
 
+<<<<<<< HEAD
+1662553211 source:c:\git\macro-parser\project\macrospace.cpp
+	"container.hpp"
+
+1662553047 c:\git\macro-parser\project\macrospace.hpp
+	<vector>
+	"container.hpp"
+
+=======
 1662496207 source:c:\gitr\macro-parser\project\command.cpp
 	"command.hpp"
 
@@ -401,3 +408,4 @@
 	"stringeval.hpp"
 	<iostream>
 
+>>>>>>> main

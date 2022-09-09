@@ -36,14 +36,19 @@ int main()
     std::cout << "WELCOME TO MACRO PARSER." << endl;
     std::cout << "Type 'help' to see the available commands.\n" << endl;
 
-    // Macro database (stored in volatile memory)
-    MacroContainer macroContainer;
+    try {
 
-    // Options of the program
-    Options configuration;
+    // Command line manager
+    CommandManager cmd;
 
     // Let's start the command prompt
-    dealWithUser(macroContainer, configuration);
+    cmd.dealWithUser();
+
+    }
+    catch(std::exception const& ex)
+    {
+        std::cout << "Fatal exception: " << ex.what() << endl;
+    }
 
     return 0;
 }

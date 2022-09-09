@@ -33,7 +33,6 @@
 #include <algorithm>
 
 #include "config.hpp"
-#include "stringeval.hpp"
 
 class Options
 {

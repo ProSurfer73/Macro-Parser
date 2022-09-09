@@ -19,6 +19,9 @@
 
 #include "filesystem.hpp"
 
+#include "options.hpp"
+#include "stringeval.hpp"
+
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {
@@ -43,7 +46,7 @@ void read_directory(const std::string& name, stringvec& v)
 }
 
 
-BOOL DirectoryExists(LPCTSTR szPath)
+BOOL FileSystem::DirectoryExists(LPCTSTR szPath)
 {
   DWORD dwAttrib = GetFileAttributes(szPath);
 
@@ -53,7 +56,7 @@ BOOL DirectoryExists(LPCTSTR szPath)
 
 
 
-bool importFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
+ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config)
 {
     ifstream file(pathToFile);
 
@@ -459,7 +462,7 @@ void explore_directory(std::string directory_name, stringvec& fileCollection)
         // IF there is a point then, it's a file
         // Also it's important to note that filenames "." and ".." aren't files
         // oldimplemntation: if(sv[i].find('.') != std::string::npos && sv[i]!="." && sv[i]!="..")
-        if(!DirectoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
+        if(!FileSystem::DirectoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
             fileCollection.emplace_back(directory_name+'\\'+sv[i]);
 
         // Else it's a folder, and you have to reexecute the function recursilvely
@@ -471,7 +474,6 @@ void explore_directory(std::string directory_name, stringvec& fileCollection)
 }
 
 #ifdef ENABLE_FILE_LOADING_BAR
-
 
 static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFiles, const unsigned maxNbFiles)
 {
@@ -539,7 +541,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 #endif
 
-bool importDirectory(string dir, MacroContainer& macroContainer, const Options& config)
+bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
 {
     stringvec fileCollection;
 
@@ -566,7 +568,7 @@ bool importDirectory(string dir, MacroContainer& macroContainer, const Options& 
         {
             try
             {
-                if(!importFile(str, macroContainer, config)){
+                if(!FileSystem::importFile(str, macroContainer, config)){
                     std::cerr << "Couldn't read/open file : " << str << endl;
                 }
             }
