@@ -39,11 +39,16 @@ public:
     MacroContainer();
     MacroContainer(const MacroDatabase&);
 
+    // Import commands (herited from MacroDatabase)
+    bool importFromFile(const std::string& filepath, const Options& config);
+    bool importFromFolder(const std::string& folderpath, const Options& config);
+
     // Console commands
     void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
     void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
     unsigned countMacroName(const std::string& macroName) const;
     bool isRedefined(std::string macroName) const;
+    void printOrigins() const;
 
 private:
     std::vector< std::string > origins;

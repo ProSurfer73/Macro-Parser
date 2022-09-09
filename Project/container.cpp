@@ -139,7 +139,7 @@ void MacroDatabase::removeFromVector(std::vector<std::string>& v, const std::str
 /*** MacroContainer class implementation ***/
 
 MacroContainer::MacroContainer()
-: MacroDatabase()
+: MacroDatabase(), origins()
 {}
 
 MacroContainer::MacroContainer(const MacroDatabase& database)
@@ -202,7 +202,30 @@ bool MacroContainer::isRedefined(std::string macroName) const
     return false;
 }
 
+bool MacroContainer::importFromFile(const std::string& filepath, const Options& config)
+{
+    if(MacroDatabase::importFromFile(filepath, config)){
+        origins.emplace_back(filepath);
+        return true;
+    }
+    return false;
+}
 
+bool MacroContainer::importFromFolder(const std::string& folderpath, const Options& config)
+{
+    if(MacroDatabase::importFromFolder(folderpath, config)){
+        origins.emplace_back(folderpath);
+        return true;
+    }
+    return false;
+}
+
+void MacroContainer::printOrigins() const
+{
+    for(const std::string& str: origins){
+        std::cout << " - " << str << endl;
+    }
+}
 
 
 

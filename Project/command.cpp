@@ -26,7 +26,7 @@ CommandManager::CommandManager()
 {}
 
 CommandManager::CommandManager(const Options& options)
-: configuration(options)
+: configuration(options), macrospaces()
 {}
 
 static void printHelp()
@@ -92,6 +92,8 @@ static bool isAllDigits(const std::string& str)
 
 bool CommandManager::runCommand(string str)
 {
+    MacroContainer& macroContainer=getMacroSpace("default");
+
     // lower characters related to the name of the command
     for(unsigned i=0; i<str.size() && str[i]!=' '; ++i)
         str[i] = tolower(str[i]);
@@ -144,6 +146,14 @@ bool CommandManager::runCommand(string str)
         bool listRe=false;
         bool listIn=false;
         bool listOk=false;
+
+        if(parameters.size()==1 && parameters.front()=="spaces")
+        {
+            for(const auto& p: macrospaces)
+                std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << endl;
+        }
+        else
+        {
 
         for(const std::string& param: parameters)
         {
@@ -209,6 +219,8 @@ bool CommandManager::runCommand(string str)
                 std::cout << "Only printed the first 5000 results." << endl;
                 break;
             }
+        }
+
         }
 
     }
@@ -287,15 +299,45 @@ bool CommandManager::runCommand(string str)
     }
 
     else if(str.substr(0, 13) == "importfolder "){
-        if(!macroContainer.importFromFolder(str.substr(13), configuration))
-            cout << "/!\\ Error: can't open that directory. /!\\" << endl;
-        runCommand("stat");
+        std::vector<std::string> parameters;
+        extractList(parameters, str.substr(13));
+        std::vector<std::string> directories;
+        std::vector<std::string> macrospacesName;
+
+        for(const std::string& str: parameters){
+            if(str.find(":\\")!=std::string::npos){
+                directories.emplace_back(str);
+            }
+            else if(str.find('/')!=std::string::npos && str.find('.')){
+                directories[directories.size()-1] += std::string(" ")+str;
+            }
+            else {
+                // Else we have to deal with a macrospace name !
+                macrospacesName.emplace_back(str);
+            }
+        }
+
+        if(macrospacesName.empty())
+            macrospacesName.emplace_back("default");
+
+        //for(auto& str1:macrospacesName)cout << "- " << str1 << endl;
+
+        if(!directories.empty()){
+            getMacroSpace(macrospacesName.front()).importFromFolder(parameters.front(), configuration);
+            //runCommand("stat");
+        }
+        else {
+            cout << "/!\\ Error: can't open the directory:" << directories.front() << " /!\\" << endl;
+        }
         return true;
     }
 
     else if(str.substr(0, 5) == "look ")
     {
-        str=str.substr(5);
+        std::vector<std::string> parameters;
+        extractList(parameters, str.substr(5));
+
+        str=parameters.front();
         clearSpaces(str);
 
         if(macroContainer.countMacroName(str)>1)
@@ -303,21 +345,31 @@ bool CommandManager::runCommand(string str)
             std::cout << "This macro has been redefined and needs to be interpreted." << endl;
             std::cout << "Type 'interpret " << str << "'." << endl;
         }
-        else if(macroContainer.getDefines().empty())
+        else if(parameters.size()>1 && getMacroSpace(parameters[1]).getDefines().empty())
             cout << "No macros were imported yet." << endl;
         else
         {
+            MacroContainer *mc=nullptr;
+            if(parameters.size()>1){
+                mc = &(getMacroSpace(parameters[0]));
+            }
+            else {
+                mc = &macroContainer;
+            }
+            if(mc)
+            {
+
             string userInput = str;
 
             bool found = false;
 
-            for(auto& p : macroContainer.getDefines())
+            for(auto& p : mc->getDefines())
             {
                 if(p.first == userInput)
                 {
                     cout << "first definition: " << p.second << endl;
                     string output = p.second;
-                    auto status = calculateExpression(output, macroContainer, configuration);
+                    auto status = calculateExpression(output, *mc, configuration);
                     if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                     if(status == CalculationStatus::EVAL_WARNING){
@@ -347,6 +399,10 @@ bool CommandManager::runCommand(string str)
 
             if(!found)
                 cout << "No macro was found with this name '" << str << "'." << endl;
+
+            }
+            else
+                std::cout << "The macrospace '" << parameters.back() << "' does not exist." << endl;
         }
     }
     else if(str.substr(0,7) == "define " && str.size()>=8){
@@ -362,7 +418,7 @@ bool CommandManager::runCommand(string str)
                 str2=str.substr(6+ss.tellg());
             if(!doesExprLookOk(str2))
                 cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
-            macroContainer.emplaceAndReplace(str1, str2);
+            getMacroSpace("default").emplaceAndReplace(str1, str2);
         }
     }
     else if(str.substr(0,7) == "search " && str.size()>8){
@@ -438,6 +494,15 @@ bool CommandManager::runCommand(string str)
 
 
     }
+    else if(str.substr(0,13) == "printsources "){
+        string macrospaceName = str.substr(13);
+        if(doesMacrospaceExists(macrospaceName)){
+            getMacroSpace(macrospaceName).printOrigins();
+        }
+        else {
+            cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
+        }
+    }
     #ifdef _WIN32 || _WIN64
     else if(str == "cls"){
         system("cls");
@@ -464,10 +529,20 @@ MacroContainer& CommandManager::getMacroSpace(const std::string& macrospaceName)
             return p.second;
     }
 
-    macrospaces.emplace_back(macrospaceName);
+    macrospaces.emplace_back(macrospaceName, MacroContainer());
     MacroContainer* kkk;
     for(auto& p: macrospaces)
         kkk = &(p.second);
     return *kkk;
+}
+
+bool CommandManager::doesMacrospaceExists(const std::string& macrospaceName) const
+{
+    for(const auto& p: macrospaces){
+        if(p.first == macrospaceName)
+            return true;
+    }
+
+    return false;
 }
 

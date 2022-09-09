@@ -17,11 +17,19 @@ int main()
     std::cout << "WELCOME TO MACRO PARSER." << endl;
     std::cout << "Type 'help' to see the available commands.\n" << endl;
 
+    try {
+
     // Command line manager
     CommandManager cmd;
 
     // Let's start the command prompt
     cmd.dealWithUser();
+
+    }
+    catch(std::exception const& ex)
+    {
+        std::cout << "Fatal exception: " << ex.what() << endl;
+    }
 
     return 0;
 }

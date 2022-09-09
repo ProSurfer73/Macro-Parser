@@ -43,10 +43,10 @@ public:
     // Database command
     void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
     MacroContainer& getMacroSpace(const std::string& macrospaceName);
+    bool doesMacrospaceExists(const std::string& macrospaceName) const;
 
 private:
     Options configuration;
-    MacroContainer macroContainer;
     std::vector< std::pair<std::string, MacroContainer> > macrospaces;
 };
 
