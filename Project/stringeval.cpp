@@ -1,3 +1,22 @@
+/**
+  ******************************************************************************
+  * @file    stringeval.cpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #include "stringeval.hpp"
 
 #include <iostream>
@@ -63,6 +82,59 @@ static void func(double &result, char op, double num)
             std::cout << "Unrecognized character: " << op << std::endl;
             break;
     }
+}
+
+static string extractRightPart(string expr, size_t pos)
+{
+    return expr.substr(pos);
+}
+
+static string extractLeftPart(string expr, size_t pos)
+{
+    std::size_t i=0;
+    for(; pos-i >= 0 && isMacroCharacter(expr[pos-i-1]); ++i);
+    return expr.substr(pos-i, i);
+}
+
+
+static bool evaluateSimpleBooleanExpr(string& expr)
+{
+    size_t initialExprSize = expr.size();
+
+    // We don't deal with parenthesis here
+    assert(expr.find('(')==string::npos);
+
+    // First, let's treat AND operator
+    std::size_t searchedOperator;
+    while( (searchedOperator=expr.find("&&")) != string::npos)
+    {
+        string leftPart = extractLeftPart(expr,searchedOperator);
+        string rightPart = extractRightPart(expr,searchedOperator+2);
+
+        if(leftPart=="false" || rightPart=="false")
+            expr = "false";
+        else if(leftPart=="true")
+            expr = rightPart;
+        else if(rightPart=="true")
+            expr = leftPart;
+    }
+
+    // Secondly, let's treat OR operator
+    while( (searchedOperator=expr.find("||")) != string::npos )
+    {
+        string leftPart = extractLeftPart(expr,searchedOperator);
+        string rightPart = extractRightPart(expr,searchedOperator+2);
+
+        if(leftPart=="true" || rightPart=="true")
+            expr = "true";
+        else if(leftPart=="false")
+            expr = rightPart;
+        else if(rightPart=="false")
+            expr = leftPart;
+    }
+
+    // If expression does not have the same size then
+    return expr.size()!=initialExprSize;
 }
 
 bool doesExprLookOk(const string& expr)
@@ -314,8 +386,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
                 }
 
-
-                simpleReplace(expr, p.first, p.second);
+                auto searched = expr.find(p.first);
+                if(searched != string::npos && !isMacroCharacter(expr[searched+1]) && searched>=1 && !isMacroCharacter(expr[searched+1]));
+                    simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     if(printWarnings){
@@ -568,7 +641,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             subExpr = expr;
         }
 
-
         if(
         // Treat double comparaison operations
            treatOperationDouble(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
@@ -578,16 +650,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         || treatOperationDouble(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
         || treatOperationDouble(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } )
 
-        // Treat AND boolean operations
-        || simpleReplace(subExpr, "false&&false", "false")
-        || simpleReplace(subExpr, "true&&true", "true")
-        || simpleReplace(subExpr, "true&&false", "false")
-        || simpleReplace(subExpr, "false&&true", "true")
+        // Treat AND, OR boolean operations
+        || evaluateSimpleBooleanExpr(subExpr)
+        )
 
-        // Treat OR boolean operations
-        || simpleReplace(subExpr, "false||false", "false")
-        || simpleReplace(subExpr, "||true", "")
-        || simpleReplace(subExpr, "true||", ""))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;

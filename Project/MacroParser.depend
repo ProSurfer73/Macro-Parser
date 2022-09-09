@@ -306,6 +306,7 @@
 1661953026 c:\git\macro-parser\project\booleval.hpp
 	<string>
 
+<<<<<<< HEAD
 1662553211 source:c:\git\macro-parser\project\macrospace.cpp
 	"container.hpp"
 
@@ -313,3 +314,98 @@
 	<vector>
 	"container.hpp"
 
+=======
+1662496207 source:c:\gitr\macro-parser\project\command.cpp
+	"command.hpp"
+
+1662481172 c:\gitr\macro-parser\project\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	<map>
+	"filesystem.hpp"
+	"stringeval.hpp"
+	"options.hpp"
+	"container.hpp"
+
+1662481172 c:\gitr\macro-parser\project\filesystem.hpp
+	<string>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	<iomanip>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	"stringeval.hpp"
+	"config.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1662481172 c:\gitr\macro-parser\project\stringeval.hpp
+	<vector>
+	<string>
+	<sstream>
+	<cassert>
+	"config.hpp"
+	"hexa.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1662481172 c:\gitr\macro-parser\project\config.hpp
+
+1662481172 c:\gitr\macro-parser\project\hexa.hpp
+	<stdio.h>
+	<math.h>
+	<string.h>
+	<iostream>
+	<string>
+	"config.hpp"
+	"options.hpp"
+
+1662481172 c:\gitr\macro-parser\project\options.hpp
+	<fstream>
+	<string>
+	<iostream>
+	<algorithm>
+	"config.hpp"
+	"stringeval.hpp"
+
+1662481172 c:\gitr\macro-parser\project\container.hpp
+	<vector>
+	<string>
+	"stringeval.hpp"
+
+1662481172 source:c:\gitr\macro-parser\project\container.cpp
+	"container.hpp"
+
+1662481172 source:c:\gitr\macro-parser\project\filesystem.cpp
+	"filesystem.hpp"
+
+1662481172 source:c:\gitr\macro-parser\project\hexa.cpp
+	"hexa.hpp"
+
+1662481172 source:c:\gitr\macro-parser\project\main.cpp
+	<iostream>
+	<fstream>
+	"hexa.hpp"
+	"stringeval.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1662481172 source:c:\gitr\macro-parser\project\options.cpp
+	"options.hpp"
+
+1662498056 source:c:\gitr\macro-parser\project\stringeval.cpp
+	"stringeval.hpp"
+	<iostream>
+
+>>>>>>> main
