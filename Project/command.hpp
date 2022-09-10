@@ -39,6 +39,7 @@ public:
     // Command line methods
     void dealWithUser();
     bool runCommand(string str);
+    bool runCommand2(string str);
 
     // Database command
     void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
@@ -50,6 +51,6 @@ private:
     std::vector< std::pair<std::string, MacroContainer> > macrospaces;
 };
 
-
+#include "stringeval.hpp"
 
 #endif // COMMAND_HPP

@@ -79,7 +79,7 @@ static void func(double &result, char op, double num)
             }
             break;
         default:
-            std::cout << "Unrecognized character: " << op << std::endl;
+            throw std::runtime_error( std::string("Unrecognized character: ")+op+'\n' );
             break;
     }
 }
