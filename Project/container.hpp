@@ -63,6 +63,7 @@ public:
     bool importFromFolder(const std::string& folderpath, const Options& config);
 
     // Console commands
+    static bool isNameValid(const std::string& macroContainerName);
     void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
     void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
     unsigned countMacroName(const std::string& macroName) const;

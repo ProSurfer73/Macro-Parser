@@ -66,7 +66,7 @@ static void printAdvancedHelp()
     cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
     cout << "- cls : clear console" << endl;
 
-    cout << "\nMACRO SPACES (to store macro in separate memory spaces) (to be implemented)" << endl;
+    cout << "\nMACRO SPACES (to store macro in separate memory spaces) (currently implemented)" << endl;
     cout << "[command] [macrospace?]: to run the command in a macrospace, add macrospace at the end" << endl;
     cout << "- printsources [macrospace] : list the folders from which the list origins" << endl;
     cout << "- list spaces : list the macrospaces currently defined" << endl;
@@ -90,7 +90,7 @@ void CommandManager::dealWithUser()
         string userInput;
         getline(cin, userInput);
 
-        running = runCommand(userInput);
+        running = runCommand2(userInput);
 
         cout << endl;
     }
@@ -114,7 +114,18 @@ static void extractList2(std::vector<std::string>& outputList, const std::string
 
     while(iss >> str)
     {
-        outputList.emplace_back(str);
+        if((str.find('/') != std::string::npos
+        || str.find('\\') != std::string::npos
+        || str.find('.') != std::string::npos)
+        && outputList.size()>=2
+        && (outputList.back().find('/') != std::string::npos
+        || outputList.back().find('\\') != std::string::npos
+        || outputList.back().find('.') != std::string::npos)){
+            outputList[outputList.size()-1] += str;
+        }
+        else {
+            outputList.emplace_back(str);
+        }
     }
 }
 
@@ -137,188 +148,31 @@ static void printStatMacrospace(MacroContainer const& mc)
 
 
 
-bool CommandManager::runCommand(string str)
+bool CommandManager::runCommand2(string input)
 {
-    MacroContainer& macroContainer=getMacroSpace("default");
+    // Extract command and parameters from str
+    std::vector<std::string> parameters;
+    extractList2(parameters, input);
+    if(input.empty())
+        return true;
+    std::string& commandStr = parameters[0];
+    lowerString(commandStr);
 
-    // lower characters related to the name of the command
-    for(unsigned i=0; i<str.size() && str[i]!=' '; ++i)
-        str[i] = tolower(str[i]);
+    // Shortcut to the default macrospace
+    MacroContainer& mcc = getMacroSpace("default");
 
-    if(str.empty())
-        {}
-    else if(str.substr(0,5) == "clear")
+    if(commandStr == "interpret")
     {
-        std::vector<std::string> parameters;
-        std::vector<std::string> containersName;
-        extractList(parameters, str.substr(5));
-
-        bool fine=true;
-
-        bool eraseRe=false;
-        bool eraseIn=false;
-        bool eraseOk=false;
-
-        for(const std::string& param: parameters)
-        {
-            if(doesMacrospaceExists(param)){
-                containersName.push_back(param);
-            }
-            else if(param=="ok")
-                eraseOk=true;
-            else if(param=="in")
-                eraseIn=true;
-            else if(param=="re")
-                eraseRe=true;
-            else if(param=="all")
-                eraseOk=eraseIn=eraseRe=true;
-            else {
-                cout << "Incorrect option parameter '" << param << "'." << endl;
-                fine = false;
-            }
-        }
-        if(!eraseRe && !eraseOk && !eraseIn)
-        {
-            cout << "No option parameter was given. No macro was erased." << endl;
-            cout << "Try 'clear all' or 'clear ok' or 'clear in'." << endl;
-        }
-        if(containersName.empty())
-            containersName.emplace_back("default");
-
-        // User message to explain what the program did
-        std::cout << "Cleared ";
-        if(eraseRe&&eraseOk&&eraseIn) cout << "all "; else cout << "some ";
-        cout << "macros in container";
-        if(containersName.size()>1) cout << 's';
-        cout << ": ";
-        for(const std::string& str: containersName) cout << str << " ";
-        cout << endl;
-
-        // Finally let's clear the macro database
-        for(const std::string& str: containersName)
-            getMacroSpace(str).clearDatabase(eraseOk, eraseRe, eraseIn);
-    }
-    else if(str == "help")
-        printBasicHelp();
-    else if(str == "helpall" || str == "help all")
-        printAdvancedHelp();
-    else if(str.substr(0,4) == "stat"){
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(4));
-
-        if(!parameters.empty()){
-            if(doesMacrospaceExists(parameters.front()))
-            {
-                printStatMacrospace(getMacroSpace(parameters.front()));
-            }
-            else
-            {
-                cout << "The macrospace '"<< parameters.front() << "' does not exists." << endl;
-            }
-        }
-        else {
-            printStatMacrospace(macroContainer);
-        }
-    }
-
-    else if(str.substr(0,4) == "list")
-    {
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(4));
-
-        bool listRe=false;
-        bool listIn=false;
-        bool listOk=false;
-
-        if(parameters.size()==1 && parameters.front()=="spaces")
-        {
-            for(const auto& p: macrospaces)
-                std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << endl;
-        }
-        else
-        {
-
-        for(const std::string& param: parameters)
-        {
-            if(param=="ok")
-                listOk=true;
-            else if(param=="in")
-                listIn=true;
-            else if(param=="re")
-                listRe=true;
-            else if(param=="all")
-                listOk=listIn=listRe=true;
-            else {
-                cout << "Incorrect option parameter '" << param << "'." << endl;
-            }
-        }
-        if(!listRe && !listOk && !listIn)
-        {
-            cout << "No option parameter was given. No list was erased." << endl;
-            cout << "Try 'list all' or 'list ok' or 'list in' instead." << endl;
-        }
-
-        unsigned nbPrinted=0;
-
-        for(const auto& p : macroContainer.getDefines())
-        {
-            if(listRe)
-            {
-                for(const string& str: macroContainer.getRedefinedMacros())
-                {
-                    if(p.first == str){
-                        cout << " - " << p.first << " => " << p.second << endl;
-                        ++nbPrinted;
-                        continue;
-                    }
-                }
-            }
-
-            if(listIn)
-            {
-                for(const string& str: macroContainer.getIncorrectMacros())
-                {
-                    if(p.first == str){
-                        cout << " - " << p.first << " => " << p.second << endl;
-                        ++nbPrinted;
-                        continue;
-                    }
-                }
-            }
-
-            if(listOk)
-            {
-                if(std::find(macroContainer.getIncorrectMacros().begin(), macroContainer.getIncorrectMacros().end(), p.first)==macroContainer.getIncorrectMacros().end()
-                && std::find(macroContainer.getRedefinedMacros().begin(), macroContainer.getRedefinedMacros().end(), p.first)==macroContainer.getRedefinedMacros().end())
-                {
-                    cout << " - " << p.first << " => " << p.second << endl;
-                    ++nbPrinted;
-                    continue;
-                }
-            }
-
-            if(nbPrinted >= 5000)
-            {
-                std::cout << "Only printed the first 5000 results." << endl;
-                break;
-            }
-        }
-
-        }
-
-    }
-
-    else if(str.substr(0,10) == "interpret ")
-    {
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(9));
+        parameters.erase(parameters.begin());
 
         if(!parameters.empty())
         {
         string macroName = parameters[0];
-        MacroContainer *mc=&macroContainer;
+        MacroContainer *mc=nullptr;
         if(parameters.size()>=2)
-            mc = &(mc[1]);
+            mc = &(getMacroSpace(parameters[1]));
+        else
+            mc = &(getMacroSpace("default"));
 
 
         if(macroName.empty())
@@ -329,7 +183,7 @@ bool CommandManager::runCommand(string str)
         {
             std::vector<std::string> possibleValues;
 
-            for(const auto& p: macroContainer.getDefines())
+            for(const auto& p: mc->getDefines())
             {
                 if(p.first == macroName)
                 {
@@ -341,8 +195,14 @@ bool CommandManager::runCommand(string str)
             {
                 if(macrospaces.size()==1)
                     std::cout << "This macro does not seem to exist." << endl;
-                else
-                    std::cout << "This macro does not seem to exist in this macrospace." << endl;
+                else{
+                    // Here a macrospace has been given by parameter
+                    if(doesMacrospaceExists(parameters[1]))
+                        std::cout << "This macro does not seem to exist in this macrospace." << endl;
+                    else
+                        std::cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
+                }
+
             }
             else if(possibleValues.size()==1)
             {
@@ -360,11 +220,12 @@ bool CommandManager::runCommand(string str)
 
                 std::cout << "0. Cancel, don't interpret this macro." << endl;
 
-                getline(cin, str);
+                std::string ss;
+                getline(cin, ss);
 
-                if(isAllDigits(str))
+                if(isAllDigits(ss))
                 {
-                    int result = std::atoi(str.c_str());
+                    int result = std::atoi(ss.c_str());
                     //cout << "result= " << result << endl;
 
                     if(result > static_cast<int>(possibleValues.size()))
@@ -385,100 +246,27 @@ bool CommandManager::runCommand(string str)
 
         }
     }
-
-    else if(str.substr(0, 11) == "importfile "){
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(11));
-        std::vector<std::string> directories;
-        std::vector<std::string> macrospacesName;
-
-        for(const std::string& str: parameters){
-            if(str.find(":\\")!=std::string::npos){
-                directories.emplace_back(str);
-            }
-            else if(str.find('/')!=std::string::npos && str.find('.')){
-                directories[directories.size()-1] += std::string(" ")+str;
-            }
-            else {
-                // Else we have to deal with a macrospace name !
-                macrospacesName.emplace_back(str);
-            }
-        }
-
-        if(macrospacesName.empty())
-            macrospacesName.emplace_back("default");
-
-        if(!directories.empty()){
-            auto& curMacroSpace = getMacroSpace(macrospacesName.front());
-            curMacroSpace.importFromFile(parameters.front(), configuration);
-            printStatMacrospace(curMacroSpace);
-        }
-        else {
-            cout << "/!\\ Error: can't open the file provided. /!\\" << endl;
-        }
-    }
-
-    else if(str.substr(0, 13) == "importfolder "){
-        std::vector<std::string>
-        parameters;
-        extractList(parameters, str.substr(13));
-        std::vector<std::string> directories;
-        std::vector<std::string> macrospacesName;
-
-        for(const std::string& str: parameters){
-            if(str.find(":\\")!=std::string::npos){
-                directories.emplace_back(str);
-            }
-            else if(str.find('/')!=std::string::npos && str.find('.')){
-                directories[directories.size()-1] += std::string(" ")+str;
-            }
-            else {
-                // Else we have to deal with a macrospace name !
-                macrospacesName.emplace_back(str);
-            }
-        }
-
-        if(macrospacesName.empty())
-            macrospacesName.emplace_back("default");
-
-        //for(auto& str1:macrospacesName)cout << "- " << str1 << endl;
-
-        if(!directories.empty()){
-            auto& curMacroSpace = getMacroSpace(macrospacesName.front());
-            curMacroSpace.importFromFolder(parameters.front(), configuration);
-            printStatMacrospace(curMacroSpace);
-        }
-        else {
-            cout << "/!\\ Error: can't open the directory:" << directories.front() << " /!\\" << endl;
-        }
-        return true;
-    }
-
-    else if(str.substr(0, 5) == "look ")
+    else if(parameters.front() == "look")
     {
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(5));
+        string str=parameters[1];
 
-        str=parameters.front();
-        clearSpaces(str);
-
-        if(macroContainer.countMacroName(str)>1)
+        /*if(macroContainer.countMacroName(str)>1)
         {
             std::cout << "This macro has been redefined and needs to be interpreted." << endl;
             std::cout << "Type 'interpret " << str << "'." << endl;
         }
-        else if(parameters.size()>1 && !doesMacrospaceExists(parameters[1]))
+        else*/ if(parameters.size()>2 && !doesMacrospaceExists(parameters[2]))
             cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
         else
         {
             MacroContainer *mc=nullptr;
-            if(parameters.size()>1){
+            if(parameters.size()>=3){
                 mc = &(getMacroSpace(parameters[parameters.size()-1]));
             }
             else {
-                mc = &macroContainer;
+                mc = &(getMacroSpace("default"));
             }
-            if(mc)
+            if(mc != NULL)
             {
 
             string userInput = str;
@@ -527,41 +315,61 @@ bool CommandManager::runCommand(string str)
                 std::cout << "The macrospace '" << parameters.back() << "' does not exist." << endl;
         }
     }
-    else if(str.substr(0,7) == "define " && str.size()>=8){
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(7));
-
+    else if(commandStr == "define")
+    {
         if(parameters.empty())
             std::cout << "Error: no parameter was given to the define command." << endl;
         else
         {
             string str2;
-            if(parameters.size()>=2)
-                str2 = parameters[1];
-            if(!doesExprLookOk(str2))
+            if(parameters.size()>=3)
+                str2 = parameters[2];
+            if(!doesExprLookOk(parameters[1]))
                 cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
 
             string macroStringName="default";
-            if(parameters.size()>=3)
-                macroStringName = parameters[2];
-            getMacroSpace(macroStringName).emplaceAndReplace(parameters.front(), str2);
+            if(parameters.size()>=4)
+                macroStringName = parameters[3];
+            getMacroSpace(macroStringName).emplaceAndReplace(parameters[1], parameters[2]);
         }
     }
-    else if(str.substr(0,7) == "search " && str.size()>8){
-        std::vector<std::string> wordsToFind;
+    else if(commandStr.substr(0,4) == "stat")
+    {
+        if(parameters.front().size()>4){
+            parameters.emplace_back(commandStr.substr(4));
+
+        }
+        parameters.erase(parameters.begin());
+
+        if(!parameters.empty()){
+            if(doesMacrospaceExists(parameters.front()))
+            {
+                printStatMacrospace(getMacroSpace(parameters.front()));
+            }
+            else
+            {
+                cout << "The macrospace '"<< parameters.front() << "' does not exists." << endl;
+            }
+        }
+        else {
+            printStatMacrospace(getMacroSpace("default"));
+        }
+    }
+    else if(commandStr == "search")
+    {
         std::vector<MacroContainer*> macrospacesCur;
-        extractList(wordsToFind, str.substr(7));
+        parameters.erase(parameters.begin());
 
         // extract macrospaces names
-        if(!wordsToFind.empty())
+        if(parameters.size()>=1)
         {
             std::cout << "search launched in macrocontainer(s): ";
 
-            for(auto it = wordsToFind.begin(); it!=wordsToFind.end();){
+            for(auto it = parameters.begin(); it!=parameters.end();){
                 if(doesMacrospaceExists(*it)){
-                    std::cout << *it << " ,";
+                    std::cout << *it << ", ";
                     macrospacesCur.emplace_back(&(getMacroSpace(*it)));
-                    it = wordsToFind.erase(it);
+                    it = parameters.erase(it);
                 }
                 else
                     ++it;
@@ -569,139 +377,95 @@ bool CommandManager::runCommand(string str)
 
             if(macrospacesCur.empty()){
                 cout << "default";
-                macrospacesCur.emplace_back(&macroContainer);
+                macrospacesCur.push_back(&(getMacroSpace("default")));
             }
             cout << endl;
+
+            for(const std::string& str3: parameters)
+                std::cout << str3 << std::endl;
 
 
             if(!macrospacesCur.empty())
             {
                 for(MacroContainer* mc: macrospacesCur){
-                    mc->searchKeywords(wordsToFind, std::cout);
+                    mc->searchKeywords(parameters, std::cout);
                 }
             }
         }
     }
-    else if(str == "options"){
+    else if(commandStr == "options"){
         // Print the configuration
         configuration.toStream(cout);
         cout << "The options are saved in the file '" << OPTIONS_FILENAME << "' next to the executable." << endl;
     }
-    else if(str.substr(0,12) == "changeoption"){
-        istringstream ss(str.substr(12));
-        string s1,s2;
-        ss >> s1 >> s2;
-        if(s1.empty()||s2.empty()){
-            cout << "Error: Empty option parameter." << endl;
+    else if(commandStr == "changeoption"){
+        if(parameters.size()<3 || parameters.size()>3){
+            cout << "Error: wrong number of parameters." << endl;
         }
         else {
-            configuration.changeOption(s1,s2);
+            configuration.changeOption(parameters[1],parameters[2]);
         }
     }
-    else if(str.substr(0,6)=="where ")
+    else if(commandStr == "importfile")
     {
-        stringstream ss(str.substr(6));
-        string str1;
+        parameters.erase(parameters.begin());
 
-        if(!(ss>>str1) || ss.tellg()==(-1))
-        {
-            cout << "Error: incorrect parameters." << endl;
-        }
-        else
-        {
-            if(!searchDirectory(str.substr(ss.tellg()+6+1), str1, configuration))
-            {
-                std::cout << "Can't open the directory given as the second parameter." << endl;
-                cout << str.substr(ss.tellg()+6+1) << endl;
+        std::vector<std::string> macrospacesName;
+
+        for(const std::string& str: parameters){
+            if(MacroContainer::isNameValid(str)) {
+                // Else we have to deal with a macrospace name !
+                macrospacesName.emplace_back(str);
             }
         }
-    }
-    else if(str.substr(0,9) == "evaluate ")
-    {
-        string expr = str.substr(9);
 
-        // Extract a macrospace from the command
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(9));
-        std::vector<std::string> macroSpaceNames;
-        if(!parameters.empty())
-        {
-            for(const std::string& str1: parameters) {
-                if(doesMacrospaceExists(str1)){
-                    macroSpaceNames.push_back(str1);
-                    simpleReplace(expr, str1, "");
-                }
-            }
-        }
-        MacroContainer *mc=&(macroContainer);
-        if(!macroSpaceNames.empty())
-            mc=&(getMacroSpace(macroSpaceNames.front()));
+        if(macrospacesName.empty())
+            macrospacesName.emplace_back("default");
 
-        auto status = calculateExpression(expr, *mc, configuration);
+        auto& curMacroSpace = getMacroSpace(macrospacesName.front());
 
-        if(status == CalculationStatus::EVAL_WARNING){
-            std::cout << "possible ";
-        }
-        cout << "output: " << expr;
-
-        if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
-            std::string hexaRepresentation;
-            try { hexaRepresentation = convertDeciToHexa(std::stoi(expr)); }
-            catch(const std::exception& ex){}
-            if(!hexaRepresentation.empty())
-                cout << " (hexa: 0x" << hexaRepresentation << ')';
-            cout << endl;
-        }
-        if(status == CalculationStatus::EVAL_WARNING)
-        {
-            cout << " ???" << endl;
-            cout << "It seems that you are using macros that seem incorrect or have been redefined." << endl;
-            cout << "The output can't be trusted." << endl;
-            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-        }
-        else if(status == CalculationStatus::EVAL_ERROR)
-        {
-            cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
-        }
-    }
-    else if(str.substr(0,13) == "printsources "){
-        string macrospaceName = str.substr(13);
-        if(doesMacrospaceExists(macrospaceName)){
-            getMacroSpace(macrospaceName).printOrigins();
+        if(curMacroSpace.importFromFile(parameters.front(), configuration)){
+            printStatMacrospace(curMacroSpace);
         }
         else {
-            cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
+            cout << "/!\\ Error: can't open the file provided. /!\\" << endl;
         }
     }
-    #ifdef _WIN32 || _WIN64
-    else if(str == "cls"){
-        system("cls");
-    }
-    #endif
-    else if(str == "exit")
-        return false;
-    else {
-        cout << "This command is unknown." << endl;
-    }
 
-    return true;
-}
+    else if(commandStr == "importfolder")
+    {
+        std::vector<std::string> macrospacesName;
+        parameters.erase(parameters.begin());
 
-bool CommandManager::runCommand2(string str)
-{
-    // Extract command and parameters from str
-    std::vector<std::string> parameters;
-    extractList(parameters, str);
-    if(str.empty())
+        for(const std::string& str: parameters)
+        {
+            if(str.find(":\\")!=std::string::npos){}
+            else if(str.find('/')!=std::string::npos && str.find('.')){}
+            else {
+                // Else we have to deal with a macrospace name !
+                macrospacesName.emplace_back(str);
+            }
+        }
+
+        if(macrospacesName.empty())
+            macrospacesName.emplace_back("default");
+
+        //for(auto& str1:macrospacesName)cout << "- " << str1 << endl;
+
+        if(parameters.size()>=1){
+            auto& curMacroSpace = getMacroSpace(macrospacesName.front());
+            if(!curMacroSpace.importFromFolder(parameters[0], configuration)){
+                std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
+            }
+            else
+            printStatMacrospace(curMacroSpace);
+        }
+        else {
+            cout << "/!\\ Error: no directory was provided. /!\\" << endl;
+        }
         return true;
-    std::string& commandStr = parameters[0];
-    lowerString(commandStr);
-
-    // Shortcut to the default macrospace
-    MacroContainer& mcc = getMacroSpace("default");
-
-
-    if(commandStr=="where")
+    }
+    else if(commandStr=="where")
     {
         if(parameters.size()<3)
         {
@@ -717,12 +481,9 @@ bool CommandManager::runCommand2(string str)
     }
     else if(commandStr == "evaluate")
     {
-        string expr = str.substr(9);
-
+        string expr = input.substr(9);
 
         // Extract a macrospace from the command
-        std::vector<std::string> parameters;
-        extractList(parameters, str.substr(9));
         std::vector<std::string> macroSpaceNames;
         if(!parameters.empty())
         {
@@ -764,8 +525,106 @@ bool CommandManager::runCommand2(string str)
             cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
         }
     }
+    else if(commandStr.substr(0,4) == "list")
+    {
+        if(commandStr.substr(4).size()>=1)
+            parameters.push_back(commandStr.substr(4));
+        parameters.erase(parameters.begin());
+        std::vector<std::string> macrospacesNames;
+
+        bool listRe=false;
+        bool listIn=false;
+        bool listOk=false;
+
+        if(parameters.size()==1 && parameters.front()=="spaces")
+        {
+            for(const auto& p: macrospaces)
+                std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << endl;
+        }
+        else
+        {
+
+        for(const std::string& param: parameters)
+        {
+            if(doesMacrospaceExists(param)){
+                macrospacesNames.emplace_back(param);
+            }
+            else if(param=="ok")
+                listOk=true;
+            else if(param=="in")
+                listIn=true;
+            else if(param=="re")
+                listRe=true;
+            else if(param=="all")
+                listOk=listIn=listRe=true;
+            else {
+                cout << "Incorrect option parameter '" << param << "'." << endl;
+            }
+        }
+        if(!listRe && !listOk && !listIn)
+        {
+            cout << "No option parameter was given. No list was erased." << endl;
+            cout << "Try 'list all' or 'list ok' or 'list in' instead." << endl;
+        }
+
+        unsigned nbPrinted=0;
+
+        MacroContainer *mc=nullptr;
+        if(macrospacesNames.empty()){
+            mc = &(getMacroSpace("default"));
+        } else {
+            mc = &(getMacroSpace(macrospacesNames.front()));
+        }
+
+        for(const auto& p : mc->getDefines())
+        {
+            if(listRe)
+            {
+                for(const string& str: mc->getRedefinedMacros())
+                {
+                    if(p.first == str){
+                        cout << " - " << p.first << " => " << p.second << endl;
+                        ++nbPrinted;
+                        continue;
+                    }
+                }
+            }
+
+            if(listIn)
+            {
+                for(const string& str: mc->getIncorrectMacros())
+                {
+                    if(p.first == str){
+                        cout << " - " << p.first << " => " << p.second << endl;
+                        ++nbPrinted;
+                        continue;
+                    }
+                }
+            }
+
+            if(listOk)
+            {
+                if(std::find(mc->getIncorrectMacros().begin(), mc->getIncorrectMacros().end(), p.first)==mc->getIncorrectMacros().end()
+                && std::find(mc->getRedefinedMacros().begin(), mc->getRedefinedMacros().end(), p.first)==mc->getRedefinedMacros().end())
+                {
+                    cout << " - " << p.first << " => " << p.second << endl;
+                    ++nbPrinted;
+                    continue;
+                }
+            }
+
+            if(nbPrinted >= 5000)
+            {
+                std::cout << "Only printed the first 5000 results." << endl;
+                break;
+            }
+        }
+
+        }
+
+    }
     else if(commandStr == "printsources"){
-        string macrospaceName = str.substr(13);
+        string macrospaceName = parameters[1];
         if(doesMacrospaceExists(macrospaceName)){
             getMacroSpace(macrospaceName).printOrigins();
         }
@@ -773,6 +632,10 @@ bool CommandManager::runCommand2(string str)
             cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
         }
     }
+    else if(commandStr == "help")
+        printBasicHelp();
+    else if(commandStr == "helpall" || (parameters.size()==2 && parameters.front()+parameters[1]=="helpall"))
+        printAdvancedHelp();
     else if(commandStr == "cls"){
         system("cls");
     }

@@ -165,6 +165,16 @@ MacroContainer::MacroContainer(const MacroDatabase& database)
 : MacroDatabase(database)
 {}
 
+bool MacroContainer::isNameValid(const std::string& macroContainerName)
+{
+    bool stillOkay=true;
+    for(char c: macroContainerName){
+        if(!(isalnum(c)||c=='_'))
+            stillOkay=false;
+    }
+    return stillOkay;
+}
+
 void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool clearIncorrect)
 {
     if(clearDefines)
@@ -183,11 +193,12 @@ void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, st
 {
     for(const auto& p: defines)
     {
-        bool okay=true;
+        bool okay=false;
         for(const std::string& keyword: keywords)
         {
-            if(p.first.find(keyword) == std::string::npos){
-                okay=false;
+            if(p.first.find(keyword) != std::string::npos){
+                std::cout << p.first << std::endl;
+                okay=true;
                 break;
             }
         }
