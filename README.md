@@ -27,11 +27,11 @@ Download the latest stable version.\
 Double-click on the executable and you're done !
 
 # How to build for the first time
-Download the latest version of CodeBlocks for Windows.
-https://www.codeblocks.org/downloads/binaries/
-Choose the one with mingw preinstalled.
-Open the project file .cbp .
-Rebuild everything from scratch and run.
+Download the latest version of CodeBlocks for Windows.\
+https://www.codeblocks.org/downloads/binaries/ \
+Choose the one with mingw preinstalled.\
+Donwload the source from the latest stable release, create a new project .\
+Rebuild everything from scratch and run.\
 You should be done !
 
 # Screenshots
