@@ -197,7 +197,6 @@ void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, st
         for(const std::string& keyword: keywords)
         {
             if(p.first.find(keyword) != std::string::npos){
-                std::cout << p.first << std::endl;
                 okay=true;
                 break;
             }

@@ -161,7 +161,60 @@ bool CommandManager::runCommand2(string input)
     // Shortcut to the default macrospace
     MacroContainer& mcc = getMacroSpace("default");
 
-    if(commandStr == "interpret")
+    if(commandStr.substr(0,5) == "clear")
+    {
+        if(commandStr.size()>5)
+            parameters.emplace_back(commandStr.substr(5));
+        parameters.erase(parameters.begin());
+
+        std::vector<std::string> containersName;
+
+        bool fine=true;
+
+        bool eraseRe=false;
+        bool eraseIn=false;
+        bool eraseOk=false;
+
+        for(const std::string& param: parameters)
+        {
+            if(doesMacrospaceExists(param)){
+                containersName.push_back(param);
+            }
+            else if(param=="ok")
+                eraseOk=true;
+            else if(param=="in")
+                eraseIn=true;
+            else if(param=="re")
+                eraseRe=true;
+            else if(param=="all")
+                eraseOk=eraseIn=eraseRe=true;
+            else {
+                cout << "Incorrect option parameter '" << param << "'." << endl;
+                fine = false;
+            }
+        }
+        if(!eraseRe && !eraseOk && !eraseIn)
+        {
+            cout << "No option parameter was given. No macro was erased." << endl;
+            cout << "Try 'clear all' or 'clear ok' or 'clear in'." << endl;
+        }
+        if(containersName.empty())
+            containersName.emplace_back("default");
+
+        // User message to explain what the program did
+        std::cout << "Cleared ";
+        if(eraseRe&&eraseOk&&eraseIn) cout << "all "; else cout << "some ";
+        cout << "macros in container";
+        if(containersName.size()>1) cout << 's';
+        cout << ": ";
+        for(const std::string& str: containersName) cout << str << " ";
+        cout << endl;
+
+        // Finally let's clear the macro database
+        for(const std::string& str: containersName)
+            getMacroSpace(str).clearDatabase(eraseOk, eraseRe, eraseIn);
+    }
+    else if(commandStr == "interpret")
     {
         parameters.erase(parameters.begin());
 
