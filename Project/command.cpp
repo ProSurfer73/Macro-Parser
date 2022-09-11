@@ -383,6 +383,7 @@ bool CommandManager::runCommand2(string input)
             string macroStringName="default";
             if(parameters.size()>=4)
                 macroStringName = parameters[3];
+            parameters.emplace_back();
             getMacroSpace(macroStringName).emplaceAndReplace(parameters[1], parameters[2]);
         }
     }

@@ -268,15 +268,15 @@ void MacroContainer::printDiff(const MacroContainer& mc, const Options& configur
             if(p1.first == p2.first)
             {
                 // Show the macro that is going to be compared
-                std::cout << p1.first << ": ";
 
                 // Let's calculate the expressions
                 std::string expr1 = p1.first;
                 calculateExprWithStrOutput(expr1, *this, configuration);
-                std::cout << expr1 << " | ";
                 std::string expr2 = p1.first;
                 calculateExprWithStrOutput(expr2, mc, configuration);
-                std::cout << expr2 << std::endl;
+
+                if(expr1 != "unknown" && expr2 != "unknown")
+                    std::cout << p1.first << ": " << expr1 << " | " << expr2 << std::endl;
 
                 /*
                 // Calculate the first expression according to *this instance

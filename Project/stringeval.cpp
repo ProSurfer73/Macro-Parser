@@ -84,15 +84,31 @@ static void func(double &result, char op, double num)
     }
 }
 
+static string extractVeryRightPart(string expr, size_t pos)
+{
+    std::size_t i=pos;
+    for(; i < expr.size() && expr[i]!='&' && expr[i]!='|'; ++i);
+    return expr.substr(i);
+}
+
+static string extractVeryLeftPart(string expr, size_t pos)
+{
+    std::size_t i=0;
+    for(; pos-i > 0 && (i==0 || (expr[pos-i-1]!='&' && expr[pos-i-1]!='|')); ++i);
+    return expr.substr(0, pos-i);
+}
+
 static string extractRightPart(string expr, size_t pos)
 {
-    return expr.substr(pos);
+    std::size_t i=pos;
+    for(; i < expr.size() && expr[i]!='&' && expr[i]!='|'; ++i);
+    return expr.substr(pos, i-pos);
 }
 
 static string extractLeftPart(string expr, size_t pos)
 {
     std::size_t i=0;
-    for(; pos-i >= 0 && isMacroCharacter(expr[pos-i-1]); ++i);
+    for(; pos-i > 0 && (i==0 || (expr[pos-i-1]!='&' && expr[pos-i-1]!='|')); ++i);
     return expr.substr(pos-i, i);
 }
 
@@ -103,6 +119,7 @@ static bool evaluateSimpleBooleanExpr(string& expr)
 
     // We don't deal with parenthesis here
     assert(expr.find('(')==string::npos);
+    assert(expr.find(')')==string::npos);
 
     // First, let's treat AND operator
     std::size_t searchedOperator;
@@ -111,12 +128,24 @@ static bool evaluateSimpleBooleanExpr(string& expr)
         string leftPart = extractLeftPart(expr,searchedOperator);
         string rightPart = extractRightPart(expr,searchedOperator+2);
 
+        string veryLeftPart = extractVeryLeftPart(expr, searchedOperator);
+        string veryRightPart = extractVeryRightPart(expr, searchedOperator+2);
+
+        /*std::cout << "&&veryLeft: " << veryLeftPart << "'" << std::endl;
+        std::cout << "&&veryRight: " << veryRightPart << "'" << std::endl;
+        std::cout << "&&leftPart: " << leftPart << "'" << endl;
+        std::cout << "&&rightPart: " << rightPart << "'" << endl;*/
+
         if(leftPart=="false" || rightPart=="false")
-            expr = "false";
+            expr = (veryLeftPart+"false")+veryRightPart;
         else if(leftPart=="true")
-            expr = rightPart;
+            expr = rightPart;//veryLeftPart+rightPart+veryRightPart;
         else if(rightPart=="true")
-            expr = leftPart;
+            expr = leftPart;//veryLeftPart+leftPart+veryRightPart;
+        else
+            break;
+
+        //std::cout << "expr: " << expr << "'" << std::endl;
     }
 
     // Secondly, let's treat OR operator
@@ -125,17 +154,28 @@ static bool evaluateSimpleBooleanExpr(string& expr)
         string leftPart = extractLeftPart(expr,searchedOperator);
         string rightPart = extractRightPart(expr,searchedOperator+2);
 
+        string veryLeftPart = extractVeryLeftPart(expr, searchedOperator);
+        string veryRightPart = extractVeryRightPart(expr, searchedOperator+2);
+
+        /*std::cout << "||veryLeft: " << veryLeftPart << "'" << std::endl;
+        std::cout << "||veryRight: " << veryRightPart << "'" << std::endl;
+        std::cout << "||leftPart: " << leftPart << "'" << endl;
+        std::cout << "||rightPart: " << rightPart << "'" << endl;*/
+
         if(leftPart=="true" || rightPart=="true")
-            expr = "true";
+            expr = veryLeftPart+"true"+veryRightPart;
         else if(leftPart=="false")
-            expr = rightPart;
+            expr = veryLeftPart+rightPart+veryRightPart;
         else if(rightPart=="false")
-            expr = leftPart;
+            expr = veryLeftPart+leftPart+veryRightPart;
+        else
+            break;
     }
 
     // If expression does not have the same size then
     return expr.size()!=initialExprSize;
 }
+
 
 bool doesExprLookOk(const string& expr)
 {
@@ -291,7 +331,7 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
  * \return status
  *
  */
-enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings)
+enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings, bool enableBoolean)
 {
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
@@ -304,6 +344,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
     std::vector<std::string> macroRedefinedWarning;
 
     try {
+
+    if(!printWarnings && !doesExprLookOk(expr)){
+        return CalculationStatus::EVAL_ERROR;
+    }
 
     /// 0. Is the expression okay ?
 
@@ -387,7 +431,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 }
 
                 auto searched = expr.find(p.first);
-                if(searched != string::npos && !isMacroCharacter(expr[searched+1]) && searched>=1 && !isMacroCharacter(expr[searched+1]));
+                if(searched != string::npos
+                && (searched == 0 || !isMacroCharacter(expr[searched-1]))
+                && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
                     simpleReplace(expr, p.first, p.second);
 
                 if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
@@ -402,7 +448,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     status = CalculationStatus::EVAL_WARNING;
                 }
 
-                if(std::find(incorrectMacros.begin(), incorrectMacros.end(), p.first) != incorrectMacros.end()){
+                if(printWarnings && std::find(incorrectMacros.begin(), incorrectMacros.end(), p.first) != incorrectMacros.end()){
                     cout << "/!\\ Warning: the macro " << p.first << "you are using seem incorrect. /!\\" << endl;
                     status = CalculationStatus::EVAL_WARNING;
                 }
@@ -486,11 +532,12 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         ++counter;
         if(counter > 400){
+            if(printWarnings)
+                std::cout << "Counter pb: please post an issue on Github" << endl;
             return CalculationStatus::EVAL_ERROR;
         }
     }
     while(repeat);
-
 
 
     restartArithmeticEval:
@@ -596,11 +643,11 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     skipArithmeticOperations:
 
-    #define DEV
-    #ifdef DEV
 
     // 4. Conditional operations
 
+    if(enableBoolean)
+    {
 
     counter=0;
 
@@ -651,6 +698,15 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         // Treat AND, OR boolean operations
         || evaluateSimpleBooleanExpr(subExpr)
+        /*|| simpleReplace(subExpr, "true&&true", "true")
+        || simpleReplace(subExpr, "true&&false", "false")
+        || simpleReplace(subExpr, "false&&true", "false")
+        || simpleReplace(subExpr, "false&&false", "false")
+
+        || simpleReplace(subExpr, "true||true", "true")
+        || simpleReplace(subExpr, "true||false", "true")
+        || simpleReplace(subExpr, "false||true", "true")
+        || simpleReplace(subExpr, "false||false", "false")*/
         )
 
         {
@@ -671,8 +727,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
     if(counter > 0) goto restartArithmeticEval;
 
+    }
 
-    #endif // DEV
 
     #ifdef DEBUG_LOG_STRINGEVAL
     std::cout << "final:" << expr+"+0" << endl;
