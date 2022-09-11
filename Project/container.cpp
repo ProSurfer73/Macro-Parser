@@ -301,7 +301,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             }
         }
 
-        if(isCommon)
+        if(isCommon && std::find(commonMacroList.begin(), commonMacroList.end(), p.first)==commonMacroList.end())
             commonMacroList.emplace_back(p.first);
     }
 

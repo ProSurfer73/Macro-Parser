@@ -39,6 +39,8 @@
 		<Unit filename="filesystem.hpp" />
 		<Unit filename="hexa.cpp" />
 		<Unit filename="hexa.hpp" />
+		<Unit filename="macrospace.cpp" />
+		<Unit filename="macrospace.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="options.cpp" />
 		<Unit filename="options.hpp" />

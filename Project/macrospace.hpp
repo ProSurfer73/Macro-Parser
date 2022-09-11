@@ -12,7 +12,7 @@ public:
 
     void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
     MacroContainer& getMacroSpace(const std::string& macrospaceName);
-    bool doesMacrospaceExists(const std::string& macrospaceName) const;
+    bool doesMacrospaceExists(const std::string& macrospaceName);
     MacroContainer* tryGetMacroSpace(const std::string& macrospaceName);
     void deleteMacroSpace(const std::string& macrospaceName);
     void printContentToUser();
