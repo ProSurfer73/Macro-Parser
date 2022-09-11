@@ -142,3 +142,34 @@ string convertDeciToHexa(long int num)
     return myreturn;
 }
 
+bool tryConvertToHexa(std::string& deciStr)
+{
+    long int myint = std::atol(deciStr.c_str());
+
+    // Conversion to long int: okay
+    if(myint != 0)
+    {
+        // Let's reconvert it to hexa.
+        deciStr = std::string("0x") + convertDeciToHexa(myint);
+        return true;
+    }
+
+    // There might be a problem with conversion, let's check the string
+    else
+    {
+        bool okay=true;
+
+        for(char c: deciStr){
+            if(!(c=='0'||c=='x'||c=='.'))
+                okay=false;
+        }
+
+        if(okay)
+            deciStr="0x0";
+
+        return okay;
+    }
+
+    return false;
+}
+

@@ -45,6 +45,7 @@ public:
     void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
     MacroContainer& getMacroSpace(const std::string& macrospaceName);
     bool doesMacrospaceExists(const std::string& macrospaceName) const;
+    MacroContainer* tryGetMacroSpace(const std::string& macrospaceName);
 
 private:
     Options configuration;

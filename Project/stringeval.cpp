@@ -485,9 +485,8 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         clearSpaces(expr);
 
         ++counter;
-        if(counter > 1000){
-            status = CalculationStatus::EVAL_ERROR;
-            break;
+        if(counter > 400){
+            return CalculationStatus::EVAL_ERROR;
         }
     }
     while(repeat);
@@ -719,4 +718,16 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         return CalculationStatus::EVAL_ERROR;
     }
+}
+
+
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options)
+{
+    auto status = calculateExpression(expr, macroContainer, options, false);
+    tryConvertToHexa(expr);
+
+    if(status == CalculationStatus::EVAL_ERROR)
+        expr = "unknown";
+    else if(status == CalculationStatus::EVAL_WARNING)
+        expr += '?';
 }

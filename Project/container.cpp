@@ -256,7 +256,69 @@ void MacroContainer::printOrigins() const
     }
 }
 
+void MacroContainer::printDiff(const MacroContainer& mc, const Options& configuration) const
+{
+    unsigned limit=100;
 
+    for(const auto& p1 : defines)
+    {
+        for(const auto& p2 : mc.defines)
+        {
+            // If this is two macros that have the same name
+            if(p1.first == p2.first)
+            {
+                // Show the macro that is going to be compared
+                std::cout << p1.first << ": ";
+
+                // Let's calculate the expressions
+                std::string expr1 = p1.first;
+                calculateExprWithStrOutput(expr1, *this, configuration);
+                std::cout << expr1 << " | ";
+                std::string expr2 = p1.first;
+                calculateExprWithStrOutput(expr2, mc, configuration);
+                std::cout << expr2 << std::endl;
+
+                /*
+                // Calculate the first expression according to *this instance
+                std::string expr1 = p1.first;
+                auto status1 = calculateExpression(expr1, *this, configuration, false);
+
+                // Calculate the second expression accoding to mc instance
+                std::string expr2 = p1.first;
+                auto status2 = calculateExpression(expr2, mc, configuration, false);
+
+                // Convert the results to hexa if possible
+                if(status1 == CalculationStatus::EVAL_OKAY || status1 == CalculationStatus::EVAL_WARNING)
+                    tryConvertToHexa(expr1);
+                if(status2 == CalculationStatus::EVAL_OKAY || status2 == CalculationStatus::EVAL_WARNING)
+                    tryConvertToHexa(expr2);
+
+                // Show the result expr1
+                if(status1 == CalculationStatus::EVAL_OKAY)
+                    std::cout << expr1;
+                else if(status1 == CalculationStatus::EVAL_WARNING)
+                    std::cout << expr1 << '?';
+                else if(status1 == CalculationStatus::EVAL_ERROR)
+                    std::cout << "unknown";
+
+                std::cout << " | ";
+
+                // Show the result expr2
+                if(status2 == CalculationStatus::EVAL_OKAY)
+                    std::cout << expr2;
+                else if(status2 == CalculationStatus::EVAL_WARNING)
+                    std::cout << expr2 << '?';
+                else if(status2 == CalculationStatus::EVAL_ERROR)
+                    std::cout << "unknown";
+
+                cout << endl;
+
+                if(--limit<0)
+                    return;*/
+            }
+        }
+    }
+}
 
 
 

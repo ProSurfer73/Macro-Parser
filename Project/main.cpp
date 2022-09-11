@@ -50,6 +50,17 @@ int main()
         std::cout << "Fatal exception: " << ex.what() << endl;
     }
 
+    /*// Let's check hexa auto conversion
+    std::string line;
+    while(getline(std::cin, line))
+    {
+        tryConvertToHexa(line);
+        cout << line << endl;
+
+        if(line=="exit")
+            break;
+    }*/
+
     return 0;
 }
 

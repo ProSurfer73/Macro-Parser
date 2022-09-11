@@ -51,9 +51,9 @@ double evaluateSimpleArithmeticExpr(const std::string& expr);
 
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
-
-
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings=true);
+
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options);
 
 
 #endif // STRINGEVAL_HPP

@@ -35,5 +35,6 @@ std::string convertDeciToHexa(long int num_decimal);
 
 bool isHexaLetter(char c);
 
+bool tryConvertToHexa(std::string& deciStr);
 
 #endif // HEXA_HPP

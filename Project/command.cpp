@@ -685,6 +685,28 @@ bool CommandManager::runCommand2(string input)
             cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
         }
     }
+    else if(commandStr == "spacediff")
+    {
+        if(parameters.size()<3)
+        {
+            cout << "Not enough parameters were given to the command." << endl;
+        }
+        else
+        {
+            MacroContainer *mc1 = tryGetMacroSpace(parameters[1]);
+            MacroContainer *mc2 = tryGetMacroSpace(parameters[2]);
+
+            if(!mc1 || !mc2)
+            {
+                std::cout << "macrospaces not correct." << std::endl;
+            }
+            else
+            {
+                mc1->printDiff(*mc2, configuration);
+            }
+
+        }
+    }
     else if(commandStr == "help")
         printBasicHelp();
     else if(commandStr == "helpall" || (parameters.size()==2 && parameters.front()+parameters[1]=="helpall"))
@@ -728,5 +750,14 @@ bool CommandManager::doesMacrospaceExists(const std::string& macrospaceName) con
     }
 
     return false;
+}
+
+MacroContainer* CommandManager::tryGetMacroSpace(const std::string& macroSpaceName)
+{
+    for(auto& p: macrospaces){
+        if(p.first == macroSpaceName)
+            return &(p.second);
+    }
+    return nullptr;
 }
 
