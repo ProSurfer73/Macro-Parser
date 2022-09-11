@@ -34,6 +34,8 @@ public:
     void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
     bool importFromFile(const std::string& filepath, const Options& config);
     bool importFromFolder(const std::string& folderpath, const Options& config);
+    void import(const MacroDatabase& macrodatabase);
+
     // Getters
     const std::vector< std::pair< std::string, std::string> >& getDefines() const;
     const std::vector< std::string >& getRedefinedMacros() const;

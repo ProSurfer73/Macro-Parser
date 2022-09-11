@@ -257,18 +257,19 @@
 	<algorithm>
 	"config.hpp"
 
-1662908921 c:\git\macro-parser\project\command.hpp
+1662921159 c:\git\macro-parser\project\command.hpp
 	<iostream>
 	<vector>
 	<sstream>
 	<map>
+	"macrospace.hpp"
 	"container.hpp"
 	"stringeval.hpp"
 
 1662877953 source:c:\git\macro-parser\project\hexa.cpp
 	"hexa.hpp"
 
-1662909133 source:c:\git\macro-parser\project\main.cpp
+1662921787 source:c:\git\macro-parser\project\main.cpp
 	<iostream>
 	<fstream>
 	"hexa.hpp"
@@ -286,19 +287,19 @@
 	"container.hpp"
 	"options.hpp"
 
-1662912482 source:c:\git\macro-parser\project\command.cpp
+1662921159 source:c:\git\macro-parser\project\command.cpp
 	"command.hpp"
 	"container.hpp"
 	"stringeval.hpp"
 
-1662914965 c:\git\macro-parser\project\container.hpp
+1662916790 c:\git\macro-parser\project\container.hpp
 	<vector>
 	<string>
 	"options.hpp"
 	"filesystem.hpp"
 	"stringeval.hpp"
 
-1662912358 source:c:\git\macro-parser\project\container.cpp
+1662916917 source:c:\git\macro-parser\project\container.cpp
 	"container.hpp"
 
 1661953014 source:c:\git\macro-parser\project\booleval.cpp
@@ -309,10 +310,10 @@
 
 1661953026 D
 
-1662553211 source:c:\git\macro-parser\project\macrospace.cpp
-	"container.hpp"
+1662921987 source:c:\git\macro-parser\project\macrospace.cpp
+	"macrospace.hpp"
 
-1662553047 c:\git\macro-parser\project\macrospace.hpp
+1662922052 c:\git\macro-parser\project\macrospace.hpp
 	<vector>
 	"container.hpp"
 

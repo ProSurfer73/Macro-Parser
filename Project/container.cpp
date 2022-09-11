@@ -133,6 +133,14 @@ bool MacroDatabase::emplaceOnce(std::vector< std::pair<std::string,std::string> 
     return !exists;
 }
 
+void MacroDatabase::import(const MacroDatabase& mdatabase)
+{
+    for(const auto& p : mdatabase.defines)
+    {
+        emplace(p.first, p.second);
+    }
+}
+
 void MacroDatabase::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
 {
     for(auto it=v.begin(); it!=v.end();){

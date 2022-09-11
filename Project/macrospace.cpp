@@ -1,45 +1,93 @@
-#include "container.hpp"
+#include "macrospace.hpp"
 
-/*** MacroSpace class ***/
-
-MacroSpace::MacroSpace()
+Macrospaces::Macrospaces()
 {}
 
-bool MacroSpace::importFromFile(const std::string& filepath, const Options& config)
+void Macrospaces::addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace)
 {
-    if(importDirectory(filepath, *((MacroContainer*)this), config)){
-        sourcesLoaded.emplace_back(filepath);
-        return true;
-    }
-
-    std::cout << "The file could not be opened." << endl;
-    return false;
+    macrospaces.emplace_back(macrospaceName, macrospace);
 }
 
-bool MacroSpace::importFromFolder(const std::string& folderpath, const Options& config)
+MacroContainer& Macrospaces::getMacroSpace(const std::string& macrospaceName)
 {
-    if(importDirectory(folderpath, *((MacroContainer*)this), config)){
-        sourcesLoaded.emplace_back(folderpath);
-        return true;
-    }
+    if(macrospaceName=="msall")
+        updateMsAll();
 
-    std::cout << "The folder could not be opened." << endl;
-    return false;
-}
-
-
-/*** MacroSpaceContainer class ***/
-
-MacroSpaceContainer::MacroSpaceContainer()
-{}
-
-MacroSpace MacroSpaceContainer::giveMacroSpace(string name)
-{
-    for(auto& p : storage){
-        if(p.first == name)
+    for(auto& p: macrospaces){
+        if(p.first == macrospaceName)
             return p.second;
     }
 
-    storage.emplace_back(name, MacroSpace());
-    return (storage[storage.size()-1].second);
+    macrospaces.emplace_back(macrospaceName, MacroContainer());
+    MacroContainer* kkk=nullptr;
+    for(auto& p: macrospaces)
+        kkk = &(p.second);
+    return *kkk;
+}
+
+bool Macrospaces::doesMacrospaceExists(const std::string& macrospaceName) const
+{
+    for(const auto& p: macrospaces){
+        if(p.first == macrospaceName)
+            return true;
+    }
+
+    return false;
+}
+
+MacroContainer* Macrospaces::tryGetMacroSpace(const std::string& macroSpaceName)
+{
+    if(macroSpaceName=="msall")
+        updateMsAll();
+
+    for(auto& p: macrospaces){
+        if(p.first == macroSpaceName)
+            return &(p.second);
+    }
+    return nullptr;
+}
+
+void Macrospaces::deleteMacroSpace(const std::string& macroSpaceName)
+{
+    for(auto it=macrospaces.begin(); it!=macrospaces.end();++it){
+        if(it->first == macroSpaceName){
+            macrospaces.erase(it);
+            return;
+        }
+    }
+}
+
+void Macrospaces::printContentToUser()
+{
+    for(const auto& p: macrospaces){
+        std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << endl;
+    }
+
+}
+
+std::size_t Macrospaces::size() const
+{
+    return macrospaces.size();
+}
+
+void Macrospaces::updateMsAll()
+{
+    MacroContainer *mc=nullptr;
+    for(auto& p: macrospaces){
+        if(p.first == "msall")
+            mc = &(p.second);
+    }
+
+    if(!mc){
+        macrospaces.emplace_back("msall", MacroContainer());
+        mc = &(macrospaces[macrospaces.size()-1].second);
+    }
+
+    for(auto& p : macrospaces)
+    {
+        if(p.first != "msall")
+        {
+            mc->import(p.second);
+        }
+    }
 }

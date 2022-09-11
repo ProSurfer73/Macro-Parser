@@ -5,7 +5,25 @@
 #include <vector>
 #include "container.hpp"
 
-class MacroContainer;
+class Macrospaces
+{
+public:
+    Macrospaces();
+
+    void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
+    MacroContainer& getMacroSpace(const std::string& macrospaceName);
+    bool doesMacrospaceExists(const std::string& macrospaceName) const;
+    MacroContainer* tryGetMacroSpace(const std::string& macrospaceName);
+    void deleteMacroSpace(const std::string& macrospaceName);
+    void printContentToUser();
+    std::size_t size() const;
+
+private:
+    void updateMsAll();
+
+private:
+    std::vector< std::pair<std::string, MacroContainer> > macrospaces;
+};
 
 
 

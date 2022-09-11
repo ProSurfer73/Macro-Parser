@@ -27,6 +27,7 @@
 
 using namespace std;
 
+#include "macrospace.hpp"
 #include "container.hpp"
 
 class CommandManager
@@ -39,18 +40,10 @@ public:
     // Command line methods
     void dealWithUser();
     bool runCommand(string str);
-    bool runCommand2(string str);
-
-    // MacroSpaces special command
-    void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
-    MacroContainer& getMacroSpace(const std::string& macrospaceName);
-    bool doesMacrospaceExists(const std::string& macrospaceName) const;
-    MacroContainer* tryGetMacroSpace(const std::string& macrospaceName);
-    void deleteMacroSpace(const std::string& macrospaceName);
 
 private:
     Options configuration;
-    std::vector< std::pair<std::string, MacroContainer> > macrospaces;
+    Macrospaces macrospaces;
 };
 
 #include "stringeval.hpp"
