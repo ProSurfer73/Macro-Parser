@@ -256,68 +256,91 @@ void MacroContainer::printOrigins() const
     }
 }
 
-void MacroContainer::printDiff(const MacroContainer& mc, const Options& configuration) const
+void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration)
+{
+    // Ensure size >= 2
+    assert(mcs.size()>=2);
+
+    MacroContainer *first = mcs.front();
+    //mcs.erase(mcs.begin());
+    first->printDiff(mcs, configuration);
+}
+
+void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration) const
 {
     unsigned limit=100;
 
-    for(const auto& p1 : defines)
+    // 1st step: look for common macros
+
+    std::vector<std::string> commonMacroList;
+
+    for(auto& p : defines)
     {
-        for(const auto& p2 : mc.defines)
+        bool isCommon=true;
+        for(const MacroContainer* mc : mcs)
         {
-            // If this is two macros that have the same name
-            if(p1.first == p2.first)
+            bool exist=false;
+            for(auto& p2 : mc->defines)
             {
-                // Show the macro that is going to be compared
-
-                // Let's calculate the expressions
-                std::string expr1 = p1.first;
-                calculateExprWithStrOutput(expr1, *this, configuration);
-                std::string expr2 = p1.first;
-                calculateExprWithStrOutput(expr2, mc, configuration);
-
-                if(expr1 != "unknown" && expr2 != "unknown")
-                    std::cout << p1.first << ": " << expr1 << " | " << expr2 << std::endl;
-
-                /*
-                // Calculate the first expression according to *this instance
-                std::string expr1 = p1.first;
-                auto status1 = calculateExpression(expr1, *this, configuration, false);
-
-                // Calculate the second expression accoding to mc instance
-                std::string expr2 = p1.first;
-                auto status2 = calculateExpression(expr2, mc, configuration, false);
-
-                // Convert the results to hexa if possible
-                if(status1 == CalculationStatus::EVAL_OKAY || status1 == CalculationStatus::EVAL_WARNING)
-                    tryConvertToHexa(expr1);
-                if(status2 == CalculationStatus::EVAL_OKAY || status2 == CalculationStatus::EVAL_WARNING)
-                    tryConvertToHexa(expr2);
-
-                // Show the result expr1
-                if(status1 == CalculationStatus::EVAL_OKAY)
-                    std::cout << expr1;
-                else if(status1 == CalculationStatus::EVAL_WARNING)
-                    std::cout << expr1 << '?';
-                else if(status1 == CalculationStatus::EVAL_ERROR)
-                    std::cout << "unknown";
-
-                std::cout << " | ";
-
-                // Show the result expr2
-                if(status2 == CalculationStatus::EVAL_OKAY)
-                    std::cout << expr2;
-                else if(status2 == CalculationStatus::EVAL_WARNING)
-                    std::cout << expr2 << '?';
-                else if(status2 == CalculationStatus::EVAL_ERROR)
-                    std::cout << "unknown";
-
-                cout << endl;
-
-                if(--limit<0)
-                    return;*/
+                if(p.first == p2.first){
+                    exist=true;
+                    break;
+                }
+            }
+            if(!exist){
+                isCommon=false;
+                break;
             }
         }
+
+        if(isCommon)
+            commonMacroList.emplace_back(p.first);
     }
+
+    std::cout << "Number of common macros: " << commonMacroList.size() << endl;
+
+    // Second step: list the result corresponding to these common macros
+
+
+    for(const auto& p: (mcs.front()->defines) )
+    {
+        // If the macro is common
+        if(std::find(commonMacroList.begin(), commonMacroList.end(), p.first) != commonMacroList.end())
+        {
+            std::cout << p.first << ": ";
+
+            for(const MacroContainer* mc: mcs)
+            {
+                // Show the result of m
+                //auto itFound = std::find(mc->defines.begin(),mc->defines.end(),p.first);
+                auto itf = mc->defines.begin();
+                for(;itf!=mc->defines.end();++itf)
+                {
+                    if(itf->first == p.first){
+                        break;
+                    }
+                }
+
+
+                if(itf != mc->defines.end())
+                {
+                    std::string str = itf->second;
+
+                    calculateExprWithStrOutput(str, *mc, configuration);
+
+                    std::cout << str;
+
+                    if(mc != mcs.back())
+                        std::cout << " | ";
+                }
+                else
+                    std::cout << "not found"<< endl;
+            }
+
+            std::cout << std::endl;
+        }
+    }
+
 }
 
 

@@ -69,7 +69,8 @@ public:
     unsigned countMacroName(const std::string& macroName) const;
     bool isRedefined(std::string macroName) const;
     void printOrigins() const;
-    void printDiff(const MacroContainer&, const Options& configuration) const;
+    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration);
+    void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration) const;
 
 private:
     std::vector< std::string > origins;

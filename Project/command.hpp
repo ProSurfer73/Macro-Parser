@@ -41,11 +41,12 @@ public:
     bool runCommand(string str);
     bool runCommand2(string str);
 
-    // Database command
+    // MacroSpaces special command
     void addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace);
     MacroContainer& getMacroSpace(const std::string& macrospaceName);
     bool doesMacrospaceExists(const std::string& macrospaceName) const;
     MacroContainer* tryGetMacroSpace(const std::string& macrospaceName);
+    void deleteMacroSpace(const std::string& macrospaceName);
 
 private:
     Options configuration;

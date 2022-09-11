@@ -375,11 +375,11 @@ bool CommandManager::runCommand2(string input)
         else
         {
             string str2;
-            if(parameters.size()>=3)
+            if(parameters.size()>=3){
                 str2 = parameters[2];
-            if(!doesExprLookOk(parameters[1]))
-                cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
-
+                if(!doesExprLookOk(parameters[2]))
+                    cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
+            }
             string macroStringName="default";
             if(parameters.size()>=4)
                 macroStringName = parameters[3];
@@ -483,6 +483,7 @@ bool CommandManager::runCommand2(string input)
         }
         else {
             cout << "/!\\ Error: can't open the file provided. /!\\" << endl;
+            deleteMacroSpace(macrospacesName.front());
         }
     }
 
@@ -510,6 +511,7 @@ bool CommandManager::runCommand2(string input)
             auto& curMacroSpace = getMacroSpace(macrospacesName.front());
             if(!curMacroSpace.importFromFolder(parameters[0], configuration)){
                 std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
+                deleteMacroSpace(macrospacesName.front());
             }
             else
             printStatMacrospace(curMacroSpace);
@@ -694,16 +696,41 @@ bool CommandManager::runCommand2(string input)
         }
         else
         {
-            MacroContainer *mc1 = tryGetMacroSpace(parameters[1]);
-            MacroContainer *mc2 = tryGetMacroSpace(parameters[2]);
+            std::vector<MacroContainer*> mcContainer;
 
-            if(!mc1 || !mc2)
+            if(parameters.size()<3){
+                std::cout << "Spacediff need at least 2 different macrospaces." << endl;
+            }
+
+            bool inputOkay=true;
+            for(unsigned i=1; i<parameters.size(); ++i)
             {
-                std::cout << "macrospaces not correct." << std::endl;
+                MacroContainer *tmp_mc = tryGetMacroSpace(parameters[i]);
+                if(tmp_mc){
+                    mcContainer.push_back(tmp_mc);
+                }
+                else {
+                    mcContainer.push_back(nullptr);
+                    inputOkay=false;
+                }
+            }
+
+            if(!inputOkay)
+            {
+                std::cout << "macrospaces";
+
+                // let's write the name of the macrospaces not correct
+                for(unsigned i=0; i<mcContainer.size(); ++i){
+                    if(!mcContainer[i]){
+                        std::cout << " \"" << parameters[i+1] << '"';
+                    }
+                }
+
+                std::cout << "not recognized." << std::endl;
             }
             else
             {
-                mc1->printDiff(*mc2, configuration);
+                MacroContainer::printDiffFromList(mcContainer, configuration);
             }
 
         }
@@ -762,3 +789,12 @@ MacroContainer* CommandManager::tryGetMacroSpace(const std::string& macroSpaceNa
     return nullptr;
 }
 
+void CommandManager::deleteMacroSpace(const std::string& macroSpaceName)
+{
+    for(auto it=macrospaces.begin(); it!=macrospaces.end();++it){
+        if(it->first == macroSpaceName){
+            macrospaces.erase(it);
+            return;
+        }
+    }
+}
