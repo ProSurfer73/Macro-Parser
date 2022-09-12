@@ -574,7 +574,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
 
-        //cout << "toBeCalculated: " << toBeCalculated << endl;
+        //if(printWarnings)cout << "toBeCalculated: " << toBeCalculated << endl;
 
         bool thereIsOperation=false;
         for(unsigned m=0;m<toBeCalculated.size();++m){
@@ -606,6 +606,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
             {
                 // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
 
+                /*string begStr = expr.substr(0,posOpenPar);
+                string midStr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 ) ;
+                string endStr = &expr[posClosePar+1];*/
+
                 string begStr = expr.substr(0,posOpenPar);
                 string midStr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 ) ;
                 string endStr = &expr[posClosePar+1];
@@ -613,7 +617,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 expr = begStr + midStr + endStr;
             }
             else{
-                //cout << "is not number" << endl;
                 break;
             }
 
@@ -621,7 +624,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         }
 
             ++counter;
-            if(counter < 200){
+            if(counter > 1000){
                 throw std::runtime_error("counter error (arithmetic operations).");
             }
 
