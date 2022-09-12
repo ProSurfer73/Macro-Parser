@@ -141,7 +141,7 @@ static bool isAllDigits(const std::string& str)
 
 static void printStatMacrospace(MacroContainer const& mc)
 {
-    cout << mc.getDefines().size() << " macros were loaded." << endl;
+    cout << mc.getDefines().size()+mc.getIncorrectMacros().size() << " macros were loaded." << endl;
     cout << "|-> " << mc.getRedefinedMacros().size() << " macros have been redefined." << endl;
     cout << "|-> " << mc.getIncorrectMacros().size() << " macros seem incorrect." << endl;
 }
@@ -161,13 +161,18 @@ bool CommandManager::runCommand(string input)
     // Shortcut to the default macrospace
     MacroContainer& mcc = macrospaces.getMacroSpace("default");
 
+    // Locate macrospaces given through user input
+    /*std::vector<std::string> commandMacrospaces;
+    for(unsigned i=1; i<parameters.size(); ++i){
+        if(macrospaces.doesMacrospaceExists(parameters[i]))
+            commandMacrospaces.emplace_back(parameters[i]);
+    }*/
+
     if(commandStr.substr(0,5) == "clear")
     {
         if(commandStr.size()>5)
             parameters.emplace_back(commandStr.substr(5));
         parameters.erase(parameters.begin());
-
-        std::vector<std::string> containersName;
 
         bool fine=true;
 
@@ -177,10 +182,7 @@ bool CommandManager::runCommand(string input)
 
         for(const std::string& param: parameters)
         {
-            if(macrospaces.doesMacrospaceExists(param)){
-                containersName.push_back(param);
-            }
-            else if(param=="ok")
+            if(param=="ok")
                 eraseOk=true;
             else if(param=="in")
                 eraseIn=true;
@@ -198,20 +200,27 @@ bool CommandManager::runCommand(string input)
             cout << "No option parameter was given. No macro was erased." << endl;
             cout << "Try 'clear all' or 'clear ok' or 'clear in'." << endl;
         }
-        if(containersName.empty())
-            containersName.emplace_back("default");
+
+        std::vector<std::string> commandMacrospaces;
+        for(unsigned i=1; i<parameters.size(); ++i){
+            if(macrospaces.doesMacrospaceExists(parameters[i]))
+                commandMacrospaces.emplace_back(parameters[i]);
+        }
+
+        if(commandMacrospaces.empty())
+            commandMacrospaces.emplace_back("default");
 
         // User message to explain what the program did
         std::cout << "Cleared ";
         if(eraseRe&&eraseOk&&eraseIn) cout << "all "; else cout << "some ";
         cout << "macros in container";
-        if(containersName.size()>1) cout << 's';
+        if(commandMacrospaces.size()>1) cout << 's';
         cout << ": ";
-        for(const std::string& str: containersName) cout << str << " ";
+        for(const std::string& str: commandMacrospaces) cout << str << " ";
         cout << endl;
 
         // Finally let's clear the macro database
-        for(const std::string& str: containersName)
+        for(const std::string& str: commandMacrospaces)
             macrospaces.getMacroSpace(str).clearDatabase(eraseOk, eraseRe, eraseIn);
     }
     else if(commandStr == "interpret")
@@ -687,22 +696,9 @@ bool CommandManager::runCommand(string input)
                 }
             }
 
-            if(listIn)
-            {
-                for(const string& str: mc->getIncorrectMacros())
-                {
-                    if(p.first == str){
-                        cout << " - " << p.first << " => " << p.second << endl;
-                        ++nbPrinted;
-                        continue;
-                    }
-                }
-            }
-
             if(listOk)
             {
-                if(std::find(mc->getIncorrectMacros().begin(), mc->getIncorrectMacros().end(), p.first)==mc->getIncorrectMacros().end()
-                && std::find(mc->getRedefinedMacros().begin(), mc->getRedefinedMacros().end(), p.first)==mc->getRedefinedMacros().end())
+                if(std::find(mc->getRedefinedMacros().begin(), mc->getRedefinedMacros().end(), p.first)==mc->getRedefinedMacros().end())
                 {
                     cout << " - " << p.first << " => " << p.second << endl;
                     ++nbPrinted;
@@ -714,6 +710,21 @@ bool CommandManager::runCommand(string input)
             {
                 std::cout << "Only printed the first 5000 results." << endl;
                 break;
+            }
+        }
+
+        if(listIn)
+        {
+            for(const auto& p: mc->getIncorrectMacros())
+            {
+                cout << " - " << p.first << " => " << p.second << endl;
+                ++nbPrinted;
+
+                if(nbPrinted >= 5000)
+                {
+                    std::cout << "Only printed the first 5000 results." << endl;
+                    break;
+                }
             }
         }
 

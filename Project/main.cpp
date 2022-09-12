@@ -36,8 +36,6 @@ int main()
     std::cout << "WELCOME TO MACRO PARSER.\n";
     std::cout << "Type 'help' to see the available commands.\n" << endl;
 
-    std::flush(std::cout);
-
     try {
 
     // Command line manager

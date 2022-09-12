@@ -384,7 +384,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         {
             const string& mac = p.first;
 
-            if(expr.find(p.first) != string::npos && doesExprLookOk(p.second))
+            if(expr.find(p.first) != string::npos)
             {
                 #ifdef DEBUG_LOG_STRINGEVAL
                     cout << "found\n";
@@ -414,13 +414,12 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
         // Replace it
         for(pair<string,string> p: dictionary)
         {
-            if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/ && doesExprLookOk(p.second))
+            if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/)
             {
 
                 // If replacement strings aren't correct
                 if((p.first.find('(') != string::npos && p.first.find(')') == string::npos)
-                || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)
-                || (!doesExprLookOk(p.second))){
+                || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)){
                     // Then there is a problem, we skip.
 
                     //return CalculationStatus::EVAL_ERROR;
@@ -446,11 +445,6 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                         }
                     }
 
-                    status = CalculationStatus::EVAL_WARNING;
-                }
-
-                if(printWarnings && std::find(incorrectMacros.begin(), incorrectMacros.end(), p.first) != incorrectMacros.end()){
-                    cout << "/!\\ Warning: the macro " << p.first << "you are using seem incorrect. /!\\" << endl;
                     status = CalculationStatus::EVAL_WARNING;
                 }
 

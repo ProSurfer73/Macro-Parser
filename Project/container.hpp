@@ -39,7 +39,7 @@ public:
     // Getters
     const std::vector< std::pair< std::string, std::string> >& getDefines() const;
     const std::vector< std::string >& getRedefinedMacros() const;
-    const std::vector< std::string >& getIncorrectMacros() const;
+    const std::vector< std::pair< std::string, std::string> >& getIncorrectMacros() const;
 
 private:
     static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);
@@ -50,7 +50,7 @@ private:
 protected:
     std::vector< std::pair<std::string,std::string> > defines;
     std::vector< std::string > redefinedMacros;
-    std::vector< std::string > incorrectMacros;
+    std::vector< std::pair<std::string,std::string> > incorrectMacros;
 };
 
 class MacroContainer : public MacroDatabase

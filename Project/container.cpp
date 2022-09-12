@@ -36,25 +36,29 @@ MacroDatabase::MacroDatabase()
 
 void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
 {
-    bool alreadyExists=false;
-
-    for(const auto& p: defines)
+    if(doesExprLookOk(macroValue))
     {
-        if(p.first == macroName && p.second!=macroValue){
-            alreadyExists=true;
-            break;
+        bool alreadyExists=false;
+
+        for(const auto& p: defines)
+        {
+            if(p.first == macroName && p.second!=macroValue){
+                alreadyExists=true;
+                break;
+            }
         }
-    }
 
-    if(alreadyExists)
-    {
-        emplaceOnce(redefinedMacros, macroName);
+        if(alreadyExists)
+        {
+            emplaceOnce(redefinedMacros, macroName);
+        }
+
+        emplaceOnce(defines, macroName, macroValue);
     }
-    if(!doesExprLookOk(macroValue))
+    else
     {
-        emplaceOnce(incorrectMacros, macroName);
+        emplaceOnce(incorrectMacros, macroName, macroValue);
     }
-    emplaceOnce(defines, macroName, macroValue);
 }
 
 void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
@@ -87,7 +91,7 @@ const std::vector< std::string >& MacroDatabase::getRedefinedMacros() const
     return redefinedMacros;
 }
 
-const std::vector< std::string >& MacroDatabase::getIncorrectMacros() const
+const std::vector< std::pair<std::string,std::string> >& MacroDatabase::getIncorrectMacros() const
 {
     return incorrectMacros;
 }
