@@ -117,9 +117,10 @@ static bool evaluateSimpleBooleanExpr(string& expr)
 {
     size_t initialExprSize = expr.size();
 
-    // We don't deal with parenthesis here
-    assert(expr.find('(')==string::npos);
-    assert(expr.find(')')==string::npos);
+    // We don't deal with parentheses here
+    if(!(expr.find(')')==string::npos && expr.find('(')==string::npos)){
+        throw std::runtime_error("Internal error: Can't evaluate simple boolean expr with parenthesis.");
+    }
 
     // First, let's treat AND operator
     std::size_t searchedOperator;
@@ -625,10 +626,10 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
         }
 
-        #ifdef DEBUG_ENABLE_ASSERTIONS
             ++counter;
-            assert(counter < 100);
-        #endif // DEBUG_ENABLE_ASSERTIONS
+            if(counter < 200){
+                throw std::runtime_error("counter error (arithmetic operations).");
+            }
 
         clearSpaces(expr);
 
