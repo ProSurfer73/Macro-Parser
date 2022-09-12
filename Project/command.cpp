@@ -206,7 +206,6 @@ bool CommandManager::runCommand(string input)
             if(macrospaces.doesMacrospaceExists(parameters[i]))
                 commandMacrospaces.emplace_back(parameters[i]);
         }
-
         if(commandMacrospaces.empty())
             commandMacrospaces.emplace_back("default");
 
@@ -310,38 +309,51 @@ bool CommandManager::runCommand(string input)
     }
     else if(parameters.front() == "look")
     {
-        string str=parameters[1];
 
-        /*if(macroContainer.countMacroName(str)>1)
-        {
-            std::cout << "This macro has been redefined and needs to be interpreted." << endl;
-            std::cout << "Type 'interpret " << str << "'." << endl;
-        }
-        else*/ if(parameters.size()>2 && !macrospaces.doesMacrospaceExists(parameters[2]))
+        /*if(parameters.size()>2 && !macrospaces.doesMacrospaceExists(parameters[2]))
             cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
-        else
+        else*/
         {
-            MacroContainer *mc=nullptr;
-            if(parameters.size()>=3){
-                mc = &(macrospaces.getMacroSpace(parameters[parameters.size()-1]));
+            std::vector<std::string> commandMacrospaces;
+            std::vector<std::string> trueInputs;
+            for(unsigned i=1; i<parameters.size(); ++i){
+                if(macrospaces.doesMacrospaceExists(parameters[i])){
+                    commandMacrospaces.emplace_back(parameters[i]);
+                }
+                else
+                    trueInputs.emplace_back(parameters[i]);
             }
-            else {
-                mc = &(macrospaces.getMacroSpace("default"));
-            }
-            if(mc != NULL)
-            {
-
-            string userInput = str;
+            if(commandMacrospaces.empty())
+                commandMacrospaces.emplace_back("default");
 
             bool found = false;
 
-            for(auto& p : mc->getDefines())
+            if(commandMacrospaces.size()==1 && trueInputs.size()==1)
             {
-                if(p.first == userInput)
+
+            for(const auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getRedefinedMacros())
+            {
+                if(p == trueInputs.front()){
+                    found = true;
+                    break;
+                }
+            }
+
+            if(found)
+            {
+                std::cout << "This macro has been redefined and needs to be interpreted." << endl;
+                std::cout << "Type 'interpret " << trueInputs.front() << "'." << endl;
+            }
+            else
+            {
+
+            for(auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getDefines())
+            {
+                if(p.first == trueInputs.front())
                 {
                     cout << "first definition: " << p.second << endl;
                     string output = p.second;
-                    auto status = calculateExpression(output, *mc, configuration);
+                    auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration);
                     if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                     if(status == CalculationStatus::EVAL_WARNING){
@@ -370,12 +382,30 @@ bool CommandManager::runCommand(string input)
             }
 
             if(!found)
-                cout << "No macro was found with this name '" << str << "'." << endl;
+                cout << "No macro was found with this name '" << trueInputs.front() << "'." << endl;
 
             }
+
+
+
+            }
+            else if(commandMacrospaces.size()>1 && trueInputs.size()==1)
+            {
+                for(unsigned i=0; i<commandMacrospaces.size(); ++i)
+                {
+                    cout << commandMacrospaces[i] << " => ";
+                    string expr = trueInputs.front();
+                    calculateExprWithStrOutput(expr, macrospaces.getMacroSpace(commandMacrospaces[i]), configuration, true);
+                    cout << expr << endl;
+                }
+            }
             else
-                std::cout << "The macrospace '" << parameters.back() << "' does not exist." << endl;
+            {
+                cout << "Incorrect parameters were given to the command." << endl;
+            }
         }
+
+
     }
     else if(commandStr == "define")
     {
@@ -443,9 +473,6 @@ bool CommandManager::runCommand(string input)
                 macrospacesCur.push_back(&(macrospaces.getMacroSpace("default")));
             }
             cout << endl;
-
-            for(const std::string& str3: parameters)
-                std::cout << str3 << std::endl;
 
 
             if(!macrospacesCur.empty())

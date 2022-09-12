@@ -81,21 +81,6 @@ bool MacroDatabase::importFromFolder(const std::string& folderpath, const Option
 
 // Getters
 
-const std::vector< std::pair< std::string, std::string> >& MacroDatabase::getDefines() const
-{
-    return defines;
-}
-
-const std::vector< std::string >& MacroDatabase::getRedefinedMacros() const
-{
-    return redefinedMacros;
-}
-
-const std::vector< std::pair<std::string,std::string> >& MacroDatabase::getIncorrectMacros() const
-{
-    return incorrectMacros;
-}
-
 bool MacroDatabase::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
 {
     if(v.empty()){
@@ -280,8 +265,6 @@ void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const 
 
 void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration) const
 {
-    unsigned limit=100;
-
     // 1st step: look for common macros
 
     std::vector<std::string> commonMacroList;
@@ -305,7 +288,9 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             }
         }
 
-        if(isCommon && std::find(commonMacroList.begin(), commonMacroList.end(), p.first)==commonMacroList.end())
+        if(isCommon
+        && std::find(commonMacroList.begin(), commonMacroList.end(), p.first)==commonMacroList.end()
+        && (p.first.size()<3 || !(p.first[p.first.size()-1]==')' && p.first[p.first.size()-2]=='x' && p.first[p.first.size()-3]=='(')))
             commonMacroList.emplace_back(p.first);
     }
 
@@ -344,6 +329,9 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                     calculateExprWithStrOutput(str, *mc, configuration);
 
                     std::cout << str;
+
+                    if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), str) != mc->redefinedMacros.end())
+                        std::cout << '?';
 
                     if(i < mcs.size()-1)
                         std::cout << " | ";

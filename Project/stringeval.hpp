@@ -53,7 +53,7 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
 
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings=true, bool enableBoolean=true);
 
-void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options);
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand=false);
 
 
 #endif // STRINGEVAL_HPP

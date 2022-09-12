@@ -775,10 +775,17 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 }
 
 
-void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options)
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
 {
     auto status = calculateExpression(expr, macroContainer, options, false);
-    tryConvertToHexa(expr);
+    if(expand)
+    {
+        std::string str = expr;
+        if(tryConvertToHexa(expr))
+            expr = str + " (hexa: " + expr + ')';
+    }
+    else
+        tryConvertToHexa(expr);
 
     if(status == CalculationStatus::EVAL_ERROR)
         expr = "unknown";

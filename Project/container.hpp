@@ -37,9 +37,9 @@ public:
     void import(const MacroDatabase& macrodatabase);
 
     // Getters
-    const std::vector< std::pair< std::string, std::string> >& getDefines() const;
-    const std::vector< std::string >& getRedefinedMacros() const;
-    const std::vector< std::pair< std::string, std::string> >& getIncorrectMacros() const;
+    inline const std::vector< std::pair< std::string, std::string> >& getDefines() const { return defines; }
+    inline const std::vector< std::string >& getRedefinedMacros() const { return redefinedMacros; }
+    inline const std::vector< std::pair< std::string, std::string> >& getIncorrectMacros() const { return incorrectMacros; }
 
 private:
     static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);
