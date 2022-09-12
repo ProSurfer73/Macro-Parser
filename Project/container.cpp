@@ -347,6 +347,11 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
 
                     if(i < mcs.size()-1)
                         std::cout << " | ";
+
+                    // We erase it from the list in order not to show this macro multiple times
+                    auto itm = std::find(commonMacroList.begin(), commonMacroList.end(), itf->first);
+                    if(itm != commonMacroList.end())
+                        commonMacroList.erase(itm);
                 }
                 else
                     std::cout << "not found"<< endl;
