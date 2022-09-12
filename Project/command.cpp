@@ -787,10 +787,10 @@ bool CommandManager::runCommand(string input)
 
         }
     }
-    else if(commandStr == "help")
-        printBasicHelp();
     else if(commandStr == "helpall" || (parameters.size()==2 && parameters.front()+parameters[1]=="helpall"))
         printAdvancedHelp();
+    else if(commandStr == "help")
+        printBasicHelp();
     else if(commandStr == "cls"){
         system("cls");
     }
