@@ -57,8 +57,6 @@ class MacroDatabase;
 class FileSystem
 {
 public:
-    static bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
-    static bool searchDirectory(string dir, const std::string& macroName, const Options& config);
     static BOOL DirectoryExists(LPCTSTR szPath);
 
 private:
@@ -68,6 +66,7 @@ private:
 friend class MacroDatabase;
 };
 
+bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
 bool searchDirectory(string dir, const std::string& macroName, const Options& config);
 
 #endif // FILESYSTEM_HPP

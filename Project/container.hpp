@@ -73,6 +73,7 @@ public:
     void printOrigins() const;
     static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration);
     void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration) const;
+    void getListOrigins(std::vector<std::string>& v) const;
 
 private:
     std::vector< std::string > origins;

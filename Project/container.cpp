@@ -355,5 +355,13 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
 }
 
 
+void MacroContainer::getListOrigins(std::vector<std::string>& v) const
+{
+    for(const std::string& str: origins)
+    {
+        v.emplace_back(str);
+    }
+}
+
 
 

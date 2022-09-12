@@ -529,10 +529,51 @@ bool CommandManager::runCommand(string input)
         }
         else
         {
-            if(!searchDirectory(parameters[2], parameters[1], configuration))
+            // 1. Locate macrospaces
+            std::vector<MacroContainer*> mcs;
+
+            for(auto it=parameters.begin(); it!=parameters.end();)
             {
-                std::cout << "Can't open the directory given as the second parameter." << endl;
+                if(macrospaces.doesMacrospaceExists(*it)){
+                    mcs.push_back(macrospaces.tryGetMacroSpace(*it));
+                    it = parameters.erase(it);
+                }
+                else {
+                    ++it;
+                }
             }
+
+            // 2. List sources
+            std::vector<std::string> lookupFolders;
+            for(MacroContainer* mc : mcs){
+                mc->getListOrigins(lookupFolders);
+            }
+            if(parameters.size()>=3){
+                lookupFolders.push_back(parameters[2]);
+            }
+
+            if(lookupFolders.empty())
+            {
+                std::cout << "No source folder or file was specified." << endl;
+            }
+            else
+            {
+                for(const std::string& str2 : lookupFolders)
+                {
+                    if(FileSystem::DirectoryExists(str2.c_str()) && !searchDirectory(str2, parameters[1], configuration))
+                    {
+                        std::cout << "Can't open the directory '" << str2 << "'" << endl;
+                    }
+                    else if(searchFile(str2, parameters[1], configuration))
+                    {
+                        std::cout << " - " << str2 << std::endl;
+                    }
+                }
+            }
+
+
+
+
         }
     }
     else if(commandStr == "evaluate")
@@ -547,6 +588,7 @@ bool CommandManager::runCommand(string input)
                 if(macrospaces.doesMacrospaceExists(str1)){
                     macroSpaceNames.push_back(str1);
                     simpleReplace(expr, str1, "");
+
                 }
             }
         }
@@ -750,50 +792,3 @@ bool CommandManager::runCommand(string input)
     return true;
 }
 
-/*void CommandManager::addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace)
-{
-    macrospaces.emplace_back(macrospaceName, macrospace);
-}
-
-MacroContainer& CommandManager::macrospaces.getMacroSpace(const std::string& macrospaceName)
-{
-    for(auto& p: macrospaces){
-        if(p.first == macrospaceName)
-            return p.second;
-    }
-
-    macrospaces.emplace_back(macrospaceName, MacroContainer());
-    MacroContainer* kkk=nullptr;
-    for(auto& p: macrospaces)
-        kkk = &(p.second);
-    return *kkk;
-}
-
-bool CommandManager::macrospaces.doesMacrospaceExists(const std::string& macrospaceName) const
-{
-    for(const auto& p: macrospaces){
-        if(p.first == macrospaceName)
-            return true;
-    }
-
-    return false;
-}
-
-MacroContainer* CommandManager::trymacrospaces.getMacroSpace(const std::string& macroSpaceName)
-{
-    for(auto& p: macrospaces){
-        if(p.first == macroSpaceName)
-            return &(p.second);
-    }
-    return nullptr;
-}
-
-void CommandManager::deleteMacroSpace(const std::string& macroSpaceName)
-{
-    for(auto it=macrospaces.begin(); it!=macrospaces.end();++it){
-        if(it->first == macroSpaceName){
-            macrospaces.erase(it);
-            return;
-        }
-    }
-}*/
