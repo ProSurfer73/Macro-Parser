@@ -1,7 +1,9 @@
 #include "macrospace.hpp"
 
 Macrospaces::Macrospaces()
-{}
+{
+    updateMsAll();
+}
 
 void Macrospaces::addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace)
 {
@@ -30,9 +32,6 @@ MacroContainer& Macrospaces::getMacroSpace(const std::string& macrospaceName)
 
 bool Macrospaces::doesMacrospaceExists(const std::string& macrospaceName)
 {
-    if(macrospaceName=="msall")
-        updateMsAll();
-
     for(const auto& p: macrospaces){
         if(p.first == macrospaceName)
             return true;

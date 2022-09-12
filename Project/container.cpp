@@ -317,8 +317,11 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
         {
             std::cout << p.first << ": ";
 
-            for(const MacroContainer* mc: mcs)
+            //for(const MacroContainer* mc: mcs)
+            for(unsigned i=0; i<mcs.size(); ++i)
             {
+                MacroContainer *mc = mcs[i];
+
                 // Show the result of m
                 //auto itFound = std::find(mc->defines.begin(),mc->defines.end(),p.first);
                 auto itf = mc->defines.begin();
@@ -338,7 +341,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
 
                     std::cout << str;
 
-                    if(mc != mcs.back())
+                    if(i < mcs.size()-1)
                         std::cout << " | ";
                 }
                 else
