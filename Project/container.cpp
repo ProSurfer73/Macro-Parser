@@ -330,8 +330,9 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
 
                     std::cout << str;
 
-                    if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), str) != mc->redefinedMacros.end())
+                    if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
                         std::cout << '?';
+
 
                     if(i < mcs.size()-1)
                         std::cout << " | ";

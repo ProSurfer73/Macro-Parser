@@ -650,7 +650,7 @@ bool CommandManager::runCommand(string input)
         if(status == CalculationStatus::EVAL_WARNING)
         {
             cout << " ???" << endl;
-            cout << "It seems that you are using macros that seem incorrect or have been redefined." << endl;
+            cout << "It seems that you are using macros that have been redefined." << endl;
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
         }
