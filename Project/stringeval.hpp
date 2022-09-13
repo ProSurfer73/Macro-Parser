@@ -27,5 +27,6 @@ double evaluateArithmeticExpr(const std::string& expr);
 
 bool calculateExpression(string& expr, const MacroContainer& macroContainer, bool& shouldDisplayPbInfo, const Options& config);
 
+enum CalculationStatus calculateExpressionWithPossibilities(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings, bool enableBoolean, const std::vector<std::pair<std::string,std::string> >& redefinitions);
 
 #endif // STRINGEVAL_HPP

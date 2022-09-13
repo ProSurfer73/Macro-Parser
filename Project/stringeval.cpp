@@ -565,5 +565,540 @@ bool calculateExpression(string& expr, const MacroContainer& macroContainer, boo
             expr = to_string(static_cast<int>(result));
     }
 
+<<<<<<< Updated upstream
     return true;
+=======
+    return status;
+
+
+    }
+    catch(std::exception const& ex)
+    {
+        if(printWarnings)
+            std::cout << "Eval error: " << ex.what() << endl;
+
+        //else throw;
+
+        return CalculationStatus::EVAL_ERROR;
+    }
+}
+
+
+
+
+enum CalculationStatus calculateExpressionWithPossibilities(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings, bool enableBoolean, std::vector<std::pair<std::string,std::string> >& redefinitions)
+{
+    CalculationStatus status = CalculationStatus::EVAL_OKAY;
+
+    const auto& dictionary = macroContainer.getDefines();
+    const auto& redefinedMacros = macroContainer.getRedefinedMacros();
+    const auto& incorrectMacros = macroContainer.getIncorrectMacros();
+
+    unsigned counter = 0;
+
+    std::vector<std::string> macroRedefinedWarning;
+
+    std::vector<std::string> possibilities;
+
+    try {
+
+    if(!printWarnings && !doesExprLookOk(expr)){
+        return CalculationStatus::EVAL_ERROR;
+    }
+
+    /// 0. Is the expression okay ?
+
+    //if(expr[0] == '?')return CalculationStatus::EVAL_ERROR;
+
+    // Remove spaces
+    clearSpaces(expr);
+
+
+    #ifdef DEBUG_ENABLE_ASSERTIONS
+        assert(expr.find(' ') == string::npos);
+    #endif
+
+    #ifdef READ_HEXADECIMAL
+        // Look and replace hexa
+        locateAndReplaceHexa(expr, config);
+    #endif
+
+
+    /// 1. Search and replace macros
+
+    bool repeat;
+
+    do {
+        repeat = false;
+        string save_expr = expr;
+        string maxSizeReplace;
+        string maxSizeReplaceSig;
+
+
+        // Look for the longest word to replace
+        for(const pair<string,string>& p: dictionary)
+        {
+            const string& mac = p.first;
+
+            if(expr.find(p.first) != string::npos)
+            {
+                #ifdef DEBUG_LOG_STRINGEVAL
+                    cout << "found\n";
+                    cout << p.first.size() << " --- " << maxSizeReplace << endl;
+                #endif // DEBUG_LOG_STRINGEVAL
+
+                if(p.first.size() >= maxSizeReplace.size()){
+                    maxSizeReplace = p.first;
+                }
+            }
+            else if(mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
+                && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
+            {
+                maxSizeReplaceSig = mac;
+            }
+        }
+
+        #ifdef DEBUG_LOG_STRINGEVAL
+        cout << "g:" << maxSizeReplace << endl;
+        #endif
+
+        if(!maxSizeReplace.empty())
+        {
+
+
+
+        // Replace it
+        for(pair<string,string> p: dictionary)
+        {
+            if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/)
+            {
+
+                // If replacement strings aren't correct
+                if((p.first.find('(') != string::npos && p.first.find(')') == string::npos)
+                || (p.first.find('(') == string::npos && p.first.find(')') != string::npos)){
+                    // Then there is a problem, we skip.
+
+                    //return CalculationStatus::EVAL_ERROR;
+                    continue;
+                }
+
+                if(config.doesPrintReplacements()){
+                    std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
+                }
+
+                auto searched = expr.find(p.first);
+                if(searched != string::npos
+                && (searched == 0 || !isMacroCharacter(expr[searched-1]))
+                && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
+                {
+                    string replacedBy = p.second;
+
+                    if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
+                    if(printWarnings){
+                        if(macroRedefinedWarning.empty()
+                        || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end())
+                        {
+                            cout << "Redefined macro: " << p.first << endl;
+                            macroRedefinedWarning.emplace_back(p.first);
+
+                            bool doesAlreadyExist=false;
+
+                            for(const std::pair<std::string,std::string>& p3: redefinitions)
+                            {
+                                if(p.first == p3.first)
+                                    doesAlreadyExist = true;
+                            }
+
+                            if(!doesAlreadyExist)
+                            {
+                                // Step 1: Let's list the possible interpretations for this macro
+                                for(const auto& p2: macroContainer.getDefines())
+                                {
+                                    if(p2.first == p.first)
+                                    {
+                                        // Let's run interpretation there.
+                                        auto copyRedefinition = redefinitions;
+                                        copyRedefinition.emplace_back(p.first, p2.second);
+
+                                        string expr2;
+                                        calculateExpressionWithPossibilities(expr2, macroContainer, config, printWarnings, enableBoolean, copyRedefinition);
+                                        possibilities.emplace_back(expr2);
+
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                // Let's apply the redefinition
+                                for(const std::pair<std::string,std::string>& p3: redefinitions)
+                                {
+                                    if(p.first == p3.first)
+                                        replacedBy = p3.second;
+                                }
+                            }
+
+
+
+
+                        }
+                    }
+
+                    status = CalculationStatus::EVAL_WARNING;
+                }
+
+
+                    for(const std::pair<std::string,std::string>& p2: redefinitions){
+                        if(p.first == p2.first)
+                            replacedBy = p2.second;
+                    }
+                    simpleReplace(expr, p.first, replacedBy);
+                }
+
+
+
+                if(config.doesPrintExprAtEveryStep())
+                    cout << expr << endl;
+
+
+                break;
+            }
+        }
+
+        #ifdef READ_HEXADECIMAL
+            // Look and replace hexa
+            locateAndReplaceHexa(expr, config);
+        #endif
+
+        }
+        else if(!maxSizeReplaceSig.empty())
+        {
+            // Look for single parameter macro
+            for(pair<string,string> p: dictionary)
+            {
+                string& mac = p.first;
+
+                // if the string has at the end "(x)", then it's a single param macro
+                if(maxSizeReplaceSig == mac
+                && mac[mac.size()-1] == ')'
+                && mac[mac.size()-2] == 'x'
+                && mac[mac.size()-3] == '(')
+                {
+                    // If it's the same macro
+                    if(expr.find(mac.substr(0,mac.size()-3)) != string::npos
+                    &&(expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == ' '
+                    || expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == '('))
+                    {
+                        // We delete the mac from the expr string
+                        string cop1 = expr;
+
+                        simpleReplace(cop1, mac.substr(0,mac.size()-3), "");
+
+                        // In string p.second ; replace '(x)' <= expr
+                        string cop2 = p.second;
+
+                        simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
+
+                        if(config.doesPrintReplacements()){
+                            cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << endl;
+                        }
+
+                        #ifdef DEBUG_LOG_STRINGEVAL
+                        cout << "before: " << expr << "==" << mac << endl;
+                        #endif
+                        expr = cop2;
+
+                        #ifdef DEBUG_LOG_STRINGEVAL
+                        cout << "after: " << expr << endl;
+                        #endif
+                    }
+                }
+            }
+
+
+        }
+
+        if(save_expr != expr)
+        {
+            #ifdef DEBUG_LOG_STRINGEVAL
+                cout << "S&R:" << expr << endl;
+            #endif
+            if(config.doesPrintExprAtEveryStep()){
+                cout << expr << endl;
+            }
+
+            repeat = true;
+
+        }
+
+
+        clearSpaces(expr);
+
+        ++counter;
+        if(counter > 400){
+            if(printWarnings)
+                std::cout << "Counter pb: please post an issue on Github" << endl;
+            return CalculationStatus::EVAL_ERROR;
+        }
+    }
+    while(repeat);
+
+
+    restartArithmeticEval:
+
+    /// 2. Can the expression be evaluated ?
+
+    #ifdef DEBUG_LOG_STRINGEVAL
+    cout << "blv:" << expr << endl;
+    #endif
+
+    bool thereIsLetter = false;
+    for(unsigned i=0; i<expr.size(); ++i){
+        if(isalpha(expr[i]) && expr[i] != 'x')
+            thereIsLetter = true;
+    }
+
+    if(thereIsLetter)
+    {
+        //cout << "thereisLetter" << endl;
+        goto skipArithmeticOperations;
+    }
+
+
+
+    /// 3. Arithmetic operations
+
+
+    #ifdef DEBUG_LOG_STRINGEVAL
+    cout << "c:" << expr << endl;
+    #endif
+
+
+
+    while(expr.find('(') != string::npos && expr.find(')') != string::npos)
+    {
+        size_t posClosePar = expr.find_first_of(')');
+        size_t posOpenPar = posClosePar;
+        for(;expr[posOpenPar]!='('; posOpenPar--);
+
+        string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
+
+        //if(printWarnings)cout << "toBeCalculated: " << toBeCalculated << endl;
+
+        bool thereIsOperation=false;
+        for(unsigned m=0;m<toBeCalculated.size();++m){
+            if(isOperationCharacter(toBeCalculated[m]))
+                thereIsOperation=true;
+        }
+
+        #ifdef DEBUG_LOG_STRINGEVAL
+            cout << "thereisop: " << thereIsOperation << endl;
+        #endif
+
+
+        if(thereIsOperation)
+        {
+            double value = evaluateSimpleArithmeticExpr(toBeCalculated);
+
+            expr = (expr.substr(0,posOpenPar) + to_string(value)) + expr.substr(posClosePar+1);
+        }
+        else
+        {
+            // If it is a number,
+            bool isNumber=true;
+            for(char c: toBeCalculated){
+                if(!isdigit(c)&&c!='.')
+                    isNumber=false;
+            }
+
+            if(isNumber)
+            {
+                // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
+
+                /*string begStr = expr.substr(0,posOpenPar);
+                string midStr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 ) ;
+                string endStr = &expr[posClosePar+1];*/
+
+                string begStr = expr.substr(0,posOpenPar);
+                string midStr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 ) ;
+                string endStr = &expr[posClosePar+1];
+
+                expr = begStr + midStr + endStr;
+            }
+            else{
+                break;
+            }
+
+
+        }
+
+            ++counter;
+            if(counter > 1000){
+                throw std::runtime_error("counter error (arithmetic operations).");
+            }
+
+        clearSpaces(expr);
+
+        if(config.doesPrintExprAtEveryStep())
+            cout << expr << endl;
+    }
+
+    //if(!doesExprLookOk(expr))return CalculationStatus::EVAL_ERROR;
+
+
+
+
+    skipArithmeticOperations:
+
+
+    // 4. Conditional operations
+
+    if(enableBoolean)
+    {
+
+    counter=0;
+
+
+    do
+    {
+
+        string begStr;
+        string subExpr;
+        string endStr;
+
+        repeat=false;
+
+        // Treat the '!' binary operator
+
+        if(simpleReplace(expr, "!false", "true")
+        ||simpleReplace(expr, "!true", "false")
+        ||simpleReplace(expr, "(true)", "true")
+        ||simpleReplace(expr, "(false)", "false"))
+            repeat=true;
+
+        // Let's delete parenthesis
+        if(expr.find('(')!=std::string::npos
+        && expr.find(')')!=std::string::npos)
+        {
+            size_t posClosePar = expr.find_first_of(')');
+            size_t posOpenPar = posClosePar;
+
+            for(;expr[posOpenPar]!='('; posOpenPar--);
+
+            begStr = expr.substr(0,posOpenPar);
+            subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
+            endStr = &expr[posClosePar+1];
+        }
+        else
+        {
+            subExpr = expr;
+        }
+
+        if(
+        // Treat double comparaison operations
+           treatOperationDouble(subExpr, ">", [](double d1, double d2){ return d1>d2; } )
+        || treatOperationDouble(subExpr, "<", [](double d1, double d2){ return d1<d2; } )
+        || treatOperationDouble(subExpr, "==", [](double d1, double d2){ return d1==d2; } )
+        || treatOperationDouble(subExpr, "!=", [](double d1, double d2){ return d1!=d2; } )
+        || treatOperationDouble(subExpr, ">=", [](double d1, double d2){ return d1>=d2; } )
+        || treatOperationDouble(subExpr, "<=", [](double d1, double d2){ return d1<=d2; } )
+
+        // Treat AND, OR boolean operations
+        || evaluateSimpleBooleanExpr(subExpr)
+        /*|| simpleReplace(subExpr, "true&&true", "true")
+        || simpleReplace(subExpr, "true&&false", "false")
+        || simpleReplace(subExpr, "false&&true", "false")
+        || simpleReplace(subExpr, "false&&false", "false")
+
+        || simpleReplace(subExpr, "true||true", "true")
+        || simpleReplace(subExpr, "true||false", "true")
+        || simpleReplace(subExpr, "false||true", "true")
+        || simpleReplace(subExpr, "false||false", "false")*/
+        )
+
+        {
+            expr = begStr+subExpr+endStr;
+            repeat=true;
+        }
+
+        if(repeat)
+        {
+            counter++;
+
+            if( config.doesPrintExprAtEveryStep()){
+                cout << expr << endl;
+            }
+        }
+    }
+    while(repeat && counter < 100);
+
+    if(counter > 0) goto restartArithmeticEval;
+
+    }
+
+
+    #ifdef DEBUG_LOG_STRINGEVAL
+    std::cout << "final:" << expr+"+0" << endl;
+    #endif
+
+    double result;
+
+    try
+    {
+        result = std::stod(expr);
+    }
+    catch(const std::exception& ex)
+    {
+        // Then it is not a numerical expression
+
+        if(expr != "true" && expr != "false")
+            status = CalculationStatus::EVAL_ERROR;
+
+        return status;
+    }
+
+
+
+
+    // 5. If it is an integer, convert it to an integer.
+
+    if(status != CalculationStatus::EVAL_ERROR)
+    {
+        if(result == static_cast<double>(static_cast<int>(result)) )
+            expr = to_string(static_cast<int>(result));
+    }
+
+    return status;
+
+
+    }
+    catch(std::exception const& ex)
+    {
+        if(printWarnings)
+            std::cout << "Eval error: " << ex.what() << endl;
+
+        //else throw;
+
+        return CalculationStatus::EVAL_ERROR;
+    }
+}
+
+
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
+{
+    auto status = calculateExpression(expr, macroContainer, options, false);
+    if(expand)
+    {
+        std::string str = expr;
+        if(tryConvertToHexa(expr))
+            expr = str + " (hexa: " + expr + ')';
+    }
+    else
+        tryConvertToHexa(expr);
+
+    if(status == CalculationStatus::EVAL_ERROR)
+        expr = "unknown";
+    else if(status == CalculationStatus::EVAL_WARNING)
+        expr += '?';
+>>>>>>> Stashed changes
 }

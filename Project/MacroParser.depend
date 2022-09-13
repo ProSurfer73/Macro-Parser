@@ -216,7 +216,129 @@
 >>>>>>> Stashed changes
 	"filesystem.hpp"
 
+<<<<<<< Updated upstream
 1661930632 c:\git\macro-parser\project\filesystem.hpp
+=======
+1662983657 c:\git\macro-parser\project\filesystem.hpp
+	<string>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+	<iomanip>
+	<vector>
+	<fstream>
+	<sstream>
+	<windows.h>
+	<iostream>
+	<thread>
+	<mutex>
+
+1663051261 c:\git\macro-parser\project\stringeval.hpp
+	<vector>
+	<string>
+	<sstream>
+	<cassert>
+	"container.hpp"
+	"stringeval.hpp"
+	"hexa.hpp"
+
+1662983657 c:\git\macro-parser\project\config.hpp
+
+1662983657 c:\git\macro-parser\project\hexa.hpp
+	<math.h>
+	<string.h>
+	<iostream>
+	<string>
+	"options.hpp"
+
+1662983657 c:\git\macro-parser\project\options.hpp
+	<fstream>
+	<string>
+	<iostream>
+	<algorithm>
+	"config.hpp"
+
+1662983657 c:\git\macro-parser\project\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	<map>
+	"macrospace.hpp"
+	"container.hpp"
+	"stringeval.hpp"
+
+1662983657 source:c:\git\macro-parser\project\hexa.cpp
+	"hexa.hpp"
+
+1662996408 source:c:\git\macro-parser\project\main.cpp
+	<iostream>
+	<fstream>
+	"hexa.hpp"
+	"stringeval.hpp"
+	"command.hpp"
+	"options.hpp"
+
+1662983657 source:c:\git\macro-parser\project\options.cpp
+	"options.hpp"
+	"container.hpp"
+
+1663011322 source:c:\git\macro-parser\project\stringeval.cpp
+	"stringeval.hpp"
+	<iostream>
+	"container.hpp"
+	"options.hpp"
+
+1663048710 source:c:\git\macro-parser\project\command.cpp
+	"command.hpp"
+	"container.hpp"
+	"stringeval.hpp"
+
+1663004493 c:\git\macro-parser\project\container.hpp
+	<vector>
+	<string>
+	"options.hpp"
+	"filesystem.hpp"
+	"stringeval.hpp"
+
+1663049221 source:c:\git\macro-parser\project\container.cpp
+	"container.hpp"
+
+1661953014 source:c:\git\macro-parser\project\booleval.cpp
+	"booleval.hpp"
+
+1661953026 c:\git\macro-parser\project\booleval.hpp
+	<string>
+
+1661953026 D
+
+1662983657 source:c:\git\macro-parser\project\macrospace.cpp
+	"macrospace.hpp"
+
+1662983657 c:\git\macro-parser\project\macrospace.hpp
+	<vector>
+	"container.hpp"
+
+1662553047 .hpp"
+
+1662496207 source:c:\gitr\macro-parser\project\command.cpp
+	"command.hpp"
+
+1662481172 c:\gitr\macro-parser\project\command.hpp
+	<iostream>
+	<vector>
+	<sstream>
+	<map>
+	"filesystem.hpp"
+	"stringeval.hpp"
+	"options.hpp"
+	"container.hpp"
+
+1662481172 c:\gitr\macro-parser\project\filesystem.hpp
+>>>>>>> Stashed changes
 	<string>
 	<vector>
 	<fstream>
@@ -312,4 +434,9 @@
 
 1661894247 source:c:\git\macro-parser\project\container.cpp
 	"container.hpp"
+
+1663050138 source:c:\git\macro-parser\project\possibility.cpp
+	"possibility.hpp"
+
+1663050190 c:\git\macro-parser\project\possibility.hpp
 
