@@ -436,6 +436,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
 
                 {
+
+
+
                     if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     if(printWarnings){
                         if(macroRedefinedWarning.empty()
@@ -448,6 +451,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     status = CalculationStatus::EVAL_WARNING;
                 }
 
+                    // finally, let's replace-it in the expression
                     simpleReplace(expr, p.first, p.second);
                 }
 

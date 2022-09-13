@@ -147,7 +147,7 @@ bool tryConvertToHexa(std::string& deciStr)
     long int myint = std::atol(deciStr.c_str());
 
     // Conversion to long int: okay
-    if(myint != 0)
+    if(myint > 0)
     {
         // Let's reconvert it to hexa.
         deciStr = std::string("0x") + convertDeciToHexa(myint);

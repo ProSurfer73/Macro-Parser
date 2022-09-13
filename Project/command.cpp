@@ -353,7 +353,7 @@ bool CommandManager::runCommand(string input)
                 {
                     cout << "first definition: " << p.second << endl;
                     string output = p.second;
-                    auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration);
+                    auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                     if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                     if(status == CalculationStatus::EVAL_WARNING){
@@ -362,14 +362,11 @@ bool CommandManager::runCommand(string input)
                     else
                         cout << "output: " << output;
                     if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
-                        std::string hexaRepresentation;
-                        try { hexaRepresentation = convertDeciToHexa(std::stoi(output)); }
-                        catch(const std::exception& ex){}
-                        if(!hexaRepresentation.empty())
-                            cout << " (hexa: 0x" << hexaRepresentation << ')';
+                        if(tryConvertToHexa(output))
+                            cout << " (hexa: " << output << ')';
                     }
                     if(status == CalculationStatus::EVAL_WARNING){
-                        cout << "\n\nIt seems that you are using macros that seem incorrect or have been redefined." << endl;
+                        cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
                         cout << "The output can't be trusted." << endl;
                         cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
                     }
@@ -541,8 +538,6 @@ bool CommandManager::runCommand(string input)
         if(macrospacesName.empty())
             macrospacesName.emplace_back("default");
 
-        //for(auto& str1:macrospacesName)cout << "- " << str1 << endl;
-
         if(parameters.size()>=1){
             auto& curMacroSpace = macrospaces.getMacroSpace(macrospacesName.front());
             if(!curMacroSpace.importFromFolder(parameters[0], configuration)){
@@ -623,8 +618,7 @@ bool CommandManager::runCommand(string input)
             for(const std::string& str1: parameters) {
                 if(macrospaces.doesMacrospaceExists(str1)){
                     macroSpaceNames.push_back(str1);
-                    simpleReplace(expr, str1, "");
-
+                    simpleReplace(expr, str1, std::string());
                 }
             }
         }
@@ -632,21 +626,24 @@ bool CommandManager::runCommand(string input)
         if(!macroSpaceNames.empty())
             mc=&(macrospaces.getMacroSpace(macroSpaceNames.front()));
 
-        auto status = calculateExpression(expr, *mc, configuration);
+        auto status = calculateExpression(expr, *mc, configuration, true, true);
 
-        if(status == CalculationStatus::EVAL_WARNING){
+        /*if(status == CalculationStatus::EVAL_WARNING){
             std::cout << "possible ";
         }
-        cout << "output: " << expr;
+
 
         if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
-            std::string hexaRepresentation;
-            try { hexaRepresentation = convertDeciToHexa(std::stoi(expr)); }
-            catch(const std::exception& ex){}
-            if(!hexaRepresentation.empty())
-                cout << " (hexa: 0x" << hexaRepresentation << ')';
+            if(tryConvertToHexa(expr))
+                cout << expr ;
             cout << endl;
-        }
+        }*/
+
+        cout << "output: " << expr;
+
+        if(tryConvertToHexa(expr))
+            cout << " (hexa: " << expr << ')';
+
         if(status == CalculationStatus::EVAL_WARNING)
         {
             cout << " ???" << endl;
@@ -654,7 +651,9 @@ bool CommandManager::runCommand(string input)
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
         }
-        else if(status == CalculationStatus::EVAL_ERROR)
+        else
+            cout << endl;
+        if(status == CalculationStatus::EVAL_ERROR)
         {
             cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
         }
