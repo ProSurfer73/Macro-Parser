@@ -434,9 +434,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 if(searched != string::npos
                 && (searched == 0 || !isMacroCharacter(expr[searched-1]))
                 && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
-                    simpleReplace(expr, p.first, p.second);
 
-                if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
+                {
+                    if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
                     if(printWarnings){
                         if(macroRedefinedWarning.empty()
                         || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end()){
@@ -446,6 +446,9 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                     }
 
                     status = CalculationStatus::EVAL_WARNING;
+                }
+
+                    simpleReplace(expr, p.first, p.second);
                 }
 
                 if(config.doesPrintExprAtEveryStep())
