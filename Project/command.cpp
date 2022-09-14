@@ -64,6 +64,7 @@ static void printAdvancedHelp()
     cout << "- options : display the options used for file import and string evaluation" << endl;
     cout << "- changeoption [name] [value] : change the parameter given to an option" << endl;
     cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
+    cout << "- loadscript [filepath] : load and execute a script of commands from a file" << std::endl;
     cout << "- cls : clear console" << endl;
 
     cout << "\nMACRO SPACES (to store macro in separate memory spaces) (currently implemented)" << endl;
