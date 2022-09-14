@@ -332,13 +332,14 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
  * \return status
  *
  */
-enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config, bool printWarnings, bool enableBoolean)
+enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
+bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::vector< std::pair<std::string, std::string> > redef)
 {
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
     const auto& dictionary = macroContainer.getDefines();
     const auto& redefinedMacros = macroContainer.getRedefinedMacros();
-    const auto& incorrectMacros = macroContainer.getIncorrectMacros();
+    //const auto& incorrectMacros = macroContainer.getIncorrectMacros();
 
     unsigned counter = 0;
 
@@ -434,25 +435,58 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
                 if(searched != string::npos
                 && (searched == 0 || !isMacroCharacter(expr[searched-1]))
                 && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
-
                 {
+                    string replacedBy = p.second;
 
-
-
-                    if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end()){
-                    if(printWarnings){
-                        if(macroRedefinedWarning.empty()
-                        || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end()){
-                            cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
-                            macroRedefinedWarning.emplace_back(p.first);
+                    if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end())
+                    {
+                        if(printWarnings)
+                        {
+                            if(macroRedefinedWarning.empty()
+                            || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end()){
+                                cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
+                                macroRedefinedWarning.emplace_back(p.first);
+                            }
                         }
+
+                        //
+                        for(const auto& pp: redef)
+                        {
+                            if(pp.first == p.first)
+                            {
+                                replacedBy = pp.second;
+                            }
+                            //std::cout << "'" << pp.first << "'" << std::endl;
+                        }
+
+                        if(outputs)
+                        {
+                            for(const auto& pp: dictionary)
+                            {
+                                if(pp.first == p.first)
+                                {
+                                    std::string anotherExpr = expr;
+                                    simpleReplace(anotherExpr, p.first, pp.second);
+                                    auto status = calculateExpression(anotherExpr, macroContainer, config, false, true, outputs, redef);
+                                    if(status != CalculationStatus::EVAL_ERROR)
+                                        outputs->emplace_back(anotherExpr);
+                                }
+                            }
+
+                            expr = "multiple";
+                            return CalculationStatus::EVAL_WARNING;
+                        }
+
+                        status = CalculationStatus::EVAL_WARNING;
                     }
 
-                    status = CalculationStatus::EVAL_WARNING;
-                }
+
+
+
+                    //std::cout << "replacedBy: " << replacedBy << std::endl;
 
                     // finally, let's replace-it in the expression
-                    simpleReplace(expr, p.first, p.second);
+                    simpleReplace(expr, p.first, replacedBy);
                 }
 
                 if(config.doesPrintExprAtEveryStep())
@@ -784,18 +818,54 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
 {
-    auto status = calculateExpression(expr, macroContainer, options, false);
-    if(expand)
-    {
-        std::string str = expr;
-        if(tryConvertToHexa(expr))
-            expr = str + " (hexa: " + expr + ')';
-    }
-    else
-        tryConvertToHexa(expr);
+
+    std::vector<std::string> output;
+                auto status = calculateExpression(expr, macroContainer, options, false, true, &output);
+
+    // Sort and remove duplicates
+            auto& v = output;
+            std::sort(v.begin(), v.end());
+            v.erase(std::unique(v.begin(), v.end()), v.end());
 
     if(status == CalculationStatus::EVAL_ERROR)
+    {
         expr = "unknown";
-    else if(status == CalculationStatus::EVAL_WARNING)
-        expr += '?';
+    }
+
+    else if(expr == "multiple")
+    {
+        std::string total;
+
+        for(std::string& expr2: output)
+        {
+            if(expr2=="multiple")
+                continue;
+
+            tryConvertToHexa(expr2);
+
+
+            if(status == CalculationStatus::EVAL_WARNING)
+                expr2 += '?';
+
+            total += expr2+= ' ';
+        }
+
+        expr = total;
+    }
+    else
+    {
+        if(expand)
+        {
+            std::string str = expr;
+            if(tryConvertToHexa(expr))
+                expr = str + " (hexa: " + expr + ')';
+        }
+        else
+            tryConvertToHexa(expr);
+
+        if(status == CalculationStatus::EVAL_ERROR)
+            expr = "unknown";
+        else if(status == CalculationStatus::EVAL_WARNING)
+            expr += '?';
+    }
 }

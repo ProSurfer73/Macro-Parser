@@ -351,8 +351,36 @@ bool CommandManager::runCommand(string input)
             {
                 if(p.first == trueInputs.front())
                 {
-                    cout << "first definition: " << p.second << endl;
+                    std::vector<std::string> results;
+                    string putput=p.second;
+                    auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);
+
+                    if(results.size()>1)
+                    {
+                        // Sort and remove duplicates
+                        auto& v = results;
+                        std::sort(v.begin(), v.end());
+                        v.erase(std::unique(v.begin(), v.end()), v.end());
+
+                        std::cout << "Possible results: ";
+                        for(unsigned i=0; i<results.size(); ++i){
+                            std::cout << results[i];
+                            if(tryConvertToHexa(results[i]))
+                                std::cout << " (hexa: " << results[i] << ')';
+                            if(i<results.size()-1)
+                                std::cout << ", ";
+                        }
+                        std::cout << std::endl;
+
+                        cout << "\nIt seems that you are using macros that have been redefined." << endl;
+                        cout << "The output can't be trusted." << endl;
+                        cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+                    }
+                    else
+                    {
+                        cout << "first definition: " << p.second << endl;
                     string output = p.second;
+
                     auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                     if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\" << endl;
@@ -375,6 +403,9 @@ bool CommandManager::runCommand(string input)
 
                     found=true;
                     break;
+                    }
+
+
                 }
             }
 
@@ -626,7 +657,32 @@ bool CommandManager::runCommand(string input)
         if(!macroSpaceNames.empty())
             mc=&(macrospaces.getMacroSpace(macroSpaceNames.front()));
 
-        auto status = calculateExpression(expr, *mc, configuration, true, true);
+        std::vector<std::string> results;
+        auto status = calculateExpression(expr, *mc, configuration, true, true, &results);
+
+        if(results.size()>1)
+        {
+            // Sort and remove duplicates
+            auto& v = results;
+            std::sort(v.begin(), v.end());
+            v.erase(std::unique(v.begin(), v.end()), v.end());
+
+            std::cout << "Possible results: ";
+            for(unsigned i=0; i<results.size(); ++i){
+                std::cout << results[i];
+                if(tryConvertToHexa(results[i]))
+                    std::cout << " (hexa: " << results[i] << ')';
+                if(i<results.size()-1)
+                    std::cout << ", ";
+            }
+            std::cout << std::endl;
+
+            cout << "\nIt seems that you are using macros that have been redefined." << endl;
+            cout << "The output can't be trusted." << endl;
+            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+        }
+        else
+        {
 
         /*if(status == CalculationStatus::EVAL_WARNING){
             std::cout << "possible ";
@@ -656,6 +712,8 @@ bool CommandManager::runCommand(string input)
         if(status == CalculationStatus::EVAL_ERROR)
         {
             cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
+        }
+
         }
     }
     else if(commandStr.substr(0,4) == "list")

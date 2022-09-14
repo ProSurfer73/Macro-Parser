@@ -326,6 +326,8 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                 {
                     std::string str = itf->second;
 
+
+
                     calculateExprWithStrOutput(str, *mc, configuration);
 
                     std::cout << str;

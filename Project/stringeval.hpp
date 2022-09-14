@@ -30,6 +30,7 @@
 #include "stringeval.hpp"
 #include "hexa.hpp"
 
+
 using namespace std;
 
 
@@ -52,9 +53,10 @@ double evaluateSimpleArithmeticExpr(const std::string& expr);
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
-bool printWarnings=true, bool enableBoolean=true);;
+bool printWarnings=true, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr, std::vector< std::pair<std::string, std::string> > redef={});;
 
-void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand=false);
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer,
+                                const Options& options, bool expand=true);
 
 
 #endif // STRINGEVAL_HPP
