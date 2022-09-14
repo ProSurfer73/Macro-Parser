@@ -328,6 +328,8 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
 
 static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config)
 {
+    //std::cout << "interrogation:" << expr << std::endl;
+
     bool didSomething=false;
     std::size_t searchedInterrogation;
 
@@ -733,6 +735,8 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
     if(enableBoolean)
     {
 
+    bool didSomething=false;
+
     counter=0;
 
 
@@ -765,6 +769,29 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
             begStr = expr.substr(0,posOpenPar);
             subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
             endStr = &expr[posClosePar+1];
+
+            // If it is a number, let's just remove the parentheses for now
+            bool isOnlyNumbers=true;
+            for(char c: subExpr){
+                if(!(c == '.' || isdigit(c)))
+                    isOnlyNumbers=false;
+            }
+            if(isOnlyNumbers)
+            {
+                //std::cout << "yes man!" << std::endl;
+                expr = begStr+subExpr+endStr;
+                repeat=true;
+                goto restartArithmeticEval;
+            }
+
+            // Let's to reevaluate what is in the parenthesis
+            std::string subExpr2 = subExpr;
+            auto status2 = calculateExpression(subExpr2, macroContainer, config, false, true);
+            if(status2 == CalculationStatus::EVAL_OKAY)
+            {
+                expr = begStr+subExpr2+endStr;
+                repeat=true;
+            }
         }
         else
         {
@@ -816,7 +843,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
     }
     while(repeat && counter < 100);
 
-    if(counter > 0) goto restartArithmeticEval;
+    //if(counter > 0) goto restartArithmeticEval;
 
     }
 
