@@ -883,6 +883,12 @@ bool CommandManager::runCommand(string input)
     else if(commandStr == "cls"){
         system("cls");
     }
+    else if(commandStr == "loadscript"){
+        if(parameters.size()>1)
+            loadScript(parameters[1]);
+        else
+            std::cout << "Error: no parameter given to the command." << std::endl;
+    }
     else if(commandStr == "exit")
         return false;
     else {
@@ -890,5 +896,32 @@ bool CommandManager::runCommand(string input)
     }
 
     return true;
+}
+
+bool CommandManager::loadScript(const std::string& filepath)
+{
+    std::ifstream file(filepath);
+
+    if(file)
+    {
+        std::string line;
+
+        while(std::getline(file, line))
+        {
+            if(!line.empty()
+            && (line.size()<2 || line.substr(0,2)!="//")){
+                std::cout << "\nRan '" << line << "'." << std::endl;
+                runCommand(line);
+            }
+
+        }
+
+
+        return true;
+    }
+
+    std::cout << "Could not load the script file '" << filepath << "'" << std::endl;
+
+    return false;
 }
 
