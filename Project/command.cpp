@@ -898,6 +898,29 @@ bool CommandManager::runCommand(string input)
     return true;
 }
 
+static bool preprocessLine(std::string& line)
+{
+    auto searchComment = line.find("//");
+
+    if(searchComment == std::string::npos)
+        return true;
+
+    bool isComment=true;
+
+    for(unsigned i=0; i<line.size() && i<searchComment; ++i)
+    {
+        if(line[i]!=' ')
+            isComment=false;
+    }
+
+    if(!isComment)
+    {
+        line = line.substr(0, searchComment);
+    }
+
+    return !isComment;
+}
+
 bool CommandManager::loadScript(const std::string& filepath)
 {
     std::ifstream file(filepath);
@@ -908,8 +931,7 @@ bool CommandManager::loadScript(const std::string& filepath)
 
         while(std::getline(file, line))
         {
-            if(!line.empty()
-            && (line.size()<2 || line.substr(0,2)!="//")){
+            if(preprocessLine(line)){
                 std::cout << "\nRan '" << line << "'." << std::endl;
                 runCommand(line);
             }
