@@ -41,6 +41,10 @@ int main()
     // Command line manager
     CommandManager cmd;
 
+    // load boot script
+    if(cmd.loadScript("boot.txt"))
+        std::cout << std::endl;
+
     // Let's start the command prompt
     cmd.dealWithUser();
 

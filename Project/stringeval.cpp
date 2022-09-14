@@ -325,6 +325,18 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
     return false;
 }
 
+
+static bool treatInterrogationOpertor(std::string& expr)
+{
+    std::size_t searchedInterrogation;
+    while((searchedInterrogation=expr.find('?')) != std::string::npos)
+    {
+        return false;
+    }
+
+    return false;
+}
+
 /** \brief
  *
  * \param expr: macro given in input

@@ -884,9 +884,14 @@ bool CommandManager::runCommand(string input)
     else if(commandStr == "cls"){
         system("cls");
     }
-    else if(commandStr == "loadscript"){
+    else if(commandStr == "loadscript")
+    {
         if(parameters.size()>1)
-            loadScript(parameters[1]);
+        {
+            if(!loadScript(parameters[1]))
+                std::cout << "Could not load the script file '" << parameters[1] << "'" << std::endl;
+        }
+
         else
             std::cout << "Error: no parameter given to the command." << std::endl;
     }
@@ -908,11 +913,17 @@ static bool preprocessLine(std::string& line)
 
     bool isComment=true;
 
-    for(unsigned i=0; i<line.size() && i<searchComment; ++i)
+    unsigned i=0;
+    for(; i<line.size() && i<searchComment; ++i)
     {
-        if(line[i]!=' ')
+        if(line[i]!=' '){
             isComment=false;
+            break;
+        }
+
     }
+
+    line = line.substr(i);
 
     if(!isComment)
     {
@@ -921,6 +932,8 @@ static bool preprocessLine(std::string& line)
 
     return !isComment;
 }
+
+static auto* gg = std::cout.rdbuf();
 
 bool CommandManager::loadScript(const std::string& filepath)
 {
@@ -932,18 +945,31 @@ bool CommandManager::loadScript(const std::string& filepath)
 
         while(std::getline(file, line))
         {
-            if(preprocessLine(line)){
-                std::cout << "\nRan '" << line << "'." << std::endl;
-                runCommand(line);
+            if(preprocessLine(line))
+            {
+                if(line=="SILENT")
+                {
+                    std::cout.rdbuf(nullptr);
+                }
+                else if(line == "TALKY")
+                {
+                    std::cout.rdbuf(gg);
+                }
+                else if(!line.empty())
+                {
+                    std::cout << "\nRan '" << line << "'." << std::endl;
+                    runCommand(line);
+                }
+
             }
 
         }
 
+        std::cout.rdbuf(gg);
+
 
         return true;
     }
-
-    std::cout << "Could not load the script file '" << filepath << "'" << std::endl;
 
     return false;
 }
