@@ -40,7 +40,7 @@ public:
     // Command line methods
     void dealWithUser();
     bool runCommand(string str);
-    bool loadScript(const std::string& filepath);
+    bool loadScript(const std::string& filepath, bool printStatus=false);
 
 private:
     Options configuration;

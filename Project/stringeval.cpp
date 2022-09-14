@@ -326,15 +326,48 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
 }
 
 
-static bool treatInterrogationOpertor(std::string& expr)
+static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config)
 {
+    bool didSomething=false;
     std::size_t searchedInterrogation;
+
+    // As long as we find an interrogation operator
     while((searchedInterrogation=expr.find('?')) != std::string::npos)
     {
-        return false;
+        std::string theleft = expr.substr(0, searchedInterrogation);
+        std::string theright = expr.substr(searchedInterrogation+1);
+
+        // Let's evaluate the left part
+        auto status = calculateExpression(theleft, mc, config, false, true);
+
+        // If the boolean evaluation went well
+        if(status == CalculationStatus::EVAL_OKAY || status == CalculationStatus::EVAL_WARNING)
+        {
+            std::size_t kk;
+            if( (kk=theright.find(':')) != std::string::npos)
+            {
+                if(theleft == "false")
+                    expr = theright.substr(kk+1);
+                else if(theleft == "true")
+                    expr = theright.substr(0, kk);
+
+                didSomething=true;
+            }
+            else
+            {
+                // Let's stop the ? evaluation here
+                return didSomething;
+            }
+        }
+
+        // if we cannot treat this operator so we break
+        else
+        {
+            return didSomething;
+        }
     }
 
-    return false;
+    return didSomething;
 }
 
 /** \brief
@@ -763,6 +796,13 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
+        }
+
+        else if(treatInterrogationOperator(subExpr, macroContainer, config))
+        {
+            expr = begStr+subExpr+endStr;
+            repeat=true;
+            goto restartArithmeticEval;
         }
 
         if(repeat)

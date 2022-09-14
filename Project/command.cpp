@@ -935,12 +935,15 @@ static bool preprocessLine(std::string& line)
 
 static auto* gg = std::cout.rdbuf();
 
-bool CommandManager::loadScript(const std::string& filepath)
+bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
 {
     std::ifstream file(filepath);
 
     if(file)
     {
+        if(printStatus)
+            std::cout << "Currently executing " << filepath << "." << std::endl;
+
         std::string line;
 
         while(std::getline(file, line))
@@ -966,6 +969,9 @@ bool CommandManager::loadScript(const std::string& filepath)
         }
 
         std::cout.rdbuf(gg);
+
+        if(printStatus)
+            std::cout << "Ended the execution of " << filepath << "." << std::endl;
 
 
         return true;
