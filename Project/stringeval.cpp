@@ -819,53 +819,42 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
 {
 
+
     std::vector<std::string> output;
                 auto status = calculateExpression(expr, macroContainer, options, false, true, &output);
+    auto& results = output;
 
     // Sort and remove duplicates
-            auto& v = output;
+            /*auto& v = output;
+            std::sort(v.begin(), v.end());
+            v.erase(std::unique(v.begin(), v.end()), v.end());*/
+
+    if(!results.empty())
+        {
+            expr.clear();
+
+            // Sort and remove duplicates
+            auto& v = results;
             std::sort(v.begin(), v.end());
             v.erase(std::unique(v.begin(), v.end()), v.end());
 
-    if(status == CalculationStatus::EVAL_ERROR)
-    {
-        expr = "unknown";
-    }
+            //
+            for(unsigned i=0; i<results.size(); ++i){
+                tryConvertToHexa(results[i]);
+                if(results[i]!="multiple"){
+                    expr += results[i];
+                    if(i<results.size()-1&& results[i+1]!="multiple")
+                        expr += ", ";
+                }
+            }
 
-    else if(expr == "multiple")
-    {
-        std::string total;
-
-        for(std::string& expr2: output)
-        {
-            if(expr2=="multiple")
-                continue;
-
-            tryConvertToHexa(expr2);
-
-
-            if(status == CalculationStatus::EVAL_WARNING)
-                expr2 += '?';
-
-            total += expr2+= ' ';
-        }
-
-        expr = total;
-    }
-    else
-    {
-        if(expand)
-        {
-            std::string str = expr;
-            if(tryConvertToHexa(expr))
-                expr = str + " (hexa: " + expr + ')';
+            expr += " ?";
         }
         else
-            tryConvertToHexa(expr);
-
-        if(status == CalculationStatus::EVAL_ERROR)
-            expr = "unknown";
-        else if(status == CalculationStatus::EVAL_WARNING)
-            expr += '?';
-    }
+        {
+            if(status == CalculationStatus::EVAL_ERROR)
+                expr = "unknown";
+            else if(status == CalculationStatus::EVAL_WARNING)
+                expr += "??";
+        }
 }

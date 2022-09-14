@@ -328,12 +328,12 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
 
 
 
-                    calculateExprWithStrOutput(str, *mc, configuration);
+                    calculateExprWithStrOutput(str, *mc, configuration, false);
 
                     std::cout << str;
 
-                    if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
-                        std::cout << '?';
+                    /*if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
+                        std::cout << '?';*/
 
 
                     if(i < mcs.size()-1)
