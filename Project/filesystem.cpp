@@ -59,12 +59,14 @@ bool FileSystem::directoryExists(const char* szPath)
 #endif
 
 
- bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config)
+bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config)
 {
     ifstream file(pathToFile);
 
     if(!file.is_open())
         return false;
+
+    clearBlacklist();
 
     #ifdef DEBUG_LOG_FILE_IMPORT
         cout << "Opened " << pathToFile << endl;

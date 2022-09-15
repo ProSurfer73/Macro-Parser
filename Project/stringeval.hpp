@@ -30,6 +30,7 @@
 #include "stringeval.hpp"
 #include "hexa.hpp"
 
+void clearBlacklist();
 
 using namespace std;
 

@@ -17,11 +17,20 @@
   ******************************************************************************
   */
 
+
+
 #include "stringeval.hpp"
 
 #include <iostream>
 #include "container.hpp"
 #include "options.hpp"
+
+  std::vector<std::string> blacklist;
+
+void clearBlacklist()
+{
+    blacklist.clear();
+}
 
 void clearSpaces(string& str)
 {
@@ -336,8 +345,27 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
     // As long as we find an interrogation operator
     while((searchedInterrogation=expr.find('?')) != std::string::npos)
     {
-        std::string theleft = expr.substr(0, searchedInterrogation);
+        // not to much left
+        int abcd=0;
+        std::size_t thepos=searchedInterrogation;
+        for(; thepos>0; --thepos){
+            if(expr[thepos] == '(')
+            {
+                abcd--;
+                if(abcd <= 0){
+                    break;
+                }
+            }
+            else if(expr[thepos] == ')')
+                abcd--;
+        }
+
+
+        std::string theleft = expr.substr(thepos, searchedInterrogation);
         std::string theright = expr.substr(searchedInterrogation+1);
+
+        /*std::cout << "theleft: " << theleft << std::endl;
+        std::cout << "theright: " << theright << std::endl;*/
 
         // Let's evaluate the left part
         auto status = calculateExpression(theleft, mc, config, false, true);
@@ -349,7 +377,30 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
             if( (kk=theright.find(':')) != std::string::npos)
             {
                 if(theleft == "false")
-                    expr = theright.substr(kk+1);
+                {
+                    // not too much right
+                    int abcde=0;
+                    std::size_t thepos2=kk;
+                    for(; thepos2>0; --thepos2){
+                        if(expr[thepos2] == ')')
+                        {
+                            abcde--;
+                            if(abcde <= 0){
+                                break;
+                            }
+                        }
+                        else if(expr[thepos] == '(')
+                            abcde--;
+                    }
+
+                    // todo: fix not too much right
+                    expr = theright.substr(kk+1, thepos2-(kk+1));
+
+                    //std::cout << "newexpr:" << expr << std::endl;
+
+
+                }
+
                 else if(theleft == "true")
                     expr = theright.substr(0, kk);
 
@@ -372,6 +423,24 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
     return didSomething;
 }
 
+static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
+{
+    if(v.empty()){
+        v.emplace_back(macroName);
+        return true;
+    }
+
+    if(std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.emplace_back(macroName);
+        return true;
+    }
+
+    return false;
+}
+
+
+
 /** \brief
  *
  * \param expr: macro given in input
@@ -382,6 +451,8 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
 bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::vector< std::pair<std::string, std::string> > redef)
 {
+    //if(printWarnings || outputs!=nullptr) std::cout << expr << std::endl;
+
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
     const auto& dictionary = macroContainer.getDefines();
@@ -508,21 +579,38 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
                         if(outputs)
                         {
+                            bool oneThing=false;
+
                             for(const auto& pp: dictionary)
                             {
-                                if(pp.first == p.first)
+                                if(pp.first == p.first && p.first != expr &&
+                                std::find(outputs->begin(), outputs->end(), expr) == outputs->end())
                                 {
                                     std::string anotherExpr = expr;
-                                    simpleReplace(anotherExpr, p.first, pp.second);
-                                    redef.emplace_back(p.first, pp.second);
-                                    auto status = calculateExpression(anotherExpr, macroContainer, config, false, true, outputs, redef);
-                                    if(status != CalculationStatus::EVAL_ERROR)
-                                        outputs->emplace_back(anotherExpr);
+                                    while(simpleReplace(anotherExpr, p.first, pp.second));
+                                    //redef.emplace_back(p.first, pp.second);
+
+                                    if(std::find(blacklist.begin(), blacklist.end(), pp.second) == blacklist.end())
+                                    {
+                                        oneThing=true;
+                                        blacklist.emplace_back(pp.second);
+
+                                        auto status = calculateExpression(anotherExpr, macroContainer, config, false, true, outputs, redef);
+                                        if(status == CalculationStatus::EVAL_OKAY)
+                                            emplaceOnce(*outputs, anotherExpr);
+                                    }
+
+
                                 }
                             }
 
-                            expr = "multiple";
-                            return CalculationStatus::EVAL_WARNING;
+                            if(oneThing)
+                            {
+                                expr = "multiple";
+                                return CalculationStatus::EVAL_WARNING;
+                            }
+
+
                         }
 
                         status = CalculationStatus::EVAL_WARNING;
@@ -772,7 +860,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
             endStr = &expr[posClosePar+1];
 
             // If it is a number, let's just remove the parentheses for now
-            /*bool isOnlyNumbers=true;
+            bool isOnlyNumbers=true;
             for(char c: subExpr){
                 if(!(c == '.' || isdigit(c)))
                     isOnlyNumbers=false;
@@ -783,7 +871,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                 expr = begStr+subExpr+endStr;
                 repeat=true;
                 goto restartArithmeticEval;
-            }*/
+            }
 
             // Let's to reevaluate what is in the parenthesis
             std::string subExpr2 = subExpr;
@@ -830,7 +918,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
-            goto restartArithmeticEval;
+            //goto restartArithmeticEval;
         }
 
         if(repeat)
@@ -903,12 +991,14 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
                 auto status = calculateExpression(expr, macroContainer, options, false, true, &output);
     auto& results = output;
 
+    clearBlacklist();
+
     // Sort and remove duplicates
     /*auto& v = output;
     std::sort(v.begin(), v.end());
     v.erase(std::unique(v.begin(), v.end()), v.end());*/
 
-    if(!results.empty())
+    if(!results.empty() || results.size()>=1)
     {
         expr.clear();
 
@@ -927,7 +1017,8 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
             }
         }
 
-        expr += " ?";
+        if(results.size()>1)
+            expr += " ?";
     }
     else
     {
@@ -936,7 +1027,13 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
         if(status == CalculationStatus::EVAL_ERROR)
             expr = "unknown";
         else if(status == CalculationStatus::EVAL_WARNING)
-            expr += "??";
+        {
+
+            {
+                expr += "??";
+            }
+        }
+
     }
 
 }

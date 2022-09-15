@@ -316,6 +316,8 @@ bool CommandManager::runCommand(string input)
     else if(parameters.front() == "look")
     {
 
+        clearBlacklist();
+
         /*if(parameters.size()>2 && !macrospaces.doesMacrospaceExists(parameters[2]))
             cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
         else*/
@@ -359,7 +361,8 @@ bool CommandManager::runCommand(string input)
                 {
                     std::vector<std::string> results;
                     string putput=p.second;
-                    auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);
+                    auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
+                    found=true;
 
                     if(results.size()>1)
                     {
@@ -368,7 +371,7 @@ bool CommandManager::runCommand(string input)
                         std::sort(v.begin(), v.end());
                         v.erase(std::unique(v.begin(), v.end()), v.end());
 
-                        std::cout << "Possible results: ";
+                        std::cout << results.size() << " possible results: ";
                         for(unsigned i=0; i<results.size(); ++i){
                             if(results[i]!="multiple"){
                                 std::cout << results[i];
@@ -410,7 +413,7 @@ bool CommandManager::runCommand(string input)
                     if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                         cout << endl;
 
-                    found=true;
+
                     break;
                     }
 
@@ -649,6 +652,8 @@ bool CommandManager::runCommand(string input)
     }
     else if(commandStr == "evaluate")
     {
+        clearBlacklist();
+
         string expr = input.substr(9);
 
         // Extract a macrospace from the command
@@ -669,14 +674,14 @@ bool CommandManager::runCommand(string input)
         std::vector<std::string> results;
         auto status = calculateExpression(expr, *mc, configuration, true, true, &results);
 
-        if(results.size()>1)
+        if(!results.empty())
         {
             // Sort and remove duplicates
             auto& v = results;
             std::sort(v.begin(), v.end());
             v.erase(std::unique(v.begin(), v.end()), v.end());
 
-            std::cout << "Possible results: ";
+            std::cout << results.size() << " possible results: ";
             for(unsigned i=0; i<results.size(); ++i){
                 if(results[i] != "multiple"){
                     std::cout << results[i];
@@ -888,6 +893,7 @@ bool CommandManager::runCommand(string input)
         printBasicHelp();
     else if(commandStr == "cls"){
         system("cls");
+
     }
     else if(commandStr == "loadscript")
     {

@@ -326,7 +326,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                 {
                     std::string str = itf->second;
 
-
+                    clearBlacklist();
 
                     calculateExprWithStrOutput(str, *mc, configuration, false);
 

@@ -36,7 +36,7 @@
 
 
 
-//#define ENABLE_MUTEX_LOADINGBAR
+#define ENABLE_MUTEX_LOADINGBAR
 
 using namespace std;
 
