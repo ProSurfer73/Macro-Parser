@@ -31,6 +31,8 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
     }
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+
 void read_directory(const std::string& name, stringvec& v)
 {
     std::string pattern(name);
@@ -46,7 +48,7 @@ void read_directory(const std::string& name, stringvec& v)
 }
 
 
-BOOL FileSystem::DirectoryExists(LPCTSTR szPath)
+bool FileSystem::directoryExists(const char* szPath)
 {
   DWORD dwAttrib = GetFileAttributes(szPath);
 
@@ -54,6 +56,7 @@ BOOL FileSystem::DirectoryExists(LPCTSTR szPath)
          (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+#endif
 
 
  bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config)
@@ -462,7 +465,7 @@ void explore_directory(std::string directory_name, stringvec& fileCollection)
         // IF there is a point then, it's a file
         // Also it's important to note that filenames "." and ".." aren't files
         // oldimplemntation: if(sv[i].find('.') != std::string::npos && sv[i]!="." && sv[i]!="..")
-        if(!FileSystem::DirectoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
+        if(!FileSystem::directoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
             fileCollection.emplace_back(directory_name+'\\'+sv[i]);
 
         // Else it's a folder, and you have to reexecute the function recursilvely
@@ -549,6 +552,8 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
 
     if(fileCollection.empty())
         return false;
+
+    std::cout << "d: " << fileCollection.size() << std::endl;
 
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);

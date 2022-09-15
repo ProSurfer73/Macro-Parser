@@ -44,7 +44,7 @@ static void printBasicHelp()
 
 static void printAdvancedHelp()
 {
-    cout << "\nBASIC COMMANDS:" << endl;
+    cout << "\nBASIC COMMANDS (for first use of macro parser):" << endl;
     cout << "- help [all?] : print basic/all commands" << endl;
     cout << "- importfile [file] : import macros from a file to the program" << endl;
     cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
@@ -57,17 +57,16 @@ static void printAdvancedHelp()
     cout << "- search [name] [...] : print all macros containing the string(s) given in their name" << endl;
     cout << "- list [all/ok/re/in] : print the list of all/okay/redefined/incorrect macros" << endl;
 
-    cout << "\nADVANCED COMMANDS" << endl;
+    cout << "\nADVANCED COMMANDS (other useful commands):" << endl;
     cout << "- define [macro] [value] : add/replace a specific macro by a specific value" << endl;
     cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
     cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
     cout << "- changeoption [name] [value] : change the parameter given to an option" << endl;
     cout << "- clear [all/ok/re/in] : empty the list of all/okay/redefined/incorrect macros" << endl;
-    cout << "- loadscript [filepath] : load and execute a script of commands from a file" << std::endl;
     cout << "- cls : clear console" << endl;
 
-    cout << "\nMACRO SPACES (to store macro in separate memory spaces) (currently implemented)" << endl;
+    cout << "\nMACRO SPACES (to load macros in separate memory spaces):" << endl;
     cout << "[command] [macrospace?]: to run the command in a macrospace, add macrospace at the end" << endl;
     cout << "- printsources [macrospace] : list the folders from which the list origins" << endl;
     cout << "- list spaces : list the macrospaces currently defined" << endl;
@@ -78,6 +77,12 @@ static void printAdvancedHelp()
     cout << "--increasing : show results in an increasing order" << endl;
     cout << "--decreasing : show results in a decreasing order" << endl;
     cout << "?: describes an optional paramater" << endl;*/
+
+    std::cout << "\nABOUT SCRIPTS:" << std::endl;
+    std::cout << "The script 'boot.txt', at the directory of the exe, if it exists, will be executed at each start of the program" << std::endl;
+    std::cout << "- loadscript [filepath]: execute a script that contains the commands described above" << std::endl;
+    std::cout << "Special script commands: SILENT (don't show script execution on console from now on), TALKY (show it)." << std::endl;
+    std::cout << "Scripts accept single line comments // just like in C." << std::endl;
 }
 
 void CommandManager::dealWithUser()
@@ -626,7 +631,7 @@ bool CommandManager::runCommand(string input)
             {
                 for(const std::string& str2 : lookupFolders)
                 {
-                    if(FileSystem::DirectoryExists(str2.c_str()) && !searchDirectory(str2, parameters[1], configuration))
+                    if(FileSystem::directoryExists(str2.c_str()) && !searchDirectory(str2, parameters[1], configuration))
                     {
                         std::cout << "Can't open the directory '" << str2 << "'" << endl;
                     }
@@ -933,6 +938,15 @@ static bool preprocessLine(std::string& line)
     return !isComment;
 }
 
+static bool isEmptyLine(const std::string& str)
+{
+    for(char c: str){
+        if(c != ' ')
+            return false;
+    }
+    return true;
+}
+
 static auto* gg = std::cout.rdbuf();
 
 bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
@@ -950,6 +964,8 @@ bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
         {
             if(preprocessLine(line))
             {
+                if(isEmptyLine(line))
+                {}
                 if(line=="SILENT")
                 {
                     std::cout.rdbuf(nullptr);

@@ -209,28 +209,22 @@
 	<iostream>
 	"config.hpp"
 
-1663095878 source:c:\git\macro-parser\project\filesystem.cpp
+1663182647 source:c:\git\macro-parser\project\filesystem.cpp
 	"filesystem.hpp"
 	"options.hpp"
 	"stringeval.hpp"
 
-1663068787 c:\git\macro-parser\project\filesystem.hpp
+1663179980 c:\git\macro-parser\project\filesystem.hpp
 	<string>
 	<vector>
 	<fstream>
 	<sstream>
-	<windows.h>
 	<iostream>
 	<thread>
-	<mutex>
 	<iomanip>
-	<vector>
-	<fstream>
-	<sstream>
-	<windows.h>
-	<iostream>
 	<thread>
 	<mutex>
+	<windows.h>
 
 1663100780 c:\git\macro-parser\project\stringeval.hpp
 	<vector>
@@ -281,13 +275,13 @@
 	"options.hpp"
 	"container.hpp"
 
-1663172671 source:c:\git\macro-parser\project\stringeval.cpp
+1663184835 source:c:\git\macro-parser\project\stringeval.cpp
 	"stringeval.hpp"
 	<iostream>
 	"container.hpp"
 	"options.hpp"
 
-1663167134 source:c:\git\macro-parser\project\command.cpp
+1663185344 source:c:\git\macro-parser\project\command.cpp
 	"command.hpp"
 	"container.hpp"
 	"stringeval.hpp"

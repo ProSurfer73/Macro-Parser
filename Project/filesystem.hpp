@@ -24,19 +24,15 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <windows.h>
 #include <iostream>
+#include <thread>
+#include <iomanip>
 #include <thread>
 #include <mutex>
 
-#include <iomanip>
-#include <vector>
-#include <fstream>
-#include <sstream>
-#include <windows.h>
-#include <iostream>
-#include <thread>
-#include <mutex>
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#endif
 
 
 
@@ -57,7 +53,7 @@ class MacroDatabase;
 class FileSystem
 {
 public:
-    static BOOL DirectoryExists(LPCTSTR szPath);
+    static bool directoryExists(const char* szPath);
 
 private:
      static bool importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config);

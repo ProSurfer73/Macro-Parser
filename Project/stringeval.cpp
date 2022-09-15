@@ -304,8 +304,8 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
                 return true;
             }
             else if(operation=="!="
-                 ||(str1=="true" && str2=="true")
-                 ||(str1=="false" && str2=="false"))
+                 &&((str1=="true" && str2=="true")
+                 ||(str1=="false" && str2=="false")))
             {
                 str="false";
                 return true;
@@ -514,6 +514,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                                 {
                                     std::string anotherExpr = expr;
                                     simpleReplace(anotherExpr, p.first, pp.second);
+                                    redef.emplace_back(p.first, pp.second);
                                     auto status = calculateExpression(anotherExpr, macroContainer, config, false, true, outputs, redef);
                                     if(status != CalculationStatus::EVAL_ERROR)
                                         outputs->emplace_back(anotherExpr);
@@ -771,7 +772,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
             endStr = &expr[posClosePar+1];
 
             // If it is a number, let's just remove the parentheses for now
-            bool isOnlyNumbers=true;
+            /*bool isOnlyNumbers=true;
             for(char c: subExpr){
                 if(!(c == '.' || isdigit(c)))
                     isOnlyNumbers=false;
@@ -782,7 +783,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                 expr = begStr+subExpr+endStr;
                 repeat=true;
                 goto restartArithmeticEval;
-            }
+            }*/
 
             // Let's to reevaluate what is in the parenthesis
             std::string subExpr2 = subExpr;
@@ -898,42 +899,44 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
 {
 
-
     std::vector<std::string> output;
                 auto status = calculateExpression(expr, macroContainer, options, false, true, &output);
     auto& results = output;
 
     // Sort and remove duplicates
-            /*auto& v = output;
-            std::sort(v.begin(), v.end());
-            v.erase(std::unique(v.begin(), v.end()), v.end());*/
+    /*auto& v = output;
+    std::sort(v.begin(), v.end());
+    v.erase(std::unique(v.begin(), v.end()), v.end());*/
 
     if(!results.empty())
-        {
-            expr.clear();
+    {
+        expr.clear();
 
-            // Sort and remove duplicates
-            auto& v = results;
-            std::sort(v.begin(), v.end());
-            v.erase(std::unique(v.begin(), v.end()), v.end());
+        // Sort and remove duplicates
+        auto& v = results;
+        std::sort(v.begin(), v.end());
+        v.erase(std::unique(v.begin(), v.end()), v.end());
 
-            //
-            for(unsigned i=0; i<results.size(); ++i){
-                tryConvertToHexa(results[i]);
-                if(results[i]!="multiple"){
-                    expr += results[i];
-                    if(i<results.size()-1&& results[i+1]!="multiple")
-                        expr += ", ";
-                }
+        //
+        for(unsigned i=0; i<results.size(); ++i){
+            tryConvertToHexa(results[i]);
+            if(results[i]!="multiple"){
+                expr += results[i];
+                if(i<results.size()-1&& results[i+1]!="multiple")
+                    expr += ", ";
             }
+        }
 
-            expr += " ?";
-        }
-        else
-        {
-            if(status == CalculationStatus::EVAL_ERROR)
-                expr = "unknown";
-            else if(status == CalculationStatus::EVAL_WARNING)
-                expr += "??";
-        }
+        expr += " ?";
+    }
+    else
+    {
+        tryConvertToHexa(expr);
+
+        if(status == CalculationStatus::EVAL_ERROR)
+            expr = "unknown";
+        else if(status == CalculationStatus::EVAL_WARNING)
+            expr += "??";
+    }
+
 }
