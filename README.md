@@ -27,12 +27,9 @@ Download the latest stable version.\
 Double-click on the executable and you're done !
 
 # How to build for the first time
-Download the latest version of CodeBlocks for Windows.\
-https://www.codeblocks.org/downloads/binaries/ \
-Choose the one with mingw preinstalled.\
-Donwload the source from the latest stable release, create a new project .\
-Rebuild everything from scratch and run.\
-You should be done !
+Run make inside the folder Project of the repository.\
+OR run "gcc -std=c++11 command.cpp container.cpp filesystem.cpp hexa.cpp main.cpp options.cpp stringeval.cpp -o appli.exe" inside the folder Project of the repo.\
+OR you can download Code::Blocks https://www.codeblocks.org/downloads/binaries/ (version with MinGW installed), create a new project, add the files to it, rebuild everything from scratch, and run.
 
 # Screenshots
 ![Screenshot1_v2](https://raw.githubusercontent.com/ProSurfer73/Macro-Parser/main/Screenshots/MacroParser1.png)
