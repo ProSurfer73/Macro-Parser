@@ -974,7 +974,7 @@ bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
             {
                 if(isEmptyLine(line))
                 {}
-                if(line=="SILENT")
+                else if(line=="SILENT")
                 {
                     std::cout.rdbuf(nullptr);
                 }
