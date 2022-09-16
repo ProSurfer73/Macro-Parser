@@ -309,7 +309,7 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
             }
 
             //std::cout << "conditionStr: " << conditionStr << endl;
-
+            clearBlacklist();
             auto status = calculateExpression(conditionStr, localContainer, config, false);
 
             /*for(const string& str : localMacroNames)
@@ -417,19 +417,95 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
         // If we detected elif or else
         if(posElifStr==6 || posElseStr==5)
         {
-            //
-            if(keepTrack.back()==1)
+            // If it is #else, treat it like this
+            if(posElseStr == 5)
             {
-                keepTrack[keepTrack.size()-1] = -1;
-                posElifStr=0;
-                posElseStr=0;
+                if(keepTrack.back()==1)
+                {
+                    keepTrack[keepTrack.size()-1] = -1;
+                }
+                else if(keepTrack.back()==-2)
+                {
+                    keepTrack[keepTrack.size()-1] = 0;
+                }
             }
-            else if(keepTrack.back()==-2)
+
+            // If it is #elif treat it like that
+            else
             {
-                keepTrack[keepTrack.size()-1] = 0;
-                posElifStr=0;
-                posElseStr=0;
+                // If the previous condition was evaluated to false
+                if(keepTrack.back() == -2)
+                {
+                    // Let's evaluate this one
+                    string conditionStr;
+            conditionStr += characterRead;
+
+            while(file.get(characterRead) && characterRead != '\n')
+            {
+                conditionStr += characterRead;
             }
+
+            clearSpaces(conditionStr);
+
+            // Let's create a new container with our local defines
+
+            for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }
+
+            MacroContainer localContainer;
+
+            for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
+            {
+                if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
+                    localContainer.emplace(p.first, p.second);
+            }
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+            clearBlacklist();
+            auto status = calculateExpression(conditionStr, localContainer, config, false);
+
+            /*for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }*/
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+
+            if(status == CalculationStatus::EVAL_OKAY )
+            {
+                if(conditionStr == "true")
+                {
+                    //std::cout << 1 << endl;
+                    keepTrack.push_back(1);
+                }
+                else if(conditionStr=="false")
+                {
+                    //std::cout << -1 << endl;
+                    keepTrack.push_back(-2);
+                }
+
+            }
+            else
+            {
+                //std::cout << "Not interpreted: " << conditionStr << endl;
+                keepTrack.push_back(0);
+            }
+
+                }
+                // If the previous condition was evaluated to true
+                else if(keepTrack.back() == 1)
+                {
+                    // Then this part should be ignored
+                    keepTrack[keepTrack.size()-1] = -1;
+                }
+            }
+
+            posElifStr=0;
+            posElseStr=0;
         }
 
         // If we detected endif

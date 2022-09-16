@@ -361,6 +361,7 @@ bool CommandManager::runCommand(string input)
                 {
                     std::vector<std::string> results;
                     string putput=p.second;
+                    clearBlacklist();
                     auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
                     found=true;
 
@@ -393,6 +394,7 @@ bool CommandManager::runCommand(string input)
                         cout << "first definition: " << p.second << endl;
                     string output = p.second;
 
+                    clearBlacklist();
                     auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                     if(status == CalculationStatus::EVAL_ERROR)
                         cout << "/!\\ The expression can't be calculated. /!\\" << endl;

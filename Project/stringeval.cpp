@@ -368,6 +368,7 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
         std::cout << "theright: " << theright << std::endl;*/
 
         // Let's evaluate the left part
+        clearBlacklist();
         auto status = calculateExpression(theleft, mc, config, false, true);
 
         // If the boolean evaluation went well
@@ -875,6 +876,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
             // Let's to reevaluate what is in the parenthesis
             std::string subExpr2 = subExpr;
+            clearBlacklist();
             auto status2 = calculateExpression(subExpr2, macroContainer, config, false, true);
             if(status2 == CalculationStatus::EVAL_OKAY)
             {
@@ -986,12 +988,13 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand)
 {
+    clearBlacklist();
 
     std::vector<std::string> output;
                 auto status = calculateExpression(expr, macroContainer, options, false, true, &output);
     auto& results = output;
 
-    clearBlacklist();
+
 
     // Sort and remove duplicates
     /*auto& v = output;
