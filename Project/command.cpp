@@ -159,7 +159,7 @@ bool CommandManager::runCommand(string input)
     // Extract command and parameters from str
     std::vector<std::string> parameters;
     extractList2(parameters, input);
-    if(input.empty())
+    if(parameters.empty())
         return true;
     std::string& commandStr = parameters[0];
     lowerString(commandStr);
@@ -940,7 +940,7 @@ static bool preprocessLine(std::string& line)
 
     if(!isComment)
     {
-        line = line.substr(0, searchComment);
+        line = line.substr(0, searchComment-i);
     }
 
     return !isComment;

@@ -90,6 +90,9 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
     char ifndefStr[] = "#ifndef ";
     unsigned posIfndefStr=0;
 
+    char includeStr[] = "#include";
+    unsigned posIncludeStr=0;
+
     unsigned posIfStr=0;
 
     char characterRead;
@@ -252,12 +255,13 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
         if(!config.doDisableInterpretations())
         {
 
-        // #ifdef, #elif, #else, #endif detection mechanism
+        // #ifdef, #elif, #else, #endif, #include detection mechanism
         if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
+        if(characterRead == ifndefStr[posIfndefStr]){ posIfndefStr++; } else { posIfndefStr=0; }
         if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
         if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
         if(characterRead == elseStr[posElseStr]){ posElseStr++; } else { posElseStr=0; }
-        if(characterRead == ifndefStr[posIfndefStr]){ posIfndefStr++; } else { posIfndefStr=0; }
+        if(characterRead == includeStr[posIncludeStr]){ posIncludeStr++; } else { posIncludeStr=0; }
 
         // If we detected #if
         if((posIfStr == 0 && characterRead=='#')
@@ -519,6 +523,33 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
             posEndifStr=0;
         }
 
+        // If we detected #include
+        if(posIncludeStr == 8)
+        {
+            posIncludeStr=0;
+
+            // Let's treat include
+            MacroContainer mylocal;
+
+            // Let's extract the filename
+
+            string wholeWord;
+            while(file.get(characterRead))
+            {
+                if(characterRead == ' ' && !wholeWord.empty())
+                    break;
+                else if(isMacroCharacter(characterRead))
+                    wholeWord += characterRead;
+                else
+                    break;
+            }
+
+            std::cout << "include: '" << wholeWord << "'" << std::endl;
+
+            /*string pathDir = extractDirPathFromFilePath(pathToFile);
+            FileSystem::importFile(pathDir)*/
+        }
+
         }
     }
 
@@ -742,3 +773,8 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
     return true;
 }
 
+
+std::string extractDirPathFromFilePath(const std::string& filepath)
+{
+    return filepath.substr(0, filepath.find_last_of('\\'));
+}

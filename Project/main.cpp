@@ -52,6 +52,8 @@ int main()
     catch(std::exception const& ex)
     {
         std::cout << "Fatal exception: " << ex.what() << endl;
+        std::string j;
+        std::getline(std::cin, j);
     }
 
     return 0;

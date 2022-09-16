@@ -47,6 +47,7 @@ class MacroDatabase;
 
 // Fucntions available
 
+std::string extractDirPathFromFilePath(const std::string& filepath);
 
 
 

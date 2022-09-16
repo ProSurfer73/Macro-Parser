@@ -363,5 +363,14 @@ void MacroContainer::getListOrigins(std::vector<std::string>& v) const
     }
 }
 
+void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
+{
+    MacroDatabase::emplaceAndReplace(macroName, macroValue);
+    std::string added = "define ";
+    added += macroName;
+    added += macroValue;
+    origins.push_back(added);
+}
+
 
 

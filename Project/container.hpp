@@ -31,7 +31,7 @@ class MacroDatabase
 public:
     MacroDatabase();
     void emplace(const std::string& macroName, const std::string& macroValue);
-    void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
+    virtual void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
     bool importFromFile(const std::string& filepath, const Options& config);
     bool importFromFolder(const std::string& folderpath, const Options& config);
     void import(const MacroDatabase& macrodatabase);
@@ -74,6 +74,7 @@ public:
     static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration);
     void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration) const;
     void getListOrigins(std::vector<std::string>& v) const;
+    virtual void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
 
 private:
     std::vector< std::string > origins;

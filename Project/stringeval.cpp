@@ -1031,10 +1031,7 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
             expr = "unknown";
         else if(status == CalculationStatus::EVAL_WARNING)
         {
-
-            {
-                expr += "??";
-            }
+            expr += "??";
         }
 
     }
