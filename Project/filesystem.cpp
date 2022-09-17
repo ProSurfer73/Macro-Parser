@@ -56,6 +56,55 @@ bool FileSystem::directoryExists(const char* szPath)
          (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+#else
+
+#include <dirent.h>
+#include <sys/types.h>
+
+void listFilesRecursively(const char* basepath, std::vector<char*>& vec)
+{
+    struct dirent *dp;
+    DIR *dir = opendir(basepath);
+    if(!dir)
+        return;
+    
+    size_t size = strlen(basepath); 
+    char* newpath = new char[sizeof(char) * size + 255 + 2];
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        
+        
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+             
+                
+            strcpy(newpath, basepath);
+            strcat(newpath, "/");
+            strcat(newpath, dp->d_name);
+            
+            if(dp->d_type != DT_DIR)
+                vec.push_back(newpath);  
+
+            // Construct new path from our base path
+            listFilesRecursively(newpath, vec);
+        }
+    }
+
+    closedir(dir);
+}
+
+bool FileSystem::directoryExists(const char* basepath)
+{
+    DIR *dir = opendir(basepath);
+    bool isOpen = (dir != nullptr);
+    
+    if(isOpen)
+        closedir(dir);
+    
+    return isOpen;
+}
+
 #endif
 
 
@@ -562,10 +611,19 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
 
 void explore_directory(std::string directory_name, stringvec& fileCollection)
 {
+
+#if defined(_WIN32) || defined(_WIN64)
    stringvec sv;
 
     // We look for all the files and folders that are in that directory
     read_directory(directory_name, sv);
+    
+#else
+
+    std::vector<char*> sv;
+    listFilesRecursively(directory_name.c_str(), sv);
+    
+#endif
 
 
     // We explore all teh different inputs
@@ -596,7 +654,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
     while(delayFirstSleep > 0)
     {
-        Sleep(120);
+        std::this_thread::sleep_for(std::chrono::milliseconds(120));
         delayFirstSleep -= 120;
 
         mymutex.lock();
@@ -639,8 +697,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
             notEverytime = 0;
         }
 
-
-        Sleep(400);
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
         mymutex.lock();
         bool myend = ended;
@@ -750,16 +807,20 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
 
 bool searchDirectory(string dir, const std::string& macroName, const Options& config)
 {
+#if defined(_WIN32) || defined(_WIN64)
     stringvec fileCollection;
-
     explore_directory(dir, fileCollection);
+#else
+    std::vector<char*> fileCollection;
+    listFilesRecursively(dir.c_str(), fileCollection);
+#endif
 
     if(fileCollection.empty())
         return false;
 
     unsigned nbResults=0;
 
-    for(const std::string& str: fileCollection)
+    for(auto str: fileCollection)
     {
         if(searchFile(str, macroName, config))
         {
