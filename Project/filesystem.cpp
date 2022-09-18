@@ -33,17 +33,31 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
 
 #if defined(_WIN32) || defined(_WIN64)
 
-void read_directory(const std::string& name, stringvec& v)
+void explore_directory(const char* dirname, std::vector<char*>& files)
 {
     std::string pattern(name);
     pattern.append("\\*");
+    
     WIN32_FIND_DATA data;
     HANDLE hFind;
-    if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE) {
+    if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE)
+    {
+        size_t size = strlen(buffername);
+        char *buffer = new char[size+255+1];
+        
         do {
-            v.emplace_back(data.cFileName);
+            if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                buffer[size] = '\';
+                strcpy(&buffer[size+1], data.cFileName);
+                explore_directory(buffer,files);
+            } else {
+                files.push_back(buffer);
+                buffer = new char[size+255+1];
+            }
         } while (FindNextFile(hFind, &data) != 0);
         FindClose(hFind);
+        
+        delete[] buffer;
     }
 }
 
@@ -52,8 +66,7 @@ bool FileSystem::directoryExists(const char* szPath)
 {
   DWORD dwAttrib = GetFileAttributes(szPath);
 
-  return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-         (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+  return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 #else
@@ -61,15 +74,16 @@ bool FileSystem::directoryExists(const char* szPath)
 #include <dirent.h>
 #include <sys/types.h>
 
-void listFilesRecursively(const char* basepath, std::vector<char*>& vec)
+void explore_directory(const char* basepath, std::vector<char*>& vec)
 {
     struct dirent *dp;
     DIR *dir = opendir(basepath);
     if(!dir)
         return;
     
-    size_t size = strlen(basepath); 
-    char* newpath = new char[sizeof(char) * size + 255 + 2];
+    size_t size1 = strlen(basepath);
+    char* newpath = new char[size1+255+1];
+    
 
     while ((dp = readdir(dir)) != NULL)
     {
@@ -77,19 +91,24 @@ void listFilesRecursively(const char* basepath, std::vector<char*>& vec)
         
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-             
-                
-            strcpy(newpath, basepath);
-            strcat(newpath, "/");
-            strcat(newpath, dp->d_name);
-            
-            if(dp->d_type != DT_DIR)
-                vec.push_back(newpath);  
 
-            // Construct new path from our base path
-            listFilesRecursively(newpath, vec);
+            
+            strcpy(newpath, basepath);
+            newpath[size1] = '/';
+            strcpy(&newpath[size1+1], dp->d_name);
+            
+            if(dp->d_type != DT_DIR){
+                vec.push_back(newpath);
+                newpath = new char[size1+255+1];
+            }
+            else {
+                // Construct new path from our base path
+                explore_directory(newpath, vec);
+            }
         }
     }
+    
+    delete[] newpath;
 
     closedir(dir);
 }
@@ -105,10 +124,11 @@ bool FileSystem::directoryExists(const char* basepath)
     return isOpen;
 }
 
+
 #endif
 
 
-bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config)
+bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config)
 {
     ifstream file(pathToFile);
 
@@ -577,23 +597,27 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
         {
             posIncludeStr=0;
 
-            // Let's treat include
-            MacroContainer mylocal;
-
             // Let's extract the filename
 
             string wholeWord;
+            bool isGood=false;
             while(file.get(characterRead))
             {
-                if(characterRead == ' ' && !wholeWord.empty())
+                if(characterRead=='\n')
                     break;
-                else if(isMacroCharacter(characterRead))
+                else if(characterRead=='"')
+                {
+                    if(!isGood)
+                        isGood=true;
+                    else
+                        break;
+                }
+                else if(isGood)
                     wholeWord += characterRead;
-                else
-                    break;
             }
 
-            std::cout << "include: '" << wholeWord << "'" << std::endl;
+            if(!wholeWord.empty())
+                std::cout << "include: '" << wholeWord << "'" << std::endl;
 
             /*string pathDir = extractDirPathFromFilePath(pathToFile);
             FileSystem::importFile(pathDir)*/
@@ -608,40 +632,6 @@ bool FileSystem::importFile(const string& pathToFile, MacroDatabase& macroContai
 }
 
 
-
-void explore_directory(std::string directory_name, stringvec& fileCollection)
-{
-
-#if defined(_WIN32) || defined(_WIN64)
-   stringvec sv;
-
-    // We look for all the files and folders that are in that directory
-    read_directory(directory_name, sv);
-    
-#else
-
-    std::vector<char*> sv;
-    listFilesRecursively(directory_name.c_str(), sv);
-    
-#endif
-
-
-    // We explore all teh different inputs
-    for(size_t i=0; i < sv.size(); ++i)
-    {
-        // IF there is a point then, it's a file
-        // Also it's important to note that filenames "." and ".." aren't files
-        // oldimplemntation: if(sv[i].find('.') != std::string::npos && sv[i]!="." && sv[i]!="..")
-        if(!FileSystem::directoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
-            fileCollection.emplace_back(directory_name+'\\'+sv[i]);
-
-        // Else it's a folder, and you have to reexecute the function recursilvely
-        else if(sv[i]!="." && sv[i]!=".."){
-            explore_directory
-            (directory_name+'\\'+sv[i], fileCollection);
-        }
-    }
-}
 
 #ifdef ENABLE_FILE_LOADING_BAR
 
@@ -712,9 +702,8 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
 {
-    stringvec fileCollection;
-
-    explore_directory(dir, fileCollection);
+    std::vector<char*> fileCollection;
+    explore_directory(dir.c_str(), fileCollection);
 
     if(fileCollection.empty())
         return false;
@@ -733,7 +722,7 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
-    for(const string& str: fileCollection)
+    for(const char* str: fileCollection)
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
@@ -753,6 +742,8 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
 
 
         }
+        
+        delete[] str;
 
         #ifdef ENABLE_FILE_LOADING_BAR
         localNbFile++;
@@ -807,13 +798,8 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
 
 bool searchDirectory(string dir, const std::string& macroName, const Options& config)
 {
-#if defined(_WIN32) || defined(_WIN64)
-    stringvec fileCollection;
-    explore_directory(dir, fileCollection);
-#else
     std::vector<char*> fileCollection;
-    listFilesRecursively(dir.c_str(), fileCollection);
-#endif
+    explore_directory(dir.c_str(), fileCollection);
 
     if(fileCollection.empty())
         return false;

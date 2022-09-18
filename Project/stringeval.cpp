@@ -398,8 +398,6 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
                     expr = theright.substr(kk+1, thepos2-(kk+1));
 
                     //std::cout << "newexpr:" << expr << std::endl;
-
-
                 }
 
                 else if(theleft == "true")

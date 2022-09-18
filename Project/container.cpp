@@ -71,7 +71,7 @@ void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::s
 
 bool MacroDatabase::importFromFile(const std::string& filepath, const Options& config)
 {
-    return FileSystem::importFile(filepath, *this, config);
+    return FileSystem::importFile(filepath.c_str(), *this, config);
 }
 
 bool MacroDatabase::importFromFolder(const std::string& folderpath, const Options& config)

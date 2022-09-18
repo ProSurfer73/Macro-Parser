@@ -21,6 +21,7 @@
 
 #include "container.hpp"
 #include "stringeval.hpp"
+#include "macrospace.hpp"
 
 CommandManager::CommandManager()
 {}
@@ -106,7 +107,6 @@ static void extractList(std::vector<std::string>& outputList, const std::string&
 {
     istringstream iss(initialString);
     string str;
-
     while(iss >> str)
     {
         outputList.emplace_back(str);

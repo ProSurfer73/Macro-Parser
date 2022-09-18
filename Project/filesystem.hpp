@@ -57,7 +57,7 @@ public:
     static bool directoryExists(const char* szPath);
 
 private:
-     static bool importFile(const string& pathToFile, MacroDatabase& macroContainer, const Options& config);
+     static bool importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config);
      static bool importDirectory(string dir, MacroDatabase& macroContainer, const Options& config);
 
 friend class MacroDatabase;
@@ -65,5 +65,13 @@ friend class MacroDatabase;
 
 bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
 bool searchDirectory(string dir, const std::string& macroName, const Options& config);
+
+void listFilesRecursively(const char* basepath, std::vector<char*>& vec);
+
+#if defined(_WIN32) || defined(_WIN64)
+
+#else
+
+#endif
 
 #endif // FILESYSTEM_HPP
