@@ -47,6 +47,26 @@ bool MacroDatabase::exists(const std::string& macroName) const
     return false;
 }
 
+void MacroDatabase::compress()
+{
+    for(auto& p: defines)
+    {
+        p.first.shrink_to_fit();
+        p.second.shrink_to_fit();
+    }
+    
+    for(auto& p: incorrectMacros)
+    {
+        p.first.shrink_to_fit();
+        p.second.shrink_to_fit();
+    }
+    
+    for(std::string& str: redefinedMacros)
+    {
+        str.shrink_to_fit();
+    }
+}
+
 void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
 {
     if(doesExprLookOk(macroValue))
@@ -266,17 +286,26 @@ void MacroContainer::printOrigins() const
     }
 }
 
-void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration)
+void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp)
 {
+    // Delete all pointers equald to 0 from the vector
+    for(auto it=mcs.begin(); it!=mcs.end();){
+        if(*it == nullptr)
+            it = mcs.erase(it);
+        else
+            ++it;
+    }
+    
     // Ensure size >= 2
     assert(mcs.size()>=2);
 
-    MacroContainer *first = mcs.front();
-    //mcs.erase(mcs.begin());
-    first->printDiff(mcs, configuration);
+    // Let's run the function
+    auto* l = mcs.front();
+    l->printDiff(mcs, configuration, cmp);
 }
 
-void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration) const
+
+void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp) const
 {
     // 1st step: look for common macros
 
@@ -287,6 +316,9 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
         bool isCommon=true;
         for(const MacroContainer* mc : mcs)
         {
+            if(!mc)
+                continue;
+            
             bool exist=false;
             for(auto& p2 : mc->defines)
             {
@@ -310,6 +342,22 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
     std::cout << "Number of common macros: " << commonMacroList.size() << endl;
 
     // Second step: list the result corresponding to these common macros
+    
+    if(cmp==1)
+    {
+        // Increasing order
+        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.second<b.second; });
+    }
+    else if(cmp==2)
+    {
+        // Decreasing order
+        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.second>b.second; });
+    }
+    else if(cmp==3)
+    {
+        // Alpha order
+        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.first<b.first; });
+    }
 
 
     for(const auto& p: (mcs.front()->defines) )
@@ -322,6 +370,9 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             //for(const MacroContainer* mc: mcs)
             for(unsigned i=0; i<mcs.size(); ++i)
             {
+                if(!mcs[i])
+                    continue;
+                
                 MacroContainer *mc = mcs[i];
 
                 // Show the result of m

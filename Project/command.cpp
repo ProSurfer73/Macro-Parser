@@ -569,13 +569,13 @@ bool CommandManager::runCommand(string input)
                 std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
                 macrospaces.deleteMacroSpace(macrospacesName.front());
             }
-            else
-            printStatMacrospace(curMacroSpace);
+            else {
+                printStatMacrospace(curMacroSpace);
+            }
         }
         else {
             cout << "/!\\ Error: no directory was provided. /!\\" << endl;
         }
-        return true;
     }
     else if(commandStr=="where")
     {
@@ -838,6 +838,8 @@ bool CommandManager::runCommand(string input)
             if(parameters.size()<3){
                 std::cout << "Spacediff need at least 2 different macrospaces." << endl;
             }
+            
+            int sortPolicy=0;
 
             bool inputOkay=true;
             for(unsigned i=1; i<parameters.size(); ++i)
@@ -845,6 +847,18 @@ bool CommandManager::runCommand(string input)
                 MacroContainer *tmp_mc = macrospaces.tryGetMacroSpace(parameters[i]);
                 if(tmp_mc){
                     mcContainer.push_back(tmp_mc);
+                }
+                else if(parameters[i] == "increasing") {
+                    sortPolicy=1;
+                    mcContainer.push_back(nullptr);
+                }
+                else if(parameters[i] == "decreasing") {
+                    sortPolicy=2;
+                    mcContainer.push_back(nullptr);
+                }
+                else if(parameters[i] == "alpha") {
+                    sortPolicy=3;
+                    mcContainer.push_back(nullptr);
                 }
                 else {
                     mcContainer.push_back(nullptr);
@@ -867,7 +881,7 @@ bool CommandManager::runCommand(string input)
             }
             else
             {
-                MacroContainer::printDiffFromList(mcContainer, configuration);
+                MacroContainer::printDiffFromList(mcContainer, configuration, sortPolicy);
             }
 
         }

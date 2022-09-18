@@ -611,7 +611,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                             if(oneThing)
                             {
                                 expr = "multiple";
-                                return CalculationStatus::EVAL_WARNING;
+                                return CalculationStatus::EVAL_OKAY;
                             }
 
 

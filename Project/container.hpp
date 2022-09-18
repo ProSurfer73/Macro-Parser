@@ -26,6 +26,7 @@
 #include "options.hpp"
 #include "filesystem.hpp"
 
+
 class MacroDatabase
 {
 public:
@@ -35,6 +36,7 @@ public:
     bool importFromFile(const std::string& filepath, const Options& config);
     bool importFromFolder(const std::string& folderpath, const Options& config);
     void import(const MacroDatabase& macrodatabase);
+    void compress();
 
     // Getters
     inline const std::vector< std::pair< std::string, std::string> >& getDefines() const { return defines; }
@@ -72,8 +74,12 @@ public:
     unsigned countMacroName(const std::string& macroName) const;
     bool isRedefined(std::string macroName) const;
     void printOrigins() const;
-    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration);
-    void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration) const;
+    
+
+    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp=0);
+
+    void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp=0) const;
+    
     void getListOrigins(std::vector<std::string>& v) const;
     virtual void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
 
