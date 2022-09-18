@@ -28,7 +28,7 @@ Double-click on the executable and you're done !
 
 # How to build for the first time
 Run make inside the folder Project of the repository.\
-OR run "gcc -std=c++11 command.cpp container.cpp filesystem.cpp hexa.cpp main.cpp options.cpp stringeval.cpp -o appli.exe" inside the folder Project of the repo.\
+OR run "g++ -std=c++11 command.cpp container.cpp filesystem.cpp hexa.cpp main.cpp options.cpp stringeval.cpp -o appli.exe" inside the folder Project of the repo.\
 OR you can download Code::Blocks https://www.codeblocks.org/downloads/binaries/ (version with MinGW installed), create a new project, add the files to it, rebuild everything from scratch, and run.
 
 # Screenshots
