@@ -40,6 +40,7 @@ public:
     inline const std::vector< std::pair< std::string, std::string> >& getDefines() const { return defines; }
     inline const std::vector< std::string >& getRedefinedMacros() const { return redefinedMacros; }
     inline const std::vector< std::pair< std::string, std::string> >& getIncorrectMacros() const { return incorrectMacros; }
+    bool exists(const std::string& macroName) const;
 
 private:
     static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);

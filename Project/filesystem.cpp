@@ -42,22 +42,17 @@ void explore_directory(std::string dirname, std::vector<std::string>& files)
     HANDLE hFind;
     if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE)
     {
-        size_t size = strlen(buffername);
-        char *buffer = new char[size+255+1];
+        pattern.resize(pattern.size()-1);
         
         do {
             if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                buffer[size] = '\';
-                strcpy(&buffer[size+1], data.cFileName);
-                explore_directory(buffer,files);
+                explore_directory(buffer+data.cFileName,files);
             } else {
-                files.push_back(buffer);
-                buffer = new char[size+255+1];
+                files.emplace_back(buffer+data.cFileName);
             }
         } while (FindNextFile(hFind, &data) != 0);
         FindClose(hFind);
         
-        delete[] buffer;
     }
 }
 
@@ -121,11 +116,15 @@ bool FileSystem::directoryExists(const char* basepath)
 
 bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config)
 {
+    
+    
     ifstream file(pathToFile);
 
     if(!file.is_open())
         return false;
 
+    MacroContainer localContainer;
+    
     clearBlacklist();
 
     #ifdef DEBUG_LOG_FILE_IMPORT
@@ -160,8 +159,6 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
     int posLineComment=0;
 
     std::vector<char> keepTrack={1};
-
-    std::vector<std::string> localMacroNames;
 
     bool firstIntrusction = true;
 
@@ -297,11 +294,12 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 }
 
                 // If the importer has priority order
-                if(keepTrack.back()>=0)
+                if(keepTrack.back()>=0){
                     macroContainer.emplace(str1, str2);
+                }
 
                 if(!config.doDisableInterpretations() && keepTrack.back()>=1){
-                    localMacroNames.emplace_back(str1);
+                    localContainer.emplace(str1, str2);
                 }
 
             }
@@ -358,18 +356,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             // Let's create a new container with our local defines
 
-            for(const string& str : localMacroNames)
+            for(const auto& p : localContainer.getDefines())
             {
-                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
-                simpleReplace(conditionStr, std::string("defined ")+str, "true");
-            }
-
-            MacroContainer localContainer;
-
-            for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
-            {
-                if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
-                    localContainer.emplace(p.first, p.second);
+                simpleReplace(conditionStr, std::string("defined(")+p.first+')', "true");
+                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
             }
 
             //std::cout << "conditionStr: " << conditionStr << endl;
@@ -433,7 +423,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             clearSpaces(macroNameRead);
 
-            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            std::cout << "does '" << macroNameRead << "' exists." << std::endl;
+            if(localContainer.exists(macroNameRead))
             {
                 keepTrack.push_back(1);
             }
@@ -463,7 +454,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     break;
             }
 
-            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            if(localContainer.exists(macroNameRead))
             {
                 keepTrack.push_back(-1);
             }
@@ -513,19 +504,19 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             // Let's create a new container with our local defines
 
-            for(const string& str : localMacroNames)
+            for(const auto& p : localContainer.getDefines())
             {
-                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
-                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+                simpleReplace(conditionStr, std::string("defined(")+p.first+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
             }
 
-            MacroContainer localContainer;
+            /*MacroContainer localContainer;
 
             for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
             {
                 if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
                     localContainer.emplace(p.first, p.second);
-            }
+            }*/
 
             //std::cout << "conditionStr: " << conditionStr << endl;
             clearBlacklist();
@@ -608,16 +599,20 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             if(!wholeWord.empty())
+            {
                 std::cout << "include: '" << wholeWord << "'" << std::endl;
-
-            /*string pathDir = extractDirPathFromFilePath(pathToFile);
-            FileSystem::importFile(pathDir)*/
+                
+                string pathDir = extractDirPathFromFilePath(pathToFile);
+                std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
+                FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config);
+            }
         }
 
         }
     }
-
-    //cout << keepTrack.size() << endl;
+    
+    // Let's move our local container to our global one
+    //macroContainer.import(localContainer);
 
     return true;
 }
@@ -812,5 +807,8 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
 
 std::string extractDirPathFromFilePath(const std::string& filepath)
 {
-    return filepath.substr(0, filepath.find_last_of('\\'));
+    if(filepath.find("\\") != std::string::npos)
+            return filepath.substr(0, filepath.find_last_of('\\'));
+    else
+        return filepath.substr(0, filepath.find_last_of('/'));
 }

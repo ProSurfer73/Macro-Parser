@@ -34,6 +34,19 @@ MacroDatabase::MacroDatabase()
     incorrectMacros.reserve(1000);
 }
 
+bool MacroDatabase::exists(const std::string& macroName) const
+{
+    for(const auto& p: defines){
+        if(p.first == macroName )
+            return true;
+    }
+    for(const auto& p: incorrectMacros){
+        if(p.first == macroName)
+            return true;
+    }
+    return false;
+}
+
 void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
 {
     if(doesExprLookOk(macroValue))
@@ -371,6 +384,5 @@ void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::
     added += macroValue;
     origins.push_back(added);
 }
-
 
 
