@@ -292,7 +292,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 }
 
                 // If the importer has priority order
-                if(keepTrack.back()>=0){
+                if((!origin && keepTrack.back()>=0)
+                || (origin && keepTrack.back()>=1)){
                     macroContainer.emplace(str1, str2);
                 }
 
@@ -421,7 +422,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             clearSpaces(macroNameRead);
 
-            std::cout << "does '" << macroNameRead << "' exists." << std::endl;
+            //std::cout << "does '" << macroNameRead << "' exists." << std::endl;
             if(localContainer.exists(macroNameRead))
             {
                 keepTrack.push_back(1);
@@ -598,10 +599,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             if(!wholeWord.empty())
             {
-                std::cout << "include: '" << wholeWord << "'" << std::endl;
+                //std::cout << "include: '" << wholeWord << "'" << std::endl;
                 
                 string pathDir = extractDirPathFromFilePath(pathToFile);
-                std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
+                //std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
                 if(!origin)
                     FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
             }

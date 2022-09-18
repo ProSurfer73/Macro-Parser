@@ -440,10 +440,15 @@ static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroN
 
 
 
-/** \brief
+/** \brief Calculate an expression with macrolist
  *
- * \param expr: macro given in input
- * \param macroContainer
+ * \param expr expression
+ * \param macroContainer the list of macros loaded
+ * \param config parameters of the MacroParser
+ * \param printWarnings show warnings with encountering redefined macros for instance
+ * \param enableBoolean should boolean be evaluated inside the expression ?
+ * \param outputs nullptr=>1 output, it replaces expr ; !0 => multiple outputs written to outputs vector
+ * \param redef if you want to replace macros contained in macroContainer during the evaluation process
  * \return status
  *
  */
@@ -589,10 +594,10 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                                     while(simpleReplace(anotherExpr, p.first, pp.second));
                                     //redef.emplace_back(p.first, pp.second);
 
-                                    if(std::find(blacklist.begin(), blacklist.end(), pp.second) == blacklist.end())
+                                    if(std::find(blacklist.begin(), blacklist.end(), pp.first+pp.second) == blacklist.end())
                                     {
                                         oneThing=true;
-                                        blacklist.emplace_back(pp.second);
+                                        blacklist.emplace_back(pp.first+pp.second);
 
                                         auto status = calculateExpression(anotherExpr, macroContainer, config, false, true, outputs, redef);
                                         if(status == CalculationStatus::EVAL_OKAY)
@@ -822,8 +827,6 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
     if(enableBoolean)
     {
-
-    bool didSomething=false;
 
     counter=0;
 

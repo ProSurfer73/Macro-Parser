@@ -338,99 +338,79 @@ bool CommandManager::runCommand(string input)
 
             if(commandMacrospaces.size()==1 && trueInputs.size()==1)
             {
-
-            for(const auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getRedefinedMacros())
-            {
-                if(p == trueInputs.front()){
-                    found = true;
-                    break;
-                }
-            }
-
-            if(found)
-            {
-                std::cout << "This macro has been redefined and needs to be interpreted." << endl;
-                std::cout << "Type 'interpret " << trueInputs.front() << "'." << endl;
-            }
-            else
-            {
-
-            for(auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getDefines())
-            {
-                if(p.first == trueInputs.front())
+                
+                
+                //
+                for(auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getDefines())
                 {
-                    std::vector<std::string> results;
-                    string putput=p.second;
-                    clearBlacklist();
-                    auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
-                    found=true;
-
-                    if(results.size()>1)
+                    if(p.first == trueInputs.front())
                     {
-                        // Sort and remove duplicates
-                        auto& v = results;
-                        std::sort(v.begin(), v.end());
-                        v.erase(std::unique(v.begin(), v.end()), v.end());
-
-                        std::cout << results.size() << " possible results: ";
-                        for(unsigned i=0; i<results.size(); ++i){
-                            if(results[i]!="multiple"){
-                                std::cout << results[i];
-                                if(tryConvertToHexa(results[i]))
-                                    std::cout << " (hexa: " << results[i] << ')';
-                                if(i<results.size()-1 && results[i+1]!="multiple")
-                                    std::cout << ", ";
+                        std::vector<std::string> results;
+                        string putput=p.second;
+                        clearBlacklist();
+                        auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
+                        found=true;
+                        
+                        if(results.size()>1)
+                        {
+                            // Sort and remove duplicates
+                            auto& v = results;
+                            std::sort(v.begin(), v.end());
+                            v.erase(std::unique(v.begin(), v.end()), v.end());
+                            
+                            std::cout << results.size() << " possible results: ";
+                            for(unsigned i=0; i<results.size(); ++i){
+                                if(results[i]!="multiple"){
+                                    std::cout << results[i];
+                                    if(tryConvertToHexa(results[i]))
+                                        std::cout << " (hexa: " << results[i] << ')';
+                                    if(i<results.size()-1 && results[i+1]!="multiple")
+                                        std::cout << ", ";
+                                }
+                                
                             }
-
+                            std::cout << std::endl;
+                            
+                            cout << "\nIt seems that you are using macros that have been redefined." << endl;
+                            cout << "The output can't be trusted." << endl;
+                            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
                         }
-                        std::cout << std::endl;
-
-                        cout << "\nIt seems that you are using macros that have been redefined." << endl;
-                        cout << "The output can't be trusted." << endl;
-                        cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+                        else
+                        {
+                            cout << "first definition: " << p.second << endl;
+                            string output = p.second;
+                            
+                            clearBlacklist();
+                            auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
+                            if(status == CalculationStatus::EVAL_ERROR)
+                                cout << "/!\\ The expression can't be calculated. /!\\" << endl;
+                            if(status == CalculationStatus::EVAL_WARNING){
+                                cout << "possible output: " << output << "??? ";
+                            }
+                            else
+                                cout << "output: " << output;
+                            if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
+                                if(tryConvertToHexa(output))
+                                    cout << " (hexa: " << output << ')';
+                            }
+                            if(status == CalculationStatus::EVAL_WARNING){
+                                cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
+                                cout << "The output can't be trusted." << endl;
+                                cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+                            }
+                            if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
+                                cout << endl;
+                            
+                            
+                            break;
+                            
+                            
+                        }
                     }
-                    else
-                    {
-                        cout << "first definition: " << p.second << endl;
-                    string output = p.second;
-
-                    clearBlacklist();
-                    auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
-                    if(status == CalculationStatus::EVAL_ERROR)
-                        cout << "/!\\ The expression can't be calculated. /!\\" << endl;
-                    if(status == CalculationStatus::EVAL_WARNING){
-                        cout << "possible output: " << output << "??? ";
-                    }
-                    else
-                        cout << "output: " << output;
-                    if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
-                        if(tryConvertToHexa(output))
-                            cout << " (hexa: " << output << ')';
-                    }
-                    if(status == CalculationStatus::EVAL_WARNING){
-                        cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
-                        cout << "The output can't be trusted." << endl;
-                        cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-                    }
-                    if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
-                        cout << endl;
-
-
-                    break;
-                    }
-
-
-                }
-            }
-
-            if(!found)
-                cout << "No macro was found with this name '" << trueInputs.front() << "'." << endl;
-
-            }
-
-
-
-            }
+                    
+                    
+                    
+                }}
             else if(commandMacrospaces.size()>1 && trueInputs.size()==1)
             {
                 for(unsigned i=0; i<commandMacrospaces.size(); ++i)
@@ -503,7 +483,7 @@ bool CommandManager::runCommand(string input)
             for(auto it = parameters.begin(); it!=parameters.end();){
                 if(macrospaces.doesMacrospaceExists(*it)){
                     std::cout << *it << ", ";
-                    macrospacesCur.emplace_back(&(macrospaces.getMacroSpace(*it)));
+                    macrospacesCur.push_back(&(macrospaces.getMacroSpace(*it)));
                     it = parameters.erase(it);
                 }
                 else
@@ -636,9 +616,12 @@ bool CommandManager::runCommand(string input)
             {
                 for(const std::string& str2 : lookupFolders)
                 {
-                    if(FileSystem::directoryExists(str2.c_str()) && !searchDirectory(str2, parameters[1], configuration))
+                    if(!searchDirectory(str2, parameters[1], configuration))
                     {
-                        std::cout << "Can't open the directory '" << str2 << "'" << endl;
+                        if(FileSystem::directoryExists(str2.c_str()))
+                            std::cout << "Can't open the directory '" << str2 << "'" << endl;
+                        else
+                            std::cout << "The directory '" << str2 << "' doesn't seem to exist." << std::endl;
                     }
                     else if(searchFile(str2, parameters[1], configuration))
                     {
@@ -894,15 +877,18 @@ bool CommandManager::runCommand(string input)
     else if(commandStr == "help")
         printBasicHelp();
     else if(commandStr == "cls"){
+#if defined(_WIN32) || defined(_WIN64)
         system("cls");
-
+#else
+        std::cout << "The cls command has not yet been ported on this OS." << std::endl;
+#endif
     }
     else if(commandStr == "loadscript")
     {
         if(parameters.size()>1)
         {
             if(!loadScript(parameters[1]))
-                std::cout << "Could not load the script file '" << parameters[1] << "'" << std::endl;
+                std::cout << "Could not load the script file '" << parameters[1] << "'." << std::endl;
         }
 
         else
