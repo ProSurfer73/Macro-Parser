@@ -44,6 +44,7 @@ typedef std::vector<std::string> stringvec;
 
 class Options;
 class MacroDatabase;
+class MacroContainer;
 
 // Fucntions available
 
@@ -57,7 +58,7 @@ public:
     static bool directoryExists(const char* szPath);
 
 private:
-     static bool importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config);
+     static bool importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config, MacroContainer* origin=nullptr);
      static bool importDirectory(string dir, MacroDatabase& macroContainer, const Options& config);
 
 friend class MacroDatabase;

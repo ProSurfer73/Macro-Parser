@@ -114,10 +114,8 @@ bool FileSystem::directoryExists(const char* basepath)
 #endif
 
 
-bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config)
+bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config, MacroContainer* origin)
 {
-    
-    
     ifstream file(pathToFile);
 
     if(!file.is_open())
@@ -604,7 +602,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 
                 string pathDir = extractDirPathFromFilePath(pathToFile);
                 std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
-                FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config);
+                if(!origin)
+                    FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
             }
         }
 
