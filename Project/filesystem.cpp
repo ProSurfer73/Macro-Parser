@@ -33,7 +33,7 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
 
 #if defined(_WIN32) || defined(_WIN64)
 
-void explore_directory(const char* dirname, std::vector<char*>& files)
+void explore_directory(std::string dirname, std::vector<std::string>& files)
 {
     std::string pattern(name);
     pattern.append("\\*");
@@ -74,15 +74,14 @@ bool FileSystem::directoryExists(const char* szPath)
 #include <dirent.h>
 #include <sys/types.h>
 
-void explore_directory(const char* basepath, std::vector<char*>& vec)
+void explore_directory(std::string basepath, std::vector<std::string>& vec)
 {
     struct dirent *dp;
-    DIR *dir = opendir(basepath);
+    DIR *dir = opendir(basepath.c_str());
     if(!dir)
         return;
     
-    size_t size1 = strlen(basepath);
-    char* newpath = new char[size1+255+1];
+    basepath += '/';
     
 
     while ((dp = readdir(dir)) != NULL)
@@ -91,24 +90,16 @@ void explore_directory(const char* basepath, std::vector<char*>& vec)
         
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-
-            
-            strcpy(newpath, basepath);
-            newpath[size1] = '/';
-            strcpy(&newpath[size1+1], dp->d_name);
             
             if(dp->d_type != DT_DIR){
-                vec.push_back(newpath);
-                newpath = new char[size1+255+1];
+                vec.emplace_back(basepath+dp->d_name);
             }
             else {
                 // Construct new path from our base path
-                explore_directory(newpath, vec);
+                explore_directory(basepath+dp->d_name, vec);
             }
         }
     }
-    
-    delete[] newpath;
 
     closedir(dir);
 }
@@ -702,8 +693,8 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
 {
-    std::vector<char*> fileCollection;
-    explore_directory(dir.c_str(), fileCollection);
+    std::vector<std::string> fileCollection;
+    explore_directory(dir, fileCollection);
 
     if(fileCollection.empty())
         return false;
@@ -722,13 +713,13 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
-    for(const char* str: fileCollection)
+    for(const std::string& str: fileCollection)
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
             try
             {
-                if(!FileSystem::importFile(str, macroContainer, config)){
+                if(!FileSystem::importFile(str.c_str(), macroContainer, config)){
                     std::cerr << "Couldn't read/open file : " << str << endl;
                 }
             }
@@ -742,8 +733,6 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
 
 
         }
-        
-        delete[] str;
 
         #ifdef ENABLE_FILE_LOADING_BAR
         localNbFile++;
@@ -798,15 +787,15 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
 
 bool searchDirectory(string dir, const std::string& macroName, const Options& config)
 {
-    std::vector<char*> fileCollection;
-    explore_directory(dir.c_str(), fileCollection);
+    std::vector<std::string> fileCollection;
+    explore_directory(dir, fileCollection);
 
     if(fileCollection.empty())
         return false;
 
     unsigned nbResults=0;
 
-    for(auto str: fileCollection)
+    for(auto& str: fileCollection)
     {
         if(searchFile(str, macroName, config))
         {
