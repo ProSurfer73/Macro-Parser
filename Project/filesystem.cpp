@@ -228,7 +228,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
     while(file.get(characterRead))
     {
         /// avoid to load defines that are commented
-        if(characterRead == '/' && config.doesImportMacroCommented())
+        if(characterRead == '/' && !config.doesImportMacroCommented())
         {
             posLineComment++;
 
@@ -242,7 +242,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
         }
 
-        else if(characterRead == '*' && posLineComment==1 && config.doesImportMacroCommented())
+        else if(characterRead == '*' && posLineComment==1 && !config.doesImportMacroCommented())
         {
             // We skip everything until we reach the end of comment "*/"
             char previousRead='r';
@@ -277,6 +277,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                         break;
                     }
                 }
+
                 if(characterRead == '\n' && str1.empty())
                     continue;
 
@@ -291,7 +292,6 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 }
 
 
-
                 // We get the value
                 while(file.get(characterRead) && characterRead != '\n')
                 {
@@ -300,16 +300,17 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
                 // Deal with comment that could appear on str2
                 destructShortComment(str2);
-                destructLongComment(str2);
+                if(destructLongComment(str2) && !config.doesImportMacroCommented())
+                    skipLongComment(file);
+
+                clearSpaces(str1);
+                clearSpaces(str2);
 
                 avoidValueGetting:
 
                 #ifdef DEBUG_LOG_FILE_IMPORT
                 cout << str1 << " => " << str2 << endl;
                 #endif
-
-                clearSpaces(str1);
-                clearSpaces(str2);
 
 
                 // If it is a multiple line macro
@@ -488,7 +489,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             firstIntrusction=false;
         }
 
-            if(elseDetector.receive(characterRead) == 5)
+            if(elseDetector.receive(characterRead))
             {
                 if(keepTrack.back()==1)
                 {
