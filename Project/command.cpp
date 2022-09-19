@@ -361,14 +361,6 @@ bool CommandManager::runCommand(string input)
                                     ++it;
                             }
 
-                            // Let's remove multiple from the list of possible outputs
-                            for(auto it=results.begin(); it!=results.end();){
-                                if(*it == "multiple")
-                                    it = results.erase(it);
-                                else
-                                    ++it;
-                            }
-
                             // Sort and remove duplicates
                             auto& v = results;
                             std::sort(v.begin(), v.end());
@@ -674,6 +666,14 @@ bool CommandManager::runCommand(string input)
 
         if(!results.empty())
         {
+            // Let's remove multiple from the list of possible outputs
+            for(auto it=results.begin(); it!=results.end();){
+                if(*it == "multiple")
+                    it = results.erase(it);
+                else
+                    ++it;
+            }
+
             // Sort and remove duplicates
             auto& v = results;
             std::sort(v.begin(), v.end());
