@@ -353,22 +353,34 @@ bool CommandManager::runCommand(string input)
 
                         if(!results.empty())
                         {
+                            // Let's remove multiple from the list of possible outputs
+                            for(auto it=trueInputs.begin(); it!=trueInputs.end();){
+                                if(*it == "multiple")
+                                    it = trueInputs.erase(it);
+                                else
+                                    ++it;
+                            }
+
+                            // Let's remove multiple from the list of possible outputs
+                            for(auto it=results.begin(); it!=results.end();){
+                                if(*it == "multiple")
+                                    it = results.erase(it);
+                                else
+                                    ++it;
+                            }
+
                             // Sort and remove duplicates
                             auto& v = results;
                             std::sort(v.begin(), v.end());
-                            std::remove(v.begin(), v.end(), "multiple");
                             v.erase(std::unique(v.begin(), v.end()), v.end());
 
                             std::cout << results.size() << " possible results: ";
                             for(unsigned i=0; i<results.size(); ++i){
-                                if(results[i]!="multiple"){
-                                    std::cout << results[i];
-                                    if(tryConvertToHexa(results[i]))
-                                        std::cout << " (hexa: " << results[i] << ')';
-                                    if(i<results.size()-1 && results[i+1]!="multiple")
-                                        std::cout << ", ";
-                                }
-
+                                std::cout << results[i];
+                                if(tryConvertToHexa(results[i]))
+                                    std::cout << " (hexa: " << results[i] << ')';
+                                if(i<results.size()-1 && results[i+1]!="multiple")
+                                    std::cout << ", ";
                             }
                             std::cout << std::endl;
 
