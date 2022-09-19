@@ -22,6 +22,30 @@
 #include "options.hpp"
 #include "stringeval.hpp"
 
+// Word detector class
+
+WordDetector::WordDetector(const char* initialstr)
+: str(initialstr), pos(0)
+{}
+
+bool WordDetector::receive(char character)
+{
+    if(str[pos]==character)
+    {
+        ++pos;
+        if(str[pos]=='\0'){
+            pos=0;
+            return true;
+        }
+    }
+    else
+        pos=0;
+    return false;
+}
+
+
+
+
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {
@@ -29,6 +53,52 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
     } else {
         return false;
     }
+}
+
+static void skipShortComment(std::ifstream& file)
+{
+    char characterRead;
+    while(file.get(characterRead) && characterRead != '\n');
+}
+
+static bool destructShortComment(std::string& str)
+{
+    auto searched = str.find("//");
+    if(searched != std::string::npos)
+    {
+        str = str.substr(0, searched);
+        return true;
+    }
+
+    return false;
+}
+
+static void skipLongComment(std::ifstream& stream)
+{
+    // Let's skip the comment in the file, until we reach the end of it
+    // Skip everything from here
+    char k='a';
+    char characterRead;
+    while(stream.get(characterRead)){
+        if(k=='*' && characterRead=='/')
+            break;
+        k=characterRead;
+    }
+}
+
+static bool destructLongComment(std::string& str)
+{
+    auto searched = str.find("/*");
+
+    // If there is a long comment
+    if(searched != std::string::npos)
+    {
+        // Let's delete it from the current string
+        str = str.substr(0, searched);
+        return true;
+    }
+
+    return false;
 }
 
 #if (defined(_WIN32) || defined(_WIN64))
@@ -131,26 +201,15 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         cout << "Opened " << pathToFile << endl;
     #endif
 
-    char defineStr[] = "#define ";
-    unsigned posDefineStr = 0;
-
-    char ifdefStr[] = "#ifdef ";
-    unsigned posIfdefStr=0;
-
-    char elifStr[] = "#elif ";
-    unsigned posElifStr=0;
-
-    char elseStr[] = "#else";
-    unsigned posElseStr=0;
-
-    char endifStr[] = "#endif";
-    unsigned posEndifStr=0;
-
-    char ifndefStr[] = "#ifndef ";
-    unsigned posIfndefStr=0;
-
-    char includeStr[] = "#include";
-    unsigned posIncludeStr=0;
+    WordDetector defineDetector("#define ");
+    WordDetector ifdefDetector("#ifdef ");
+    WordDetector elifDetector("#elif ");
+    WordDetector elseDetector("#else ");
+    WordDetector endifDetector("#endif ");
+    WordDetector ifndefDetector("#ifndef ");
+    WordDetector includeDetector("#include");
+    WordDetector ifDetector("#if");
+    WordDetector ifDetector2("#if(");
 
     unsigned posIfStr=0;
 
@@ -201,16 +260,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
 
 
-        if(characterRead == defineStr[posDefineStr])
+        if(defineDetector.receive(characterRead))
         {
-            posDefineStr++;
-
-            //
-            if(posDefineStr >= 8)
-            {
                 firstIntrusction = false;
-
-                posDefineStr = 0;
 
                 string str1;
 
@@ -246,15 +298,11 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     str2 += characterRead;
                 }
 
-                avoidValueGetting:
-
-
                 // Deal with comment that could appear on str2
-                auto look = str2.find("//");
-                if(look == string::npos) look = str2.find("/*");
-                if(look != string::npos){
-                    str2 = str2.substr(0,look);
-                }
+                destructShortComment(str2);
+                destructLongComment(str2);
+
+                avoidValueGetting:
 
                 #ifdef DEBUG_LOG_FILE_IMPORT
                 cout << str1 << " => " << str2 << endl;
@@ -276,20 +324,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     clearSpaces(inpLine);
                     str2 += inpLine;
 
-                    auto look = str2.find("//");
-                    if(look == string::npos){
-                        look = str2.find("/*");
-                        if(look != string::npos){
-                            char k='a';
-                            while(file.get(characterRead)){
-                                if(k=='*' && characterRead=='/')
-                                    break;
-                                k=characterRead;
-                            }
-                        }
-                    }
-                    else {
-                        str2 = str2.substr(0,look);
+                    destructShortComment(str2);
+                    if(destructLongComment(str2) && !config.doesImportMacroCommented())
+                    {
+                        skipLongComment(file);
                     }
                 }
 
@@ -302,25 +340,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 if(!config.doDisableInterpretations() && keepTrack.back()>=1){
                     localContainer.emplace(str1, str2);
                 }
-
-            }
-
-        }
-        else
-        {
-            posDefineStr = 0;
         }
 
         if(!config.doDisableInterpretations())
         {
-
-        // #ifdef, #elif, #else, #endif, #include detection mechanism
-        if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
-        if(characterRead == ifndefStr[posIfndefStr]){ posIfndefStr++; } else { posIfndefStr=0; }
-        if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
-        if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
-        if(characterRead == elseStr[posElseStr]){ posElseStr++; } else { posElseStr=0; }
-        if(characterRead == includeStr[posIncludeStr]){ posIncludeStr++; } else { posIncludeStr=0; }
 
         // If we detected #if
         if((posIfStr == 0 && characterRead=='#')
@@ -328,8 +351,6 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
          ||(posIfStr == 2 && characterRead=='f')
          ||(posIfStr == 3 && (characterRead==' ' || characterRead == '(')))
         {
-
-
             ++posIfStr;
 
             if(posIfStr >= 4 && config.doDisableInterpretations())
@@ -404,12 +425,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             posIfStr=0;
 
         // If we detected ifdef
-        if( posIfdefStr==7 )
+        if(ifdefDetector.receive(characterRead))
         {
             firstIntrusction=false;
-
             insideConditions=true;
-            posIfdefStr=0;
 
             string macroNameRead;
             while(file.get(characterRead))
@@ -437,7 +456,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         }
 
         // If we detected ifndef
-        else if(posIfndefStr == 8)
+        if(ifndefDetector.receive(characterRead))
         {
             if(!firstIntrusction)
             {
@@ -466,15 +485,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             }
 
-            posIfndefStr=0;
             firstIntrusction=false;
         }
 
-        // If we detected elif or else
-        if(posElifStr==6 || posElseStr==5)
-        {
-            // If it is #else, treat it like this
-            if(posElseStr == 5)
+            if(elseDetector.receive(characterRead) == 5)
             {
                 if(keepTrack.back()==1)
                 {
@@ -487,7 +501,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             // If it is #elif treat it like that
-            else
+            if(elifDetector.receive(characterRead))
             {
                 // If the previous condition was evaluated to false
                 if(keepTrack.back() == -2)
@@ -560,28 +574,18 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 }
             }
 
-            posElifStr=0;
-            posElseStr=0;
-        }
-
         // If we detected endif
-        if(posEndifStr == 6)
+        if(endifDetector.receive(characterRead))
         {
-            string str1;
-
             insideConditions=keepTrack.size()>1;
             if(keepTrack.size()>1)
                 keepTrack.pop_back();
-            posEndifStr=0;
         }
 
         // If we detected #include
-        if(posIncludeStr == 8)
+        if(includeDetector.receive(characterRead))
         {
-            posIncludeStr=0;
-
             // Let's extract the filename
-
             string wholeWord;
             bool isGood=false;
             while(file.get(characterRead))
@@ -605,7 +609,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
                 string pathDir = extractDirPathFromFilePath(pathToFile);
                 //std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
-                if(!origin)
+                if(!origin && !config.doDisableInterpretations())
                     FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
             }
         }
@@ -697,7 +701,7 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
         return false;
 
     // Let's print the number of files loaded for debugging purposes
-    //std::cout << "d: " << fileCollection.size() << std::endl;
+    std::cout << "Number of files listed: " << fileCollection.size() << std::endl;
 
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
@@ -775,7 +779,10 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
     {
         if(str == "#define")
         {
-            if(file >> str && str == macroName)
+            file >> str;
+            destructShortComment(str);
+
+            if(str == macroName)
                 return true;
         }
     }

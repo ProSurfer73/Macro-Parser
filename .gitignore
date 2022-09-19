@@ -11,6 +11,6 @@ Debug
 # mac filesystem related files
 *.DS_STORE
 
-# eclipse files useless to import
+# IDE useless files
 *.cscope_file_list
 *.depend

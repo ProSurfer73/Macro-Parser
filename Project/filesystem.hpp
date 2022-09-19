@@ -51,6 +51,19 @@ class MacroContainer;
 std::string extractDirPathFromFilePath(const std::string& filepath);
 
 
+// To detect words, when reading the file character by character
+class WordDetector
+{
+public:
+    WordDetector(const char* initialstr);
+    bool receive(char character);
+
+private:
+    const char* str;
+    int pos;
+};
+
+
 
 class FileSystem
 {
