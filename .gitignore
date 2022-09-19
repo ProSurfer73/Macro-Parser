@@ -9,7 +9,8 @@ Debug
 *.txt
 
 # mac filesystem related files
+*.DS_STORE
 
 # eclipse files useless to import
 *.cscope_file_list
-*.DS_STORE
+*.depend
