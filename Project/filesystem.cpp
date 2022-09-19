@@ -31,28 +31,30 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
     }
 }
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
 
-void explore_directory(std::string dirname, std::vector<std::string>& files)
+void explore_directory(const std::string& dirname, std::vector<std::string>& files)
 {
-    std::string pattern(name);
-    pattern.append("\\*");
-    
     WIN32_FIND_DATA data;
     HANDLE hFind;
-    if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFile((dirname+"\\*").c_str(), &data)) != INVALID_HANDLE_VALUE)
     {
-        pattern.resize(pattern.size()-1);
-        
-        do {
+        do
+        {
             if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                explore_directory(buffer+data.cFileName,files);
-            } else {
-                files.emplace_back(buffer+data.cFileName);
+                if(strcmp(data.cFileName, ".")!=0 && strcmp(data.cFileName, "..")!= 0){
+                    explore_directory(dirname+'\\'+data.cFileName,files);
+                }
+
             }
-        } while (FindNextFile(hFind, &data) != 0);
+            else {
+                files.emplace_back(dirname+'\\'+data.cFileName);
+            }
+            //Sleep(500);
+        }
+        while (FindNextFile(hFind, &data) != 0);
+
         FindClose(hFind);
-        
     }
 }
 
@@ -75,23 +77,23 @@ void explore_directory(std::string basepath, std::vector<std::string>& vec)
     DIR *dir = opendir(basepath.c_str());
     if(!dir)
         return;
-    
+
     basepath += '/';
-    
+
 
     while ((dp = readdir(dir)) != NULL)
     {
-        
-        
+
+
         if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
         {
-            
+
             if(dp->d_type != DT_DIR){
                 vec.emplace_back(basepath+dp->d_name);
             }
             else {
                 // Construct new path from our base path
-                explore_directory(basepath+dp->d_name, vec);
+                    explore_directory(basepath+dp->d_name, vec);
             }
         }
     }
@@ -103,10 +105,10 @@ bool FileSystem::directoryExists(const char* basepath)
 {
     DIR *dir = opendir(basepath);
     bool isOpen = (dir != nullptr);
-    
+
     if(isOpen)
         closedir(dir);
-    
+
     return isOpen;
 }
 
@@ -122,7 +124,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         return false;
 
     MacroContainer localContainer;
-    
+
     clearBlacklist();
 
     #ifdef DEBUG_LOG_FILE_IMPORT
@@ -600,7 +602,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             if(!wholeWord.empty())
             {
                 //std::cout << "include: '" << wholeWord << "'" << std::endl;
-                
+
                 string pathDir = extractDirPathFromFilePath(pathToFile);
                 //std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
                 if(!origin)
@@ -610,7 +612,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
         }
     }
-    
+
     // Let's move our local container to our global one
     //macroContainer.import(localContainer);
 
