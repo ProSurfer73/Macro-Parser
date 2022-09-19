@@ -7,3 +7,9 @@ config.txt
 *.layout
 Debug
 *.txt
+
+# mac filesystem related files
+
+# eclipse files useless to import
+*.cscope_file_list
+*.DS_STORE

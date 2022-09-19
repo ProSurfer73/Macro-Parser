@@ -338,8 +338,8 @@ bool CommandManager::runCommand(string input)
 
             if(commandMacrospaces.size()==1 && trueInputs.size()==1)
             {
-                
-                
+
+
                 //
                 for(auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getDefines())
                 {
@@ -350,14 +350,15 @@ bool CommandManager::runCommand(string input)
                         clearBlacklist();
                         auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
                         found=true;
-                        
-                        if(results.size()>1)
+
+                        if(!results.empty())
                         {
                             // Sort and remove duplicates
                             auto& v = results;
                             std::sort(v.begin(), v.end());
+                            std::remove(v.begin(), v.end(), "multiple");
                             v.erase(std::unique(v.begin(), v.end()), v.end());
-                            
+
                             std::cout << results.size() << " possible results: ";
                             for(unsigned i=0; i<results.size(); ++i){
                                 if(results[i]!="multiple"){
@@ -367,10 +368,10 @@ bool CommandManager::runCommand(string input)
                                     if(i<results.size()-1 && results[i+1]!="multiple")
                                         std::cout << ", ";
                                 }
-                                
+
                             }
                             std::cout << std::endl;
-                            
+
                             cout << "\nIt seems that you are using macros that have been redefined." << endl;
                             cout << "The output can't be trusted." << endl;
                             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
@@ -379,7 +380,7 @@ bool CommandManager::runCommand(string input)
                         {
                             cout << "first definition: " << p.second << endl;
                             string output = p.second;
-                            
+
                             clearBlacklist();
                             auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                             if(status == CalculationStatus::EVAL_ERROR)
@@ -400,16 +401,16 @@ bool CommandManager::runCommand(string input)
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
-                            
-                            
+
+
                             break;
-                            
-                            
+
+
                         }
                     }
-                    
-                    
-                    
+
+
+
                 }}
             else if(commandMacrospaces.size()>1 && trueInputs.size()==1)
             {
@@ -838,7 +839,7 @@ bool CommandManager::runCommand(string input)
             if(parameters.size()<3){
                 std::cout << "Spacediff need at least 2 different macrospaces." << endl;
             }
-            
+
             int sortPolicy=0;
 
             bool inputOkay=true;

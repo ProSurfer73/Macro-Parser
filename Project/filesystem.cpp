@@ -696,7 +696,8 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     if(fileCollection.empty())
         return false;
 
-    std::cout << "d: " << fileCollection.size() << std::endl;
+    // Let's print the number of files loaded for debugging purposes
+    //std::cout << "d: " << fileCollection.size() << std::endl;
 
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
