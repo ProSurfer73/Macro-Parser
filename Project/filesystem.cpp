@@ -1,5 +1,37 @@
 #include "filesystem.hpp"
 
+<<<<<<< Updated upstream
+=======
+#include "options.hpp"
+#include "stringeval.hpp"
+
+std::mutex anotherMutex;
+
+// Word detector class
+
+WordDetector::WordDetector(const char* initialstr)
+: str(initialstr), pos(0)
+{}
+
+bool WordDetector::receive(char character)
+{
+    if(str[pos]==character)
+    {
+        ++pos;
+        if(str[pos]=='\0'){
+            pos=0;
+            return true;
+        }
+    }
+    else
+        pos=0;
+    return false;
+}
+
+
+
+
+>>>>>>> Stashed changes
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {
@@ -36,6 +68,7 @@ BOOL DirectoryExists(LPCTSTR szPath)
 
 bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
 {
+
     ifstream file(pathToFile);
 
     if(!file.is_open())
@@ -337,6 +370,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
     return true;
 }
 
+static unsigned currentStart = 0;
+static std::mutex mutexStart;
 
 
 void explore_directory(std::string directory_name, stringvec& fileCollection)
@@ -397,6 +432,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
         if(notEverytime == 10)
         {
+<<<<<<< Updated upstream
             #if (defined DEBUG_LOG_FILE_IMPORT && !(defined DEBUG_LOG_FILE_IMPORT)) && defined ENABLE_MUTEX_LOADINGBAR
                 mymutex.lock();
                 unsigned currentNbFiles = nbFiles;
@@ -404,6 +440,11 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
             #else
                 unsigned currentNbFiles = nbFiles;
             #endif
+=======
+            anotherMutex.lock();
+            unsigned currentNbFiles = currentStart;
+            anotherMutex.unlock();
+>>>>>>> Stashed changes
 
             #if defined DEBUG_LOG_FILE_IMPORT && defined ENABLE_MUTEX_LOADINGBAR
             mymutex.lock();
@@ -433,7 +474,76 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 #endif
 
+<<<<<<< Updated upstream
 bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config)
+=======
+
+
+void requestSpace(unsigned& requestStart, unsigned& requestSize)
+{
+    mutexStart.lock();
+
+    currentStart += 500;
+    requestStart = currentStart;
+
+    mutexStart.unlock();
+
+    requestSize = 500;
+}
+
+
+
+void threadImportFolder(const std::vector<std::string>* v, const Options* config, unsigned start, unsigned thesize, MacroDatabase* macroContainer)
+{
+    std::cout << "start: " << start << " size: " << thesize << std::endl;
+
+
+    do
+    {
+
+    for(unsigned i=start; i<start+thesize && i<v->size(); ++i)
+    {
+        const std::string& str = (*v)[i];
+
+        if(!config->doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
+        {
+            try
+            {
+                MacroDatabase database;
+
+                if(!FileSystem::importFile(str.c_str(), database, *config)){
+                    std::cerr << "Couldn't read/open file : " << str << endl;
+                }
+
+                anotherMutex.lock();
+                macroContainer->import(database);
+                anotherMutex.unlock();
+            }
+            catch(const std::exception& ex)
+            {
+                std::cerr << "An error has occured while trying to interpret this source file:" << endl;
+                std::cerr << str << endl;
+                std::cerr << "Exception message: " << ex.what() << endl;
+            }
+
+
+
+        }
+    }
+
+    requestSpace(start, thesize);
+
+    }
+    while(start < v->size());
+
+
+
+
+}
+
+
+bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
+>>>>>>> Stashed changes
 {
     stringvec fileCollection;
 
@@ -442,6 +552,14 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
     if(fileCollection.empty())
         return false;
 
+<<<<<<< Updated upstream
+=======
+    // Let's print the number of files loaded for debugging purposes
+    std::cout << "Number of files listed: " << fileCollection.size() << std::endl;
+
+
+
+>>>>>>> Stashed changes
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
     bool ended = false;
@@ -454,6 +572,7 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
+<<<<<<< Updated upstream
     for(const string& str: fileCollection)
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
@@ -488,7 +607,21 @@ bool readDirectory(string dir, MacroContainer& macroContainer, const Options& co
             mymutex.unlock();
             #endif
         #endif
+=======
+    std::vector<std::thread> threads;
+
+    for(unsigned i=0; i<4; ++i)
+    {
+        unsigned aaa;
+        unsigned bbb;
+        requestSpace(aaa, bbb);
+        threads.emplace_back([fileCollection, config, &macroContainer, aaa, bbb]{ threadImportFolder(&fileCollection, &config, aaa, bbb, &macroContainer); });
+>>>>>>> Stashed changes
     }
+
+    for(std::thread& tr: threads)
+        tr.join();
+
 
     #ifdef ENABLE_FILE_LOADING_BAR
     mymutex.lock();
