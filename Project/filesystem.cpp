@@ -658,29 +658,25 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
         if(notEverytime == 10)
         {
-            #if (defined DEBUG_LOG_FILE_IMPORT && !(defined DEBUG_LOG_FILE_IMPORT)) && defined ENABLE_MUTEX_LOADINGBAR
-                mymutex.lock();
-                unsigned currentNbFiles = nbFiles;
-                mymutex.unlock();
-            #else
-                unsigned currentNbFiles = nbFiles;
-            #endif
+            mymutex.lock();
+            unsigned currentNbFiles = nbFiles;
+            mymutex.unlock();
 
-            #if defined DEBUG_LOG_FILE_IMPORT && defined ENABLE_MUTEX_LOADINGBAR
+            #if defined DEBUG_LOG_FILE_IMPORT
             mymutex.lock();
             #endif // DEBUG_LOG_FILE_IMPORT
 
             cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
             << maxNbFiles*(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-start)/(currentNbFiles+1)/60000 << "min left\n" ;
 
-            #if defined DEBUG_LOG_FILE_IMPORT && defined ENABLE_MUTEX_LOADINGBAR
+            #if defined DEBUG_LOG_FILE_IMPORT
             mymutex.unlock();
             #endif // DEBUG_LOG_FILE_IMPORT
 
             notEverytime = 0;
         }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+        std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
         mymutex.lock();
         bool myend = ended;
@@ -692,6 +688,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 }
 
 #endif
+
 
 bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
 {
@@ -742,13 +739,9 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
         #endif
 
         #ifdef ENABLE_FILE_LOADING_BAR
-            #ifdef ENABLE_MUTEX_LOADINGBAR
             mymutex.lock();
-            #endif
             nbFiles = localNbFile;
-            #ifdef ENABLE_MUTEX_LOADINGBAR
             mymutex.unlock();
-            #endif
         #endif
     }
 

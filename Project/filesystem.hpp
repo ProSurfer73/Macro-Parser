@@ -34,10 +34,6 @@
     #include <windows.h>
 #endif
 
-
-
-#define ENABLE_MUTEX_LOADINGBAR
-
 using namespace std;
 
 typedef std::vector<std::string> stringvec;
