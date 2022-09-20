@@ -1,11 +1,26 @@
+/**
+  ******************************************************************************
+  * @file    filesystem.cpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #include "filesystem.hpp"
 
-<<<<<<< Updated upstream
-=======
 #include "options.hpp"
 #include "stringeval.hpp"
-
-std::mutex anotherMutex;
 
 // Word detector class
 
@@ -31,7 +46,6 @@ bool WordDetector::receive(char character)
 
 
 
->>>>>>> Stashed changes
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {
@@ -41,60 +55,161 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
     }
 }
 
-void read_directory(const std::string& name, stringvec& v)
+static void skipShortComment(std::ifstream& file)
 {
-    std::string pattern(name);
-    pattern.append("\\*");
+    char characterRead;
+    while(file.get(characterRead) && characterRead != '\n');
+}
+
+static bool destructShortComment(std::string& str)
+{
+    auto searched = str.find("//");
+    if(searched != std::string::npos)
+    {
+        str = str.substr(0, searched);
+        return true;
+    }
+
+    return false;
+}
+
+static void skipLongComment(std::ifstream& stream)
+{
+    // Let's skip the comment in the file, until we reach the end of it
+    // Skip everything from here
+    char k='a';
+    char characterRead;
+    while(stream.get(characterRead)){
+        if(k=='*' && characterRead=='/')
+            break;
+        k=characterRead;
+    }
+}
+
+static bool destructLongComment(std::string& str)
+{
+    auto searched = str.find("/*");
+
+    // If there is a long comment
+    if(searched != std::string::npos)
+    {
+        // Let's delete it from the current string
+        str = str.substr(0, searched);
+        return true;
+    }
+
+    return false;
+}
+
+#if (defined(_WIN32) || defined(_WIN64))
+
+void explore_directory(const std::string& dirname, std::vector<std::string>& files)
+{
     WIN32_FIND_DATA data;
     HANDLE hFind;
-    if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE) {
-        do {
-            v.emplace_back(data.cFileName);
-        } while (FindNextFile(hFind, &data) != 0);
+    if ((hFind = FindFirstFile((dirname+"\\*").c_str(), &data)) != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
+                if(strcmp(data.cFileName, ".")!=0 && strcmp(data.cFileName, "..")!= 0){
+                    explore_directory(dirname+'\\'+data.cFileName,files);
+                }
+
+            }
+            else {
+                files.emplace_back(dirname+'\\'+data.cFileName);
+            }
+            //Sleep(500);
+        }
+        while (FindNextFile(hFind, &data) != 0);
+
         FindClose(hFind);
     }
 }
 
 
-BOOL DirectoryExists(LPCTSTR szPath)
+bool FileSystem::directoryExists(const char* szPath)
 {
   DWORD dwAttrib = GetFileAttributes(szPath);
 
-  return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
-         (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+  return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+#else
+
+#include <dirent.h>
+#include <sys/types.h>
+
+void explore_directory(std::string basepath, std::vector<std::string>& vec)
+{
+    struct dirent *dp;
+    DIR *dir = opendir(basepath.c_str());
+    if(!dir)
+        return;
+
+    basepath += '/';
+
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+
+
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+
+            if(dp->d_type != DT_DIR){
+                vec.emplace_back(basepath+dp->d_name);
+            }
+            else {
+                // Construct new path from our base path
+                    explore_directory(basepath+dp->d_name, vec);
+            }
+        }
+    }
+
+    closedir(dir);
+}
+
+bool FileSystem::directoryExists(const char* basepath)
+{
+    DIR *dir = opendir(basepath);
+    bool isOpen = (dir != nullptr);
+
+    if(isOpen)
+        closedir(dir);
+
+    return isOpen;
 }
 
 
+#endif
 
-bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Options& config)
+
+bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config, MacroContainer* origin)
 {
-
     ifstream file(pathToFile);
 
     if(!file.is_open())
         return false;
 
+    MacroContainer localContainer;
+
+    clearBlacklist();
+
     #ifdef DEBUG_LOG_FILE_IMPORT
         cout << "Opened " << pathToFile << endl;
     #endif
 
-    char defineStr[] = "#define ";
-    unsigned posDefineStr = 0;
-
-    char ifdefStr[] = "#ifdef ";
-    unsigned posIfdefStr=0;
-
-    char elifStr[] = "#elif ";
-    unsigned posElifStr=0;
-
-    char elseStr[] = "#else";
-    unsigned posElseStr=0;
-
-    char endifStr[] = "#endif";
-    unsigned posEndifStr=0;
-
-    char ifndefStr[] = "#ifndef ";
-    unsigned posIfndefStr=0;
+    WordDetector defineDetector("#define ");
+    WordDetector ifdefDetector("#ifdef ");
+    WordDetector elifDetector("#elif ");
+    WordDetector elseDetector("#else ");
+    WordDetector endifDetector("#endif ");
+    WordDetector ifndefDetector("#ifndef ");
+    WordDetector includeDetector("#include");
+    WordDetector ifDetector("#if");
+    WordDetector ifDetector2("#if(");
 
     unsigned posIfStr=0;
 
@@ -104,7 +219,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
 
     std::vector<char> keepTrack={1};
 
-    std::vector<std::string> localMacroNames;
+    bool firstIntrusction = true;
 
 
 
@@ -113,7 +228,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
     while(file.get(characterRead))
     {
         /// avoid to load defines that are commented
-        if(characterRead == '/')
+        if(characterRead == '/' && !config.doesImportMacroCommented())
         {
             posLineComment++;
 
@@ -127,9 +242,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             }
         }
 
-        #ifdef IGNORE_MACRO_INSIDE_LONG_COMMENT
-
-        else if(characterRead == '*' && posLineComment==1)
+        else if(characterRead == '*' && posLineComment==1 && !config.doesImportMacroCommented())
         {
             // We skip everything until we reach the end of comment "*/"
             char previousRead='r';
@@ -145,17 +258,11 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             posLineComment=0;
         }
 
-        #endif
 
 
-        if(characterRead == defineStr[posDefineStr])
+        if(defineDetector.receive(characterRead))
         {
-            posDefineStr++;
-
-            //
-            if(posDefineStr >= 8)
-            {
-                posDefineStr = 0;
+                firstIntrusction = false;
 
                 string str1;
 
@@ -164,20 +271,26 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
                 // We skip spaces first
                 while(file.get(characterRead)){
                     if(characterRead == '\n')
-                        continue;
+                        break;
                     else if(characterRead != ' '){
                         str1 += characterRead;
                         break;
                     }
                 }
+
+                if(characterRead == '\n' && str1.empty())
+                    continue;
+
+                string str2;
+
                 // Then we load the identifier (the complete word)
                 while(file.get(characterRead) && characterRead != ' '){
-                        if(characterRead == '\n')
-                            continue;
+                        if(characterRead == '\n'){
+                            goto avoidValueGetting;
+                        }
                         str1 += characterRead;
                 }
 
-                string str2;
 
                 // We get the value
                 while(file.get(characterRead) && characterRead != '\n')
@@ -186,22 +299,18 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
                 }
 
                 // Deal with comment that could appear on str2
-                auto look = str2.find("//");
-                if(look == string::npos) look = str2.find("/*");
-                if(look != string::npos){
-                    str2 = str2.substr(0,look);
-                }
-
-                #ifdef DEBUG_LOG_FILE_IMPORT
-                cout << str1 << " => " << str2 << endl;
-                #endif
+                destructShortComment(str2);
+                if(destructLongComment(str2) && !config.doesImportMacroCommented())
+                    skipLongComment(file);
 
                 clearSpaces(str1);
                 clearSpaces(str2);
 
-                // Ignore single letter macro and empty ones
-                if(str1.size()==1)
-                    continue;
+                avoidValueGetting:
+
+                #ifdef DEBUG_LOG_FILE_IMPORT
+                cout << str1 << " => " << str2 << endl;
+                #endif
 
 
                 // If it is a multiple line macro
@@ -216,48 +325,26 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
                     clearSpaces(inpLine);
                     str2 += inpLine;
 
-                    auto look = str2.find("//");
-                    if(look == string::npos){
-                        look = str2.find("/*");
-                        if(look != string::npos){
-                            char k='a';
-                            while(file.get(characterRead)){
-                                if(k=='*' && characterRead=='/')
-                                    break;
-                                k=characterRead;
-                            }
-                        }
-                    }
-                    else {
-                        str2 = str2.substr(0,look);
+                    destructShortComment(str2);
+                    if(destructLongComment(str2) && !config.doesImportMacroCommented())
+                    {
+                        skipLongComment(file);
                     }
                 }
 
                 // If the importer has priority order
-                if(keepTrack.back()>=0)
+                if((!origin && keepTrack.back()>=0)
+                || (origin && keepTrack.back()>=1)){
                     macroContainer.emplace(str1, str2);
-
-                if(!config.doDisableInterpretations() && keepTrack.back()>=1){
-                    localMacroNames.emplace_back(str1);
                 }
 
-            }
-
-        }
-        else
-        {
-            posDefineStr = 0;
+                if(!config.doDisableInterpretations() && keepTrack.back()>=1){
+                    localContainer.emplace(str1, str2);
+                }
         }
 
         if(!config.doDisableInterpretations())
         {
-
-        // #ifdef, #elif, #else, #endif detection mechanism
-        if(characterRead == ifdefStr[posIfdefStr]){ posIfdefStr++; } else { posIfdefStr=0; }
-        if(characterRead == elifStr[posElifStr]){ posElifStr++; } else { posElifStr=0; }
-        if(characterRead == endifStr[posEndifStr]){ posEndifStr++; } else { posEndifStr=0; }
-        if(characterRead == elseStr[posElseStr]){ posElseStr++; } else { posElseStr=0; }
-        if(characterRead == ifndefStr[posIfndefStr]){ posIfndefStr++; } else { posIfndefStr=0; }
 
         // If we detected #if
         if((posIfStr == 0 && characterRead=='#')
@@ -267,22 +354,82 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
         {
             ++posIfStr;
 
-            if(posIfStr >= 3){
-                insideConditions=true;
+            if(posIfStr >= 4 && config.doDisableInterpretations())
+            {
                 keepTrack.push_back(0);
+                insideConditions=true;
                 posIfStr=0;
             }
 
+            else if(posIfStr >= 4)
+            {
+                insideConditions=true;
+                firstIntrusction=false;
+
+
+            string conditionStr;
+            conditionStr += characterRead;
+
+            while(file.get(characterRead) && characterRead != '\n')
+            {
+                conditionStr += characterRead;
+            }
+
+            clearSpaces(conditionStr);
+
+            // Let's create a new container with our local defines
+
+            for(const auto& p : localContainer.getDefines())
+            {
+                simpleReplace(conditionStr, std::string("defined(")+p.first+')', "true");
+                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
+            }
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+            clearBlacklist();
+            auto status = calculateExpression(conditionStr, localContainer, config, false);
+
+            /*for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }*/
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+
+            if(status == CalculationStatus::EVAL_OKAY )
+            {
+                if(conditionStr == "true")
+                {
+                    //std::cout << 1 << endl;
+                    keepTrack.push_back(1);
+                }
+                else if(conditionStr=="false")
+                {
+                    //std::cout << -1 << endl;
+                    keepTrack.push_back(-2);
+                }
+
+            }
+            else
+            {
+                //std::cout << "Not interpreted: " << conditionStr << endl;
+                keepTrack.push_back(0);
+            }
+
+
+                posIfStr=0;
+            }
 
         }
         else
             posIfStr=0;
 
         // If we detected ifdef
-        if( posIfdefStr==7 )
+        if(ifdefDetector.receive(characterRead))
         {
+            firstIntrusction=false;
             insideConditions=true;
-            posIfdefStr=0;
 
             string macroNameRead;
             while(file.get(characterRead))
@@ -297,7 +444,8 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
 
             clearSpaces(macroNameRead);
 
-            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            //std::cout << "does '" << macroNameRead << "' exists." << std::endl;
+            if(localContainer.exists(macroNameRead))
             {
                 keepTrack.push_back(1);
             }
@@ -305,13 +453,16 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             {
                 keepTrack.push_back(0);
             }
+            firstIntrusction=false;
         }
 
         // If we detected ifndef
-        else if(posIfndefStr == 8)
+        if(ifndefDetector.receive(characterRead))
         {
+            if(!firstIntrusction)
+            {
+
             insideConditions=true;
-            posIfndefStr=0;
 
             string macroNameRead;
             while(file.get(characterRead))
@@ -324,7 +475,7 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
                     break;
             }
 
-            if(std::find(localMacroNames.begin(), localMacroNames.end(), macroNameRead) != localMacroNames.end())
+            if(localContainer.exists(macroNameRead))
             {
                 keepTrack.push_back(-1);
             }
@@ -332,75 +483,150 @@ bool readFile(const string& pathToFile, MacroContainer& macroContainer, const Op
             {
                 keepTrack.push_back(0);
             }
+
+            }
+
+            firstIntrusction=false;
         }
 
-        // If we detected elif
-        if(posElifStr==6 || posElseStr==5)
-        {
-            //
-            if(keepTrack.back()==1)
+            if(elseDetector.receive(characterRead))
             {
-                keepTrack[keepTrack.size()-1] = -1;
-                posElifStr=0;
-                posElseStr=0;
+                if(keepTrack.back()==1)
+                {
+                    keepTrack[keepTrack.size()-1] = -1;
+                }
+                else if(keepTrack.back()==-2)
+                {
+                    keepTrack[keepTrack.size()-1] = 0;
+                }
             }
-            else if(keepTrack.back()==-1)
+
+            // If it is #elif treat it like that
+            if(elifDetector.receive(characterRead))
             {
-                keepTrack[keepTrack.size()-1] = -1;
-                posElifStr=0;
-                posElseStr=0;
+                // If the previous condition was evaluated to false
+                if(keepTrack.back() == -2)
+                {
+                    // Let's evaluate this one
+                    string conditionStr;
+            conditionStr += characterRead;
+
+            while(file.get(characterRead) && characterRead != '\n')
+            {
+                conditionStr += characterRead;
             }
-        }
+
+            clearSpaces(conditionStr);
+
+            // Let's create a new container with our local defines
+
+            for(const auto& p : localContainer.getDefines())
+            {
+                simpleReplace(conditionStr, std::string("defined(")+p.first+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
+            }
+
+            /*MacroContainer localContainer;
+
+            for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
+            {
+                if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
+                    localContainer.emplace(p.first, p.second);
+            }*/
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+            clearBlacklist();
+            auto status = calculateExpression(conditionStr, localContainer, config, false);
+
+            /*for(const string& str : localMacroNames)
+            {
+                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                simpleReplace(conditionStr, std::string("defined ")+str, "true");
+            }*/
+
+            //std::cout << "conditionStr: " << conditionStr << endl;
+
+            if(status == CalculationStatus::EVAL_OKAY )
+            {
+                if(conditionStr == "true")
+                {
+                    //std::cout << 1 << endl;
+                    keepTrack.push_back(1);
+                }
+                else if(conditionStr=="false")
+                {
+                    //std::cout << -1 << endl;
+                    keepTrack.push_back(-2);
+                }
+
+            }
+            else
+            {
+                //std::cout << "Not interpreted: " << conditionStr << endl;
+                keepTrack.push_back(0);
+            }
+
+                }
+                // If the previous condition was evaluated to true
+                else if(keepTrack.back() == 1)
+                {
+                    // Then this part should be ignored
+                    keepTrack[keepTrack.size()-1] = -1;
+                }
+            }
 
         // If we detected endif
-        if(posEndifStr == 6)
+        if(endifDetector.receive(characterRead))
         {
-            string str1;
-
             insideConditions=keepTrack.size()>1;
-            keepTrack.pop_back();
-            posEndifStr=0;
+            if(keepTrack.size()>1)
+                keepTrack.pop_back();
+        }
+
+        // If we detected #include
+        if(includeDetector.receive(characterRead))
+        {
+            // Let's extract the filename
+            string wholeWord;
+            bool isGood=false;
+            while(file.get(characterRead))
+            {
+                if(characterRead=='\n')
+                    break;
+                else if(characterRead=='"')
+                {
+                    if(!isGood)
+                        isGood=true;
+                    else
+                        break;
+                }
+                else if(isGood)
+                    wholeWord += characterRead;
+            }
+
+            if(!wholeWord.empty())
+            {
+                //std::cout << "include: '" << wholeWord << "'" << std::endl;
+
+                string pathDir = extractDirPathFromFilePath(pathToFile);
+                //std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
+                if(!origin && !config.doDisableInterpretations())
+                    FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
+            }
         }
 
         }
     }
 
-
+    // Let's move our local container to our global one
+    //macroContainer.import(localContainer);
 
     return true;
 }
 
-static unsigned currentStart = 0;
-static std::mutex mutexStart;
 
-
-void explore_directory(std::string directory_name, stringvec& fileCollection)
-{
-   stringvec sv;
-
-    // We look for all the files and folders that are in that directory
-    read_directory(directory_name, sv);
-
-
-    // We explore all teh different inputs
-    for(size_t i=0; i < sv.size(); ++i)
-    {
-        // IF there is a point then, it's a file
-        // Also it's important to note that filenames "." and ".." aren't files
-        // oldimplemntation: if(sv[i].find('.') != std::string::npos && sv[i]!="." && sv[i]!="..")
-        if(!DirectoryExists((directory_name+'\\'+sv[i]).c_str()) && sv[i]!="." && sv[i]!="..")
-            fileCollection.emplace_back(directory_name+'\\'+sv[i]);
-
-        // Else it's a folder, and you have to reexecute the function recursilvely
-        else if(sv[i]!="." && sv[i]!=".."){
-            explore_directory
-            (directory_name+'\\'+sv[i], fileCollection);
-        }
-    }
-}
 
 #ifdef ENABLE_FILE_LOADING_BAR
-
 
 static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFiles, const unsigned maxNbFiles)
 {
@@ -411,7 +637,7 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
     while(delayFirstSleep > 0)
     {
-        Sleep(120);
+        std::this_thread::sleep_for(std::chrono::milliseconds(120));
         delayFirstSleep -= 120;
 
         mymutex.lock();
@@ -432,36 +658,25 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
         if(notEverytime == 10)
         {
-<<<<<<< Updated upstream
-            #if (defined DEBUG_LOG_FILE_IMPORT && !(defined DEBUG_LOG_FILE_IMPORT)) && defined ENABLE_MUTEX_LOADINGBAR
-                mymutex.lock();
-                unsigned currentNbFiles = nbFiles;
-                mymutex.unlock();
-            #else
-                unsigned currentNbFiles = nbFiles;
-            #endif
-=======
-            anotherMutex.lock();
-            unsigned currentNbFiles = currentStart;
-            anotherMutex.unlock();
->>>>>>> Stashed changes
+            mymutex.lock();
+            unsigned currentNbFiles = nbFiles;
+            mymutex.unlock();
 
-            #if defined DEBUG_LOG_FILE_IMPORT && defined ENABLE_MUTEX_LOADINGBAR
+            #if defined DEBUG_LOG_FILE_IMPORT
             mymutex.lock();
             #endif // DEBUG_LOG_FILE_IMPORT
 
             cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
             << maxNbFiles*(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-start)/(currentNbFiles+1)/60000 << "min left\n" ;
 
-            #if defined DEBUG_LOG_FILE_IMPORT && defined ENABLE_MUTEX_LOADINGBAR
+            #if defined DEBUG_LOG_FILE_IMPORT
             mymutex.unlock();
             #endif // DEBUG_LOG_FILE_IMPORT
 
             notEverytime = 0;
         }
 
-
-        Sleep(400);
+        std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
         mymutex.lock();
         bool myend = ended;
@@ -474,92 +689,18 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
 #endif
 
-<<<<<<< Updated upstream
-bool readDirectory(string dir, MacroContainer& macroContainer, const Options& config)
-=======
-
-
-void requestSpace(unsigned& requestStart, unsigned& requestSize)
-{
-    mutexStart.lock();
-
-    currentStart += 500;
-    requestStart = currentStart;
-
-    mutexStart.unlock();
-
-    requestSize = 500;
-}
-
-
-
-void threadImportFolder(const std::vector<std::string>* v, const Options* config, unsigned start, unsigned thesize, MacroDatabase* macroContainer)
-{
-    std::cout << "start: " << start << " size: " << thesize << std::endl;
-
-
-    do
-    {
-
-    for(unsigned i=start; i<start+thesize && i<v->size(); ++i)
-    {
-        const std::string& str = (*v)[i];
-
-        if(!config->doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
-        {
-            try
-            {
-                MacroDatabase database;
-
-                if(!FileSystem::importFile(str.c_str(), database, *config)){
-                    std::cerr << "Couldn't read/open file : " << str << endl;
-                }
-
-                anotherMutex.lock();
-                macroContainer->import(database);
-                anotherMutex.unlock();
-            }
-            catch(const std::exception& ex)
-            {
-                std::cerr << "An error has occured while trying to interpret this source file:" << endl;
-                std::cerr << str << endl;
-                std::cerr << "Exception message: " << ex.what() << endl;
-            }
-
-
-
-        }
-    }
-
-    requestSpace(start, thesize);
-
-    }
-    while(start < v->size());
-
-
-
-
-}
-
 
 bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
->>>>>>> Stashed changes
 {
-    stringvec fileCollection;
-
+    std::vector<std::string> fileCollection;
     explore_directory(dir, fileCollection);
 
     if(fileCollection.empty())
         return false;
 
-<<<<<<< Updated upstream
-=======
     // Let's print the number of files loaded for debugging purposes
     std::cout << "Number of files listed: " << fileCollection.size() << std::endl;
 
-
-
->>>>>>> Stashed changes
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
     bool ended = false;
@@ -572,16 +713,16 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
-<<<<<<< Updated upstream
-    for(const string& str: fileCollection)
+    for(const std::string& str: fileCollection)
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
-            if(!readFile(str, macroContainer, config)){
-                std::cerr << "Couldn't read/open file : " << str << endl;
+            try
+            {
+                if(!FileSystem::importFile(str.c_str(), macroContainer, config)){
+                    std::cerr << "Couldn't read/open file : " << str << endl;
+                }
             }
-<<<<<<< Updated upstream
-=======
             catch(const std::exception& ex)
             {
                 std::cerr << "An error has occured while trying to interpret this source file:" << endl;
@@ -589,7 +730,6 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
                 std::cerr << "Exception message: " << ex.what() << endl;
             }
 
->>>>>>> Stashed changes
 
 
         }
@@ -599,29 +739,11 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
         #endif
 
         #ifdef ENABLE_FILE_LOADING_BAR
-            #ifdef ENABLE_MUTEX_LOADINGBAR
             mymutex.lock();
-            #endif
             nbFiles = localNbFile;
-            #ifdef ENABLE_MUTEX_LOADINGBAR
             mymutex.unlock();
-            #endif
         #endif
-=======
-    std::vector<std::thread> threads;
-
-    for(unsigned i=0; i<4; ++i)
-    {
-        unsigned aaa;
-        unsigned bbb;
-        requestSpace(aaa, bbb);
-        threads.emplace_back([fileCollection, config, &macroContainer, aaa, bbb]{ threadImportFolder(&fileCollection, &config, aaa, bbb, &macroContainer); });
->>>>>>> Stashed changes
     }
-
-    for(std::thread& tr: threads)
-        tr.join();
-
 
     #ifdef ENABLE_FILE_LOADING_BAR
     mymutex.lock();
@@ -638,3 +760,59 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     return true;
 }
 
+bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config)
+{
+    std::ifstream file(pathToFile);
+
+    if(!file.is_open())
+        return false;
+
+    string str;
+
+    while(file >> str)
+    {
+        if(str == "#define")
+        {
+            file >> str;
+            destructShortComment(str);
+
+            if(str == macroName)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool searchDirectory(string dir, const std::string& macroName, const Options& config)
+{
+    std::vector<std::string> fileCollection;
+    explore_directory(dir, fileCollection);
+
+    if(fileCollection.empty())
+        return false;
+
+    unsigned nbResults=0;
+
+    for(auto& str: fileCollection)
+    {
+        if(searchFile(str, macroName, config))
+        {
+            std::cout << str << endl;
+            ++nbResults;
+        }
+    }
+
+    std::cout << nbResults << " results found." << endl;
+
+    return true;
+}
+
+
+std::string extractDirPathFromFilePath(const std::string& filepath)
+{
+    if(filepath.find("\\") != std::string::npos)
+            return filepath.substr(0, filepath.find_last_of('\\'));
+    else
+        return filepath.substr(0, filepath.find_last_of('/'));
+}

@@ -1,4 +1,24 @@
+/**
+  ******************************************************************************
+  * @file    options.cpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #include "options.hpp"
+#include "container.hpp"
 
 Options::Options()
 {
@@ -52,6 +72,10 @@ bool Options::loadFromFile(const char* filename)
             {
                 loadBooleanValue(line.substr(23), disableInterpretations);
             }
+            else
+            {
+                std::cout << "/!\\ Warning: Unrecognized option name '" << line << "' in the config file. /!\\\n" << std::endl;
+            }
         }
 
 
@@ -64,8 +88,11 @@ bool Options::loadFromFile(const char* filename)
     return false;
 }
 
-bool Options::loadBooleanValue(const std::string& input, bool& booleanValue)
+bool Options::loadBooleanValue(std::string input, bool& booleanValue)
 {
+    clearSpaces(input);
+    lowerString(input);
+
     if(input=="1" || input=="true"){
         booleanValue = true;
         return true;
@@ -75,6 +102,7 @@ bool Options::loadBooleanValue(const std::string& input, bool& booleanValue)
         return true;
     }
 
+    std::cout << "/!\\ Warning: Unrecognized boolean value '" << input << "' in the config file /!\\" << std::endl;
     return false;
 }
 
@@ -101,9 +129,13 @@ bool Options::saveToFile(const char* filename) const
     return true;
 }
 
-bool Options::changeOption(const std::string& s1, const std::string& s2)
+
+bool Options::changeOption(const std::string& s1, std::string& s2)
 {
     bool valueToBeSet=false;
+
+    // lower s2
+    lowerString(s2);
 
     // Interpret s2
     if(s2=="1"||s2=="true"){

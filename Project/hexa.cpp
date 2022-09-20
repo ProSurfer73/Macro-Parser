@@ -1,7 +1,35 @@
+/**
+  ******************************************************************************
+  * @file    hexa.cpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #include "hexa.hpp"
 
 using namespace std;
 
+static bool isStrictHexaLetter(char c)
+{
+    return ( (c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F') );
+}
+
+bool isHexaLetter(char c)
+{
+    return isStrictHexaLetter(c)||c=='x';
+}
 
 
 // This function looks for hexadecimal numbers and try to replace them by decimal number
@@ -11,11 +39,12 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
 
     // As long as there is an hexadecimal number ( we locate it by the 'x' character and the 2 digits around it)
     while(searchedX != std::string::npos
-    && isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
+    //&& isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
+    && isStrictHexaLetter(str[searchedX-1]) && isStrictHexaLetter(str[searchedX+1]))
     {
 
         unsigned k=searchedX;
-        while(isHexaLetter(str[++k]));
+        while(isStrictHexaLetter(str[++k]));
 
         string endStr=string(&str[k]);
         string begStr=str.substr(0, searchedX-1);
@@ -87,10 +116,6 @@ long long convertHexaToDeci(const std::string& hex)
 }
 
 
-bool isHexaLetter(char c)
-{
-    return ( (c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F') );
-}
 
 string convertDeciToHexa(long int num)
 {
@@ -115,5 +140,36 @@ string convertDeciToHexa(long int num)
         myreturn += arr[j];
 
     return myreturn;
+}
+
+bool tryConvertToHexa(std::string& deciStr)
+{
+    long int myint = std::atol(deciStr.c_str());
+
+    // Conversion to long int: okay
+    if(myint > 0)
+    {
+        // Let's reconvert it to hexa.
+        deciStr = std::string("0x") + convertDeciToHexa(myint);
+        return true;
+    }
+
+    // There might be a problem with conversion, let's check the string
+    else
+    {
+        bool okay=true;
+
+        for(char c: deciStr){
+            if(!(c=='0'||c=='x'||c=='.'))
+                okay=false;
+        }
+
+        if(okay)
+            deciStr="0x0";
+
+        return okay;
+    }
+
+    return false;
 }
 

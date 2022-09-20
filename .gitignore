@@ -5,5 +5,12 @@
 *.obj
 config.txt
 *.layout
+Debug
+*.txt
 
-/bin/Debug/
+# mac filesystem related files
+*.DS_STORE
+
+# IDE useless files
+*.cscope_file_list
+*.depend

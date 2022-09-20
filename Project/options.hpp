@@ -1,3 +1,22 @@
+/**
+  ******************************************************************************
+  * @file    options.hpp
+  * @author  MCD Application Team
+  * @brief   Macro-Parser
+  *
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+
 #ifndef OPTIONS_HPP
 #define OPTIONS_HPP
 
@@ -11,6 +30,8 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <algorithm>
+
 #include "config.hpp"
 
 class Options
@@ -18,7 +39,7 @@ class Options
 public:
     Options();
     void toStream(std::ostream& stream) const;
-    bool changeOption(const std::string& s1, const std::string& s2);
+    bool changeOption(const std::string& s1, std::string& s2);
 
     // Getters
     bool doesImportOnlySourceFileExtension() const;
@@ -31,7 +52,7 @@ public:
 private:
     bool saveToFile(const char* filename) const;
     bool loadFromFile(const char* filename);
-    static bool loadBooleanValue(const std::string& input, bool& boolean);
+    static bool loadBooleanValue(std::string input, bool& boolean);
     void resetToDefault();
 
     bool importOnlySourceFileExtension;
@@ -40,8 +61,6 @@ private:
     bool printExprAtEveryStep;
     bool keepListRedefinedMacros;
     bool disableInterpretations;
-
-friend void askUserAboutConfig(Options& options);
 };
 
 
