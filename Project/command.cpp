@@ -400,13 +400,10 @@ bool CommandManager::runCommand(string input)
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
-
-                            break;
-
-
                         }
 
                         foundSomething=true;
+                        break;
                     }
                 }
 

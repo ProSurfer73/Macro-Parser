@@ -195,6 +195,8 @@ bool doesExprLookOk(const string& expr)
             remainingParenthesis--;
             if(remainingParenthesis<0)
                 return false;
+            if(i>0 && expr[i-1]=='(')
+                return false;
         }
     }
     if(remainingParenthesis!=0)
