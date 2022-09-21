@@ -57,7 +57,7 @@ enum CalculationStatus calculateExpression(string& expr, const MacroContainer& m
 bool printWarnings=true, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr, std::vector< std::pair<std::string, std::string> > redef={});;
 
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer,
-                                const Options& options, bool expand=true);
+            const Options& options, bool expand=true, std::vector<std::pair<std::string,std::string> >* redef=nullptr);
 
 
 #endif // STRINGEVAL_HPP

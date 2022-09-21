@@ -354,9 +354,9 @@ bool CommandManager::runCommand(string input)
                         if(!results.empty())
                         {
                             // Let's remove multiple from the list of possible outputs
-                            for(auto it=trueInputs.begin(); it!=trueInputs.end();){
+                            for(auto it=results.begin(); it!=results.end();){
                                 if(*it == "multiple")
-                                    it = trueInputs.erase(it);
+                                    it = results.erase(it);
                                 else
                                     ++it;
                             }
@@ -371,7 +371,7 @@ bool CommandManager::runCommand(string input)
                                 std::cout << results[i];
                                 if(tryConvertToHexa(results[i]))
                                     std::cout << " (hexa: " << results[i] << ')';
-                                if(i<results.size()-1 && results[i+1]!="multiple")
+                                if(i<results.size()-1)
                                     std::cout << ", ";
                             }
                             std::cout << std::endl;
