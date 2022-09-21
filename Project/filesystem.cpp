@@ -195,8 +195,6 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
     MacroContainer localContainer;
 
-    clearBlacklist();
-
     #ifdef DEBUG_LOG_FILE_IMPORT
         cout << "Opened " << pathToFile << endl;
     #endif
@@ -386,8 +384,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             //std::cout << "conditionStr: " << conditionStr << endl;
-            clearBlacklist();
-            auto status = calculateExpression(conditionStr, localContainer, config, false);
+            auto status = calculateExpression(conditionStr, localContainer, config, nullptr);
 
             /*for(const string& str : localMacroNames)
             {
@@ -535,8 +532,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }*/
 
             //std::cout << "conditionStr: " << conditionStr << endl;
-            clearBlacklist();
-            auto status = calculateExpression(conditionStr, localContainer, config, false);
+            auto status = calculateExpression(conditionStr, localContainer, config, nullptr);
 
             /*for(const string& str : localMacroNames)
             {

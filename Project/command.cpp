@@ -315,9 +315,6 @@ bool CommandManager::runCommand(string input)
     }
     else if(parameters.front() == "look")
     {
-
-        clearBlacklist();
-
         /*if(parameters.size()>2 && !macrospaces.doesMacrospaceExists(parameters[2]))
             cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
         else*/
@@ -338,17 +335,16 @@ bool CommandManager::runCommand(string input)
 
             if(commandMacrospaces.size()==1 && trueInputs.size()==1)
             {
-
+                bool foundSomething=false;
 
                 //
                 for(auto& p : macrospaces.getMacroSpace(commandMacrospaces.front()).getDefines())
                 {
                     if(p.first == trueInputs.front())
                     {
-                        std::vector<std::string> results;
+                        std::vector<std::string> results, redefinedList;
                         string putput=p.second;
-                        clearBlacklist();
-                        auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true, &results);//&results);
+                        auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, &redefinedList, true, &results);//&results);
                         found=true;
 
                         if(!results.empty())
@@ -385,8 +381,7 @@ bool CommandManager::runCommand(string input)
                             cout << "first definition: " << p.second << endl;
                             string output = p.second;
 
-                            clearBlacklist();
-                            auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
+                            //auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                             if(status == CalculationStatus::EVAL_ERROR)
                                 cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                             if(status == CalculationStatus::EVAL_WARNING){
@@ -406,16 +401,19 @@ bool CommandManager::runCommand(string input)
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
 
-
+                            foundSomething=true;
                             break;
 
 
                         }
                     }
+                }
 
-
-
-                }}
+                if(!foundSomething)
+                {
+                    std::cout << "No macro was found with this name in the macrospace '" << commandMacrospaces.front() << "'." << std::endl;
+                }
+            }
             else if(commandMacrospaces.size()>1 && trueInputs.size()==1)
             {
                 for(unsigned i=0; i<commandMacrospaces.size(); ++i)
@@ -642,8 +640,6 @@ bool CommandManager::runCommand(string input)
     }
     else if(commandStr == "evaluate")
     {
-        clearBlacklist();
-
         string expr = input.substr(9);
 
         // Extract a macrospace from the command
@@ -661,8 +657,8 @@ bool CommandManager::runCommand(string input)
         if(!macroSpaceNames.empty())
             mc=&(macrospaces.getMacroSpace(macroSpaceNames.front()));
 
-        std::vector<std::string> results;
-        auto status = calculateExpression(expr, *mc, configuration, true, true, &results);
+        std::vector<std::string> results, warnings;
+        auto status = calculateExpression(expr, *mc, configuration, &warnings, true, &results);
 
         if(!results.empty())
         {
@@ -912,7 +908,7 @@ bool CommandManager::runCommand(string input)
     }
     else if(commandStr == "loadscript")
     {
-        if(parameters.size()>1)
+        if(parameters.size()>=2)
         {
             if(!loadScript(parameters[1]))
                 std::cout << "Could not load the script file '" << parameters[1] << "'." << std::endl;

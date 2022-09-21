@@ -54,13 +54,13 @@ void MacroDatabase::compress()
         p.first.shrink_to_fit();
         p.second.shrink_to_fit();
     }
-    
+
     for(auto& p: incorrectMacros)
     {
         p.first.shrink_to_fit();
         p.second.shrink_to_fit();
     }
-    
+
     for(std::string& str: redefinedMacros)
     {
         str.shrink_to_fit();
@@ -295,7 +295,7 @@ void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const 
         else
             ++it;
     }
-    
+
     // Ensure size >= 2
     assert(mcs.size()>=2);
 
@@ -318,7 +318,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
         {
             if(!mc)
                 continue;
-            
+
             bool exist=false;
             for(auto& p2 : mc->defines)
             {
@@ -342,7 +342,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
     std::cout << "Number of common macros: " << commonMacroList.size() << endl;
 
     // Second step: list the result corresponding to these common macros
-    
+
     if(cmp==1)
     {
         // Increasing order
@@ -372,7 +372,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             {
                 if(!mcs[i])
                     continue;
-                
+
                 MacroContainer *mc = mcs[i];
 
                 // Show the result of m
@@ -389,8 +389,6 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                 if(itf != mc->defines.end())
                 {
                     std::string str = itf->second;
-
-                    clearBlacklist();
 
                     calculateExprWithStrOutput(str, *mc, configuration, false);
 

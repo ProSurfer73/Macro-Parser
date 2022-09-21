@@ -25,13 +25,6 @@
 #include "container.hpp"
 #include "options.hpp"
 
-  std::vector<std::string> blacklist;
-
-void clearBlacklist()
-{
-    blacklist.clear();
-}
-
 void clearSpaces(string& str)
 {
     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
@@ -368,7 +361,7 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
         std::cout << "theright: " << theright << std::endl;*/
 
         // Let's evaluate the left part
-        auto status = calculateExpression(theleft, mc, config, false, true);
+        auto status = calculateExpression(theleft, mc, config, nullptr, true);
 
         // If the boolean evaluation went well
         if(status == CalculationStatus::EVAL_OKAY)
@@ -451,7 +444,7 @@ static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroN
  *
  */
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
-bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::vector< std::pair<std::string, std::string> > redef)
+std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::vector< std::pair<std::string, std::string> >* redef)
 {
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
@@ -464,13 +457,17 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
     unsigned booleanCounter = 0;
 
     bool thereIsOperation = false;
-
-    std::vector<std::string> macroRedefinedWarning;
+    bool deleteRedef = false;
 
     try {
 
     if(!printWarnings && !doesExprLookOk(expr)){
         return CalculationStatus::EVAL_ERROR;
+    }
+
+    if(!redef){
+         redef = new std::vector< std::pair<std::string, std::string> >();
+         deleteRedef = true;
     }
 
     /// 0. Is the expression okay ?
@@ -564,8 +561,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                     {
                         bool foundRedef=false;
 
-                        //
-                        for(const auto& pp: redef)
+                        for(const auto& pp: *redef)
                         {
                             if(pp.first == p.first)
                             {
@@ -577,10 +573,9 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
                         if(printWarnings)
                         {
-                            if(macroRedefinedWarning.empty()
-                            || std::find(macroRedefinedWarning.begin(), macroRedefinedWarning.end(), p.first) == macroRedefinedWarning.end()){
+                            if(std::find(printWarnings->begin(), printWarnings->end(), p.first) == printWarnings->end()){
                                 cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
-                                macroRedefinedWarning.emplace_back(p.first);
+                                printWarnings->emplace_back(p.first);
                             }
                         }
 
@@ -595,18 +590,35 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                                 {
                                     std::string anotherExpr = expr;
                                     while(simpleReplace(anotherExpr, p.first, pp.second));
-                                    redef.emplace_back(p.first, pp.second);
+                                    //redef->emplace_back(p.first, pp.second);
 
-                                    if(std::find(blacklist.begin(), blacklist.end(), pp.first+' '+pp.second) == blacklist.end() && blacklist.size()<1000)
+
+                                    bool ffound=false;
+                                    for(auto it=redef->begin(); it != redef->end(); ++it){
+                                        if(it->first == pp.first && it->second == pp.second){
+                                            ffound=true;
+                                            break;
+                                        }
+                                    }
+
+
+                                    if(!ffound && redef->size()<1000)
                                     {
                                         oneThing=true;
-                                        blacklist.emplace_back(pp.first+' '+pp.second);
+                                        //blacklist.emplace_back(pp.first+' '+pp.second);
+                                        redef->emplace_back(pp.first, pp.second);
 
-                                        auto status = calculateExpression(anotherExpr, macroContainer, config, false, enableBoolean, outputs, redef);
+                                        auto status = calculateExpression(anotherExpr, macroContainer, config, printWarnings, enableBoolean, outputs, redef);
                                         if(status == CalculationStatus::EVAL_OKAY)
                                             emplaceOnce(*outputs, anotherExpr);
                                         else if(status == CalculationStatus::EVAL_ERROR){
-                                            emplaceOnce(*outputs, "undefined");
+                                            std::string sss="undefined:";
+                                            sss += anotherExpr;
+                                            emplaceOnce(*outputs, sss);
+                                            status = CalculationStatus::EVAL_WARNING;
+                                        }
+                                        else if(status == CalculationStatus::EVAL_WARNING){
+                                            emplaceOnce(*outputs, anotherExpr+'?');
                                             status = CalculationStatus::EVAL_WARNING;
                                         }
                                     }
@@ -619,13 +631,13 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
                             {
                                 expr = "multiple";
 
+                                if(deleteRedef) delete redef;
                                 return status;
                             }
 
 
                         }
 
-                        status = CalculationStatus::EVAL_WARNING;
                     }
 
 
@@ -716,9 +728,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
         ++replaceCounter;
         if(replaceCounter > 500){
-            if(printWarnings)
-                std::cout << "Counter pb: please post an issue on Github" << endl;
-            return CalculationStatus::EVAL_ERROR;
+            throw std::runtime_error("Counter pb: please post an issue on Github");
         }
     }
     while(repeat);
@@ -898,7 +908,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
             // Let's to reevaluate what is in the parenthesis
             std::string subExpr2 = subExpr;
-            auto status2 = calculateExpression(subExpr2, macroContainer, config, false, enableBoolean, nullptr, redef);
+            auto status2 = calculateExpression(subExpr2, macroContainer, config, nullptr, enableBoolean, nullptr, redef);
             if(status2 == CalculationStatus::EVAL_OKAY)
             {
                 expr = begStr+subExpr2+endStr;
@@ -961,7 +971,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
 
     #ifdef DEBUG_LOG_STRINGEVAL
-    std::cout << "final:" << expr+"+0" << endl;
+    std::cout << "final:" << expr << endl;
     #endif
 
     double result;
@@ -977,6 +987,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
         if(expr != "true" && expr != "false")
             status = CalculationStatus::EVAL_ERROR;
 
+        if(deleteRedef) delete redef;
         return status;
     }
 
@@ -991,6 +1002,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
             expr = to_string(static_cast<int>(result));
     }
 
+    if(deleteRedef) delete redef;
     return status;
 
 
@@ -1002,6 +1014,7 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
         //else throw;
 
+        if(deleteRedef) delete redef;
         return CalculationStatus::EVAL_ERROR;
     }
 }
@@ -1009,11 +1022,9 @@ bool printWarnings, bool enableBoolean, std::vector<std::string>* outputs, std::
 
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand, std::vector<std::pair<std::string,std::string> >* redef)
 {
-    clearBlacklist();
-
     std::vector<std::string> output;
                 //std::cout << "Source 3" << std::endl;
-                auto status = calculateExpression(expr, macroContainer, options, false, true, &output, *redef);
+                auto status = calculateExpression(expr, macroContainer, options, nullptr, true, &output, redef);
     auto& results = output;
 
 
