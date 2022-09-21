@@ -285,6 +285,21 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
         {
             value1=std::stod(str1);
             value2=std::stod(str2);
+
+            if(operation == ">")
+            {
+                str = (value1 > value2)?"true":"false";
+                return true;
+            }
+            else if(operation == "<")
+            {
+                str = (value1 < value2)?"true":"false";
+                return true;
+            }
+            else
+            {
+                std::cout << "unrecognized operator" << std::endl;
+            }
         }
         catch(const std::exception& ex)
         {
@@ -369,6 +384,7 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
         if(status == CalculationStatus::EVAL_OKAY)
         {
             std::size_t kk;
+
             if( (kk=theright.find(':')) != std::string::npos)
             {
                 if(theleft == "false")
@@ -390,14 +406,13 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
 
                     // todo: fix not too much right
                     expr = theright.substr(kk+1, thepos2-(kk+1));
-
-                    //std::cout << "newexpr:" << expr << std::endl;
+                    didSomething=true;
                 }
 
-                else if(theleft == "true")
+                else if(theleft == "true"){
                     expr = theright.substr(0, kk);
-
-                didSomething=true;
+                    didSomething=true;
+                }
             }
             else
             {
