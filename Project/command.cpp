@@ -401,11 +401,12 @@ bool CommandManager::runCommand(string input)
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
 
-                            foundSomething=true;
                             break;
 
 
                         }
+
+                        foundSomething=true;
                     }
                 }
 
