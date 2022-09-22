@@ -379,19 +379,18 @@ bool CommandManager::runCommand(string input)
                         else
                         {
                             cout << "first definition: " << p.second << endl;
-                            string output = p.second;
 
                             //auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                             if(status == CalculationStatus::EVAL_ERROR)
                                 cout << "/!\\ The expression can't be calculated. /!\\" << endl;
                             if(status == CalculationStatus::EVAL_WARNING){
-                                cout << "possible output: " << output << "??? ";
+                                cout << "possible output: " << putput << "??? ";
                             }
                             else
-                                cout << "output: " << output;
+                                cout << "output: " << putput;
                             if(status==CalculationStatus::EVAL_OKAY || status==CalculationStatus::EVAL_WARNING){
-                                if(tryConvertToHexa(output))
-                                    cout << " (hexa: " << output << ')';
+                                if(tryConvertToHexa(putput))
+                                    cout << " (hexa: " << putput << ')';
                             }
                             if(status == CalculationStatus::EVAL_WARNING){
                                 cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
@@ -884,7 +883,7 @@ bool CommandManager::runCommand(string input)
                     }
                 }
 
-                std::cout << "not recognized." << std::endl;
+                std::cout << " not recognized." << std::endl;
             }
             else
             {

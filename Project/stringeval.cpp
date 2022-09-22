@@ -25,6 +25,7 @@
 #include "container.hpp"
 #include "options.hpp"
 
+
 void clearSpaces(string& str)
 {
     str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
@@ -43,6 +44,35 @@ bool isMacroCharacter(char c)
 bool isNumberCharacter(char c)
 {
     return (isdigit(c)||c=='.');
+}
+
+static bool containsAlpha(const std::string& str)
+{
+    for(char c: str){
+        if(isalpha(c))
+            return true;
+    }
+    return false;
+}
+
+static bool containsOperation(const std::string& str)
+{
+    // Let's try to calculate the arithmetic expression without parenthesis
+    for(unsigned m=0;m<str.size();++m){
+        if(isOperationCharacter(str[m]))
+            return true;
+    }
+    return false;
+}
+
+static bool seemLikeNumber(const std::string& str)
+{
+    // If there are letters behind it then it is not a number
+    for(char c: str){
+        if(!(isdigit(c)||c=='.'))
+            return false;
+    }
+    return true;
 }
 
 void lowerString(std::string& str)
@@ -270,7 +300,7 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
 }
 
 
-static bool treatOperationDouble(std::string& str, std::string operation, bool (*operateur)(double, double))
+static bool treatOperationDouble(std::string& str, const std::string& operation, bool (*operateur)(double, double))
 {
     std::size_t searchedCharacter = str.find(operation);
 
@@ -285,21 +315,6 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
         {
             value1=std::stod(str1);
             value2=std::stod(str2);
-
-            if(operation == ">")
-            {
-                str = (value1 > value2)?"true":"false";
-                return true;
-            }
-            else if(operation == "<")
-            {
-                str = (value1 < value2)?"true":"false";
-                return true;
-            }
-            else
-            {
-                std::cout << "unrecognized operator" << std::endl;
-            }
         }
         catch(const std::exception& ex)
         {
@@ -345,7 +360,7 @@ static bool treatOperationDouble(std::string& str, std::string operation, bool (
 }
 
 
-static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config)
+static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config, std::vector<std::pair<std::string,std::string> >& redef, std::vector<std::string>* warnings)
 {
     //std::cout << "interrogation:" << expr << std::endl;
 
@@ -378,7 +393,7 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
         std::cout << "theright: " << theright << std::endl;*/
 
         // Let's evaluate the left part
-        auto status = calculateExpression(theleft, mc, config, nullptr, true);
+        auto status = calculateExpression(theleft, mc, config, nullptr, true, nullptr, &redef);
 
         // If the boolean evaluation went well
         if(status == CalculationStatus::EVAL_OKAY)
@@ -549,7 +564,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
         // Replace it
-        for(pair<string,string> p: dictionary)
+        for(const pair<string,string>& p: dictionary)
         {
             if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/)
             {
@@ -561,10 +576,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     //return CalculationStatus::EVAL_ERROR;
                     continue;
-                }
-
-                if(config.doesPrintReplacements()){
-                    std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
                 }
 
                 auto searched = expr.find(p.first);
@@ -657,10 +668,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     }
 
-
-
-
-                    //std::cout << "replacedBy: " << replacedBy << std::endl;
+                    if(config.doesPrintReplacements()){
+                        std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
+                    }
 
                     // finally, let's replace-it in the expression
                     simpleReplace(expr, p.first, replacedBy);
@@ -683,9 +693,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         else if(!maxSizeReplaceSig.empty())
         {
             // Look for single parameter macro
-            for(pair<string,string> p: dictionary)
+            for(const pair<string,string>& p: dictionary)
             {
-                string& mac = p.first;
+                const string& mac = p.first;
 
                 // if the string has at the end "(x)", then it's a single param macro
                 if(maxSizeReplaceSig == mac
@@ -792,11 +802,12 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
         //if(printWarnings)cout << "toBeCalculated: " << toBeCalculated << endl;
 
-        thereIsOperation=false;
+        thereIsOperation = containsOperation(toBeCalculated);
+        /*thereIsOperation=false;
         for(unsigned m=0;m<toBeCalculated.size();++m){
             if(isOperationCharacter(toBeCalculated[m]))
                 thereIsOperation=true;
-        }
+        }*/
 
         #ifdef DEBUG_LOG_STRINGEVAL
             cout << "thereisop: " << thereIsOperation << endl;
@@ -849,16 +860,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             cout << expr << endl;
     }
 
-
-    // Let's try to calculate the arithmetic expression without parenthesis
-    thereIsOperation=false;
-    for(unsigned m=0;m<expr.size();++m){
-        if(isOperationCharacter(expr[m]))
-            thereIsOperation=true;
-    }
-
     // If there is an operation character, the expr look good, and no parentheses
-    if(thereIsOperation && doesExprLookOk(expr) && expr.find('(')==std::string::npos && expr.find(')')==std::string::npos)
+    if(containsOperation(expr) && doesExprLookOk(expr) && !containsAlpha(expr) && expr.find('(')==std::string::npos && expr.find(')')==std::string::npos)
     {
         expr = std::to_string(evaluateSimpleArithmeticExpr(expr));
     }
@@ -897,7 +900,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             repeat=true;
 
         // Let's delete parenthesis
-        if(expr.find('(')!=std::string::npos
+        else if(expr.find('(')!=std::string::npos
         && expr.find(')')!=std::string::npos)
         {
             size_t posClosePar = expr.find_first_of(')');
@@ -917,7 +920,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             }
             if(isOnlyNumbers)
             {
-                //std::cout << "yes man!" << std::endl;
                 expr = begStr+subExpr+endStr;
                 repeat=true;
                 goto restartArithmeticEval;
@@ -964,7 +966,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             repeat=true;
         }
 
-        else if(treatInterrogationOperator(subExpr, macroContainer, config))
+        else if(treatInterrogationOperator(subExpr, macroContainer, config, *redef, printWarnings))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
@@ -993,6 +995,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
     double result;
 
+    // Let's try to convert it to a number
     try
     {
         result = std::stod(expr);
@@ -1013,11 +1016,21 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
     // 5. If it is an integer, convert it to an integer.
 
-    if(status != CalculationStatus::EVAL_ERROR)
+    if(seemLikeNumber(expr))
     {
-        if(result == static_cast<double>(static_cast<int>(result)) )
-            expr = to_string(static_cast<int>(result));
+        if(status != CalculationStatus::EVAL_ERROR)
+        {
+            if(result == static_cast<double>(static_cast<int>(result)) )
+                expr = to_string(static_cast<int>(result));
+        }
     }
+    else
+    {
+        // If it is not a number, error, error, error
+        status = CalculationStatus::EVAL_ERROR;
+    }
+
+
 
     if(deleteRedef) delete redef;
     return status;
@@ -1065,7 +1078,7 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
             tryConvertToHexa(results[i]);
             if(results[i]!="multiple"){
                 expr += results[i];
-                if(i<results.size()-1&& results[i+1]!="multiple")
+                if(i<results.size()-1)
                     expr += ", ";
             }
         }
