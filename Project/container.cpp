@@ -430,8 +430,9 @@ void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::
     MacroDatabase::emplaceAndReplace(macroName, macroValue);
     std::string added = "define ";
     added += macroName;
+    added += ' ';
     added += macroValue;
-    origins.push_back(added);
+    origins.emplace_back(added);
 }
 
 

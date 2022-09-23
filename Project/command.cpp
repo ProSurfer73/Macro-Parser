@@ -823,12 +823,16 @@ bool CommandManager::runCommand(string input)
 
     }
     else if(commandStr == "printsources"){
-        string macrospaceName = parameters[1];
-        if(macrospaces.doesMacrospaceExists(macrospaceName)){
-            macrospaces.getMacroSpace(macrospaceName).printOrigins();
-        }
+        if(parameters.size()==1)
+            std::cout << "Error: you need to specify at least one macrospace." << std::endl;
         else {
-            cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
+            string& macrospaceName = parameters[1];
+            if(macrospaces.doesMacrospaceExists(macrospaceName)){
+                macrospaces.getMacroSpace(macrospaceName).printOrigins();
+            }
+            else {
+                cout << "The macrospace '" << macrospaceName << "' does not seem to exist." << endl;
+            }
         }
     }
     else if(commandStr == "spacediff")
