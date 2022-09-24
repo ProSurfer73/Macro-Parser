@@ -418,17 +418,32 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
     {
         // Increasing order
 
+        std::sort(commonMacroList.begin(), commonMacroList.end(), [mcs, configuration](const std::string *a, const std::string *b){
+                std::string aa(*a), bb(*b);
+                calculateExprWithStrOutput(aa, *(mcs.front()), configuration);
+                calculateExprWithStrOutput(bb, *(mcs.front()), configuration);
+                return aa < bb;
+        });
 
     }
     else if(cmp==2)
     {
         // Decreasing order
+
+        std::sort(commonMacroList.begin(), commonMacroList.end(), [mcs, configuration](const std::string *a, const std::string *b){
+                std::string aa(*a), bb(*b);
+                calculateExprWithStrOutput(aa, *(mcs.front()), configuration);
+                calculateExprWithStrOutput(bb, *(mcs.front()), configuration);
+                return aa > bb;
+        });
+
     }
     else if(cmp==3)
     {
         // Alpha order
         std::sort(commonMacroList.begin(),commonMacroList.end(), [](const std::string *a, const std::string *b){ return (*a)<(*b); });
     }
+
 
     if(dontdisplayUnknown || dontdisplayUndefined || dontdisplayMultiple || showonlyDifferent)
     {
