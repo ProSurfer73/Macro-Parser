@@ -675,13 +675,11 @@ bool CommandManager::runCommand(string input)
 
             std::cout << results.size() << " possible results: ";
             for(unsigned i=0; i<results.size(); ++i){
-                if(results[i] != "multiple"){
-                    std::cout << results[i];
-                    if(tryConvertToHexa(results[i]))
-                        std::cout << " (hexa: " << results[i] << ')';
-                    if(i<results.size()-1 && results[i+1]!="multiple")
-                        std::cout << ", ";
-                }
+                std::cout << results[i];
+                if(tryConvertToHexa(results[i]))
+                    std::cout << " (hexa: " << results[i] << ')';
+                if(i<results.size()-1)
+                    std::cout << ", ";
             }
             std::cout << std::endl;
 
@@ -705,7 +703,7 @@ bool CommandManager::runCommand(string input)
 
         cout << "output: " << expr;
 
-        if(tryConvertToHexa(expr))
+        if(status != CalculationStatus::EVAL_ERROR && tryConvertToHexa(expr) )
             cout << " (hexa: " << expr << ')';
 
         if(status == CalculationStatus::EVAL_WARNING)
