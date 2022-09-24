@@ -21,8 +21,6 @@
 
 /*** MacroDatabase ***/
 
-
-
 // Default constructor
 
 MacroDatabase::MacroDatabase()
@@ -117,13 +115,13 @@ bool MacroDatabase::importFromFolder(const std::string& folderpath, const Option
 bool MacroDatabase::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
 {
     if(v.empty()){
-        v.emplace_back(macroName);
+        v.push_back(macroName);
         return true;
     }
 
     if(std::find(v.begin(), v.end(), macroName)==v.end())
     {
-        v.emplace_back(macroName);
+        v.push_back(macroName);
         return true;
     }
 
@@ -286,7 +284,7 @@ void MacroContainer::printOrigins() const
     }
 }
 
-void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp)
+void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param)
 {
     // Delete all pointers equald to 0 from the vector
     for(auto it=mcs.begin(); it!=mcs.end();){
@@ -301,15 +299,76 @@ void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const 
 
     // Let's run the function
     auto* l = mcs.front();
-    l->printDiff(mcs, configuration, cmp);
+    l->printDiff(mcs, configuration, param);
 }
 
 
-void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp) const
+void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param) const
 {
+    // Step 0: Let's detect the option parameters involved
+
+    // The differents spacediff command options
+    int cmp=0;
+    bool dontdisplayUnknown=false;
+    bool dontdisplayUndefined=false;
+    bool dontdisplayMultiple=false;
+    bool showonlyDifferent=false;
+
+    for(const std::string& str: param)
+    {
+        // Ordering rules
+
+        if(str == "--increasing")
+        {
+            if(cmp != 0) cmp = -1;
+            else cmp = 1;
+        }
+        else if(str == "--decreasing")
+        {
+            if(cmp != 0) cmp = -1;
+            else cmp = 2;
+        }
+        else if(str == "--alpha")
+        {
+            if(cmp != 0) cmp = -1;
+            else cmp = 3;
+        }
+
+        // Other rules
+
+        else if(str == "--notunknown")
+        {
+            dontdisplayUnknown = true;
+        }
+
+        else if(str == "--notundefined")
+        {
+            dontdisplayUndefined = true;
+        }
+
+        else if (str == "--notmultiple")
+        {
+            dontdisplayMultiple = true;
+        }
+
+        else if (str == "--different")
+        {
+            showonlyDifferent = true;
+        }
+
+    }
+
+    if(cmp == (-1)){
+        std::cout << "/!\\ Argument error: you gave two conflicting sorting rules /!\\" << std::endl;
+        return;
+    }
+
+
+
+
     // 1st step: look for common macros
 
-    std::vector<std::string> commonMacroList;
+    std::vector<const std::string*> commonMacroList;
 
     for(auto& p : defines)
     {
@@ -334,9 +393,21 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
         }
 
         if(isCommon
-        && std::find(commonMacroList.begin(), commonMacroList.end(), p.first)==commonMacroList.end()
         && (p.first.size()<3 || !(p.first[p.first.size()-1]==')' && p.first[p.first.size()-2]=='x' && p.first[p.first.size()-3]=='(')))
-            commonMacroList.emplace_back(p.first);
+        {
+            // Let's recheck that the macro does not already exist before pushing it
+            bool good = true;
+            for(const std::string* str : commonMacroList){
+                if(*str == p.first){
+                    good = false;
+                    break;
+                }
+            }
+            if(good){
+                commonMacroList.push_back(&(p.first));
+            }
+
+        }
     }
 
     std::cout << "Number of common macros: " << commonMacroList.size() << endl;
@@ -346,73 +417,158 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
     if(cmp==1)
     {
         // Increasing order
-        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.second<b.second; });
+
+
     }
     else if(cmp==2)
     {
         // Decreasing order
-        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.second>b.second; });
     }
     else if(cmp==3)
     {
         // Alpha order
-        std::sort(mcs[0]->defines.begin(),mcs[0]->defines.end(), [](std::pair<std::string,std::string> &a, std::pair<std::string,std::string> &b){ return a.first<b.first; });
+        std::sort(commonMacroList.begin(),commonMacroList.end(), [](const std::string *a, const std::string *b){ return (*a)<(*b); });
     }
 
-
-    for(const auto& p: (mcs.front()->defines) )
+    if(dontdisplayUnknown || dontdisplayUndefined || dontdisplayMultiple || showonlyDifferent)
     {
-        // If the macro is common
-        if(std::find(commonMacroList.begin(), commonMacroList.end(), p.first) != commonMacroList.end())
+    unsigned totalDisplayed=0;
+
+    // If the macro is common
+    for(unsigned i=0; i<commonMacroList.size(); ++i)
+    {
+        const std::string* str = commonMacroList[i];
+
+        std::vector<std::string> rrr;
+
+        //for(const MacroContainer* mc: mcs)
+        for(unsigned i=0; i<mcs.size(); ++i)
         {
-            std::cout << p.first << ": ";
+            if(!mcs[i])
+                continue;
 
-            //for(const MacroContainer* mc: mcs)
-            for(unsigned i=0; i<mcs.size(); ++i)
+            MacroContainer *mc = mcs[i];
+
+            // Show the result of m
+            //auto itFound = std::find(mc->defines.begin(),mc->defines.end(),p.first);
+            auto itf = mc->defines.begin();
+            for(;itf!=mc->defines.end();++itf)
             {
-                if(!mcs[i])
-                    continue;
-
-                MacroContainer *mc = mcs[i];
-
-                // Show the result of m
-                //auto itFound = std::find(mc->defines.begin(),mc->defines.end(),p.first);
-                auto itf = mc->defines.begin();
-                for(;itf!=mc->defines.end();++itf)
-                {
-                    if(itf->first == p.first){
-                        break;
-                    }
+                if(itf->first == *str){
+                    break;
                 }
-
-
-                if(itf != mc->defines.end())
-                {
-                    std::string str = itf->second;
-
-                    calculateExprWithStrOutput(str, *mc, configuration, false);
-
-                    std::cout << str;
-
-                    /*if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
-                        std::cout << '?';*/
-
-
-                    if(i < mcs.size()-1)
-                        std::cout << " | ";
-
-                    // We erase it from the list in order not to show this macro multiple times
-                    auto itm = std::find(commonMacroList.begin(), commonMacroList.end(), itf->first);
-                    if(itm != commonMacroList.end())
-                        commonMacroList.erase(itm);
-                }
-                else
-                    std::cout << "not found"<< endl;
             }
+
+
+            if(itf != mc->defines.end())
+            {
+                std::string str2 = itf->second;
+
+                calculateExprWithStrOutput(str2, *mc, configuration, false);
+
+                if(dontdisplayUnknown && str2.find("unknown:") != std::string::npos){
+                    rrr.clear();
+                    break;
+                }
+
+                if(dontdisplayUndefined && str2.find("undefined:") != std::string::npos){
+                    rrr.clear();
+                    break;
+                }
+
+                if(dontdisplayMultiple && str2.find(", ") != std::string::npos){
+                    rrr.clear();
+                    break;
+                }
+
+                if(showonlyDifferent && !rrr.empty() && rrr.back()==str2){
+                    rrr.clear();
+                    break;
+                }
+
+                rrr.push_back( str2);
+
+                /*if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
+                    std::cout << '?';*/
+
+
+                if(i < mcs.size()-1)
+                    rrr.push_back( " | " );
+            }
+            else
+                std::cout << "not found"<< endl;
+        }
+
+        if(!rrr.empty())
+        {
+            std::cout << *str << ": ";
+
+            for(std::string& ss: rrr)
+                std::cout << ss;
 
             std::cout << std::endl;
         }
+
+        ++totalDisplayed;
     }
+
+    std::cout << totalDisplayed << " macros were displayed." << std::endl;
+
+    }
+    else
+    {
+
+
+    // If the macro is common
+    for(unsigned i=0; i<commonMacroList.size(); ++i)
+    {
+        const std::string* str = commonMacroList[i];
+
+        std::cout << *str << ": ";
+
+        //for(const MacroContainer* mc: mcs)
+        for(unsigned i=0; i<mcs.size(); ++i)
+        {
+            if(!mcs[i])
+                continue;
+
+            MacroContainer *mc = mcs[i];
+
+            // Show the result of m
+            //auto itFound = std::find(mc->defines.begin(),mc->defines.end(),p.first);
+            auto itf = mc->defines.begin();
+            for(;itf!=mc->defines.end();++itf)
+            {
+                if(itf->first == *str){
+                    break;
+                }
+            }
+
+
+            if(itf != mc->defines.end())
+            {
+                std::string str2 = itf->second;
+
+                calculateExprWithStrOutput(str2, *mc, configuration, false);
+
+                std::cout << str2;
+
+                /*if(std::find(mc->redefinedMacros.begin(), mc->redefinedMacros.end(), itf->first) != mc->redefinedMacros.end())
+                    std::cout << '?';*/
+
+
+                if(i < mcs.size()-1)
+                    std::cout << " | ";
+            }
+            else
+                std::cout << "not found"<< endl;
+        }
+
+        std::cout << std::endl;
+    }
+
+    }
+
 
 }
 

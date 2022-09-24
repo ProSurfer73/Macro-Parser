@@ -1068,6 +1068,14 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
     {
         expr.clear();
 
+        // Let's remove multiple from the list of possible outputs
+        for(auto it=results.begin(); it!=results.end();){
+            if(*it == "multiple")
+                it = results.erase(it);
+            else
+                ++it;
+        }
+
         // Sort and remove duplicates
         auto& v = results;
         std::sort(v.begin(), v.end());
@@ -1076,11 +1084,9 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
         //
         for(unsigned i=0; i<results.size(); ++i){
             tryConvertToHexa(results[i]);
-            if(results[i]!="multiple"){
                 expr += results[i];
                 if(i<results.size()-1)
                     expr += ", ";
-            }
         }
 
         if(results.size()>1)
@@ -1091,7 +1097,7 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
         tryConvertToHexa(expr);
 
         if(status == CalculationStatus::EVAL_ERROR)
-            expr = "unknown";
+            expr = "unknown:"+expr;
         else if(status == CalculationStatus::EVAL_WARNING)
         {
             expr += "??";

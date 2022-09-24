@@ -74,12 +74,12 @@ public:
     unsigned countMacroName(const std::string& macroName) const;
     bool isRedefined(std::string macroName) const;
     void printOrigins() const;
-    
 
-    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp=0);
 
-    void printDiff( std::vector<MacroContainer*>& mcs, const Options& configuration, int cmp=0) const;
-    
+    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param);
+
+    void printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param) const;
+
     void getListOrigins(std::vector<std::string>& v) const;
     virtual void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
 
