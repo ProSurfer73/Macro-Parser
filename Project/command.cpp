@@ -71,7 +71,8 @@ static void printAdvancedHelp()
     cout << "[command] [macrospace?]: to run the command in a macrospace, add macrospace at the end" << endl;
     cout << "- printsources [macrospace] : list the folders from which the list origins" << endl;
     cout << "- list spaces : list the macrospaces currently defined" << endl;
-    cout << "- spacediff [macrospace1] [macrospace2..] [--different?] [--notunknown?] [--notundefined?] [--alpha?]: compare values of macros between macrospaces." << endl;
+    cout << "- spacediff [macrospace1] [macrospace2..] [--different?] [--notunknown?] [--notundefined?] [--alpha?] [--increasing?] [--decreasing?]: compare values of macros between macrospaces." << endl;
+    cout << "spacediff options: different=keep only macros with different values, notunknown/notundefined: don't show macros with unknown/undefined macro values, increasing/decreasing: sort the macros by macro values in increasing/decreasing order" << std::endl;
     cout << "msall is a macrospace that designate all the macrospaces unified." << endl;
 
     /*cout << "\nSPECIAL PARAMETERS (to be implemnted)" << endl;
@@ -703,7 +704,7 @@ bool CommandManager::runCommand(string input)
 
         cout << "output: " << expr;
 
-        if(status != CalculationStatus::EVAL_ERROR && tryConvertToHexa(expr) )
+        if(status  != CalculationStatus::EVAL_ERROR && tryConvertToHexa(expr) )
             cout << " (hexa: " << expr << ')';
 
         if(status == CalculationStatus::EVAL_WARNING)
