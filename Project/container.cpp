@@ -522,9 +522,11 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                 std::cout << ss;
 
             std::cout << std::endl;
+
+            ++totalDisplayed;
         }
 
-        ++totalDisplayed;
+
     }
 
     std::cout << totalDisplayed << " macros were displayed." << std::endl;

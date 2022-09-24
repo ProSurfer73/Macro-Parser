@@ -385,7 +385,6 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
                 abcd--;
         }
 
-
         std::string theleft = expr.substr(thepos, searchedInterrogation);
         std::string theright = expr.substr(searchedInterrogation+1);
 
@@ -428,6 +427,8 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
                     expr = theright.substr(0, kk);
                     didSomething=true;
                 }
+                else
+                    return didSomething;
             }
             else
             {
