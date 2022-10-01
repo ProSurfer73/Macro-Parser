@@ -548,10 +548,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     maxSizeReplace = p.first;
                 }
             }
-            else if(mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
+            else if(mac.size()>3 && mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
                 && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
             {
-                maxSizeReplaceSig = mac;
+                if(mac.size() > maxSizeReplaceSig.size())
+                    maxSizeReplaceSig = mac;
             }
         }
 
@@ -669,12 +670,19 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     }
 
+                    // Before making a mistake let's check that it is not a parametered macro by looking at its value
+                    if(p.first.find("(x)") == std::string::npos)
+                    {
+
+
                     if(config.doesPrintReplacements()){
-                        std::cout << "replaced '" << p.first << "' by '" << p.second << "'" << endl;
+                        std::cout << "replaced '" << p.first << "' by '" << replacedBy << "'" << endl;
                     }
 
                     // finally, let's replace-it in the expression
                     simpleReplace(expr, p.first, replacedBy);
+
+                    }
                 }
 
                 if(config.doesPrintExprAtEveryStep())
@@ -691,7 +699,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         #endif
 
         }
-        else if(!maxSizeReplaceSig.empty())
+        if(!maxSizeReplaceSig.empty())
         {
             // Look for single parameter macro
             for(const pair<string,string>& p: dictionary)
@@ -797,7 +805,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     {
         size_t posClosePar = expr.find_first_of(')');
         size_t posOpenPar = posClosePar;
-        for(;expr[posOpenPar]!='('; posOpenPar--);
+        for(;posOpenPar>=0 && expr[posOpenPar]!='('; posOpenPar--);
+
+        if(posOpenPar < 0){
+            throw std::runtime_error("')' found but '(' not found.");
+        }
 
         string toBeCalculated = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
 
@@ -819,6 +831,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         {
             double value = evaluateSimpleArithmeticExpr(toBeCalculated);
 
+            //std::cout << "there is op" << std::endl;
             expr = (expr.substr(0,posOpenPar) + to_string(value)) + expr.substr(posClosePar+1);
         }
         else
@@ -832,6 +845,12 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
             if(isNumber)
             {
+                // If it is a parametered macro just before the parenthesis, we skip
+                if(posOpenPar > 0 && isMacroCharacter(expr[posOpenPar-1])){
+                    //std::cout << "ALERTE" << std::endl;
+                    break;
+                }
+
                 // We've got to remove the parenthesis around the number, for instance : (14.2) => 14.2
 
                 /*string begStr = expr.substr(0,posOpenPar);
@@ -843,6 +862,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 string endStr = &expr[posClosePar+1];
 
                 expr = begStr + midStr + endStr;
+
+                //std::cout << "after: " << expr << std::endl;
             }
             else{
                 break;
@@ -864,7 +885,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     // If there is an operation character, the expr look good, and no parentheses
     if(containsOperation(expr) && doesExprLookOk(expr) && !containsAlpha(expr) && expr.find('(')==std::string::npos && expr.find(')')==std::string::npos)
     {
+        //std::cout << "aa" << std::endl;
         expr = std::to_string(evaluateSimpleArithmeticExpr(expr));
+        if(config.doesPrintExprAtEveryStep()){
+            std::cout << expr << '.' << std::endl;
+        }
     }
 
 
@@ -914,7 +939,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             endStr = &expr[posClosePar+1];
 
             // If it is a number, let's just remove the parentheses for now
-            bool isOnlyNumbers=true;
+            /*bool isOnlyNumbers=true;
             for(char c: subExpr){
                 if(!(c == '.' || isdigit(c)))
                     isOnlyNumbers=false;
@@ -924,13 +949,17 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 expr = begStr+subExpr+endStr;
                 repeat=true;
                 goto restartArithmeticEval;
-            }
+            }*/
 
             // Let's to reevaluate what is in the parenthesis
             std::string subExpr2 = subExpr;
+            //std::cout << "entry1" << std::endl;
             auto status2 = calculateExpression(subExpr2, macroContainer, config, nullptr, enableBoolean, nullptr, redef);
-            if(status2 == CalculationStatus::EVAL_OKAY)
+            //std::cout << "end1" << std::endl;
+            if(status2 == CalculationStatus::EVAL_OKAY
+            && (begStr.empty() || !isMacroCharacter(begStr.back())))
             {
+                //std::cout << "shorter" << std::endl;
                 expr = begStr+subExpr2+endStr;
                 repeat=true;
             }
