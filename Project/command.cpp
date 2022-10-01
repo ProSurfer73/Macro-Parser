@@ -275,8 +275,64 @@ bool CommandManager::runCommand(string input)
             }
             else if(possibleValues.size()==1)
             {
-                std::cout << "No need to interpret this macro." << endl;
-                std::cout << "This macro has already one definition." << endl;
+                // Let's try to interpret the macro from there.
+                std::vector<std::string> warnings;
+                std::string expression=possibleValues.front();
+                auto status = calculateExpression(expression, *mc, configuration, &warnings);
+                expression=possibleValues.front();
+
+                if(!warnings.empty())
+                {
+                    while(!warnings.empty())
+                    {
+                        warnings.clear();
+                        expression=possibleValues.front();
+                        status = calculateExpression(expression, *mc, configuration, &warnings);
+
+                        if(warnings.empty())
+                            break;
+
+                        // List the possible values for the macro selectionned
+                        std::vector<std::string> possibilities;
+                        for(auto it=mc->getDefines().begin(); it!=mc->getDefines().end(); ++it){
+                            if(it->first == warnings.front())
+                                possibilities.push_back(it->second);
+                        }
+
+                        // Now print the choice the user has to make
+                        std::cout << warnings.front() << " has " << possibilities.size() << " possible definitions." << std::endl;
+                        for(unsigned i=0; i<possibilities.size(); ++i){
+                            std::cout << (i+1) << ". \"" << possibilities[i] << '\"' << std::endl;
+                        }
+                        std::cout << "0. Stop intepretation here" << std::endl;
+
+                        // Let the user choose
+                        std::string userInput;
+                        std::getline(std::cin, userInput);
+
+                        int numInput = -1;
+
+                        try
+                        {
+                            numInput = std::stoi(userInput);
+                        }
+                        catch(std::exception& ex)
+                        {
+                            numInput = -1;
+                        }
+
+                        if(numInput >= 1 && numInput <= possibilities.size()){
+                            mc->emplaceAndReplace(warnings.front(), possibilities[numInput-1]);
+                        }
+                        else
+                            break;
+                    }
+                }
+                else
+                {
+                    std::cout << "No need to interpret this macro." << endl;
+                    std::cout << "This macro has already one definition." << endl;
+                }
             }
             else
             {

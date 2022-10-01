@@ -54,7 +54,7 @@ double evaluateSimpleArithmeticExpr(const std::string& expr);
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
 enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
-std::vector<std::string>* redefinedList=nullptr, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr, std::vector< std::pair<std::string, std::string> >* redef=nullptr);;
+std::vector<std::string>* printWarnings=nullptr, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr, std::vector< std::pair<std::string, std::string> >* redef=nullptr);;
 
 void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer,
             const Options& options, bool expand=true, std::vector<std::pair<std::string,std::string> >* redef=nullptr);
