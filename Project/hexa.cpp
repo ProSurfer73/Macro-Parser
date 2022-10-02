@@ -147,7 +147,8 @@ bool tryConvertToHexa(std::string& deciStr)
     long int myint = std::atol(deciStr.c_str());
 
     // Conversion to long int: okay
-    if(myint > 0)
+    // We only convert numbers > 100, otherwise they should be written as decimal numbers
+    if(myint > 250)
     {
         // Let's reconvert it to hexa.
         deciStr = std::string("0x") + convertDeciToHexa(myint);
@@ -161,15 +162,45 @@ bool tryConvertToHexa(std::string& deciStr)
 
         for(char c: deciStr){
             if(!(c=='0'||c=='x'||c=='.'))
-                okay=false;
+                return false;
         }
 
-        if(okay)
-            deciStr="0x0";
-
-        return okay;
+        return true;
     }
 
     return false;
+}
+
+void locateAndReplaceEnding(std::string& str, const Options& options)
+{
+
+    restart:
+
+    int startpos = -1;
+
+    for(unsigned i=0; i<str.size(); ++i)
+    {
+        // Let's note it when we reach a digit
+        if(startpos == (-1) && isdigit(str[i]))
+        {
+            startpos = i;
+        }
+        else if(startpos != (-1) && (str[i] == 'U' || str[i]=='L' || str[i]=='l' || str[i]=='u'))
+        {
+            //std::cout << "RRR:" << str.substr(startpos, i-startpos) << std::endl;
+
+            //std::cout << "BBEF:" << str << std::endl;
+
+            str = str.substr(0, i) + str.substr(i+1);
+
+            //std::cout << "AFTE:" << str << std::endl;
+
+            goto restart;
+        }
+        else if(!isdigit(str[i]))
+            startpos = (-1);
+    }
+
+
 }
 

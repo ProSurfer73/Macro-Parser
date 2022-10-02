@@ -24,6 +24,7 @@
 #include <string.h>
 #include <iostream>
 #include <string>
+#include <ctype.h>
 
 #include "options.hpp"
 
@@ -36,5 +37,7 @@ std::string convertDeciToHexa(long int num_decimal);
 bool isHexaLetter(char c);
 
 bool tryConvertToHexa(std::string& deciStr);
+
+void locateAndReplaceEnding(std::string& str, const Options& options);
 
 #endif // HEXA_HPP

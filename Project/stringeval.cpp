@@ -492,6 +492,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     bool thereIsOperation = false;
     bool deleteRedef = false;
 
+    locateAndReplaceEnding(expr, config);
+
     try {
 
     if(!printWarnings && !doesExprLookOk(expr)){
@@ -1094,7 +1096,7 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
     std::sort(v.begin(), v.end());
     v.erase(std::unique(v.begin(), v.end()), v.end());*/
 
-    if(!results.empty() || results.size()>=1)
+    if(!results.empty())
     {
         expr.clear();
 

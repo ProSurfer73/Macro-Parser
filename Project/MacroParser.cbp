@@ -20,7 +20,6 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-Os" />
-					<Add option="-Wredundant-move" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
