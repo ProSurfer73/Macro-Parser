@@ -576,6 +576,40 @@ bool CommandManager::runCommand(string input)
             configuration.changeOption(parameters[1],parameters[2]);
         }
     }
+    else if(commandStr == "import")
+    {
+        parameters.erase(parameters.begin());
+
+        std::vector<std::string> macrospacesName;
+
+        for(const std::string& str: parameters){
+            if(MacroContainer::isNameValid(str)) {
+                // Else we have to deal with a macrospace name !
+                macrospacesName.emplace_back(str);
+            }
+        }
+
+        if(macrospacesName.empty())
+            macrospacesName.emplace_back("default");
+
+        auto& curMacroSpace = macrospaces.getMacroSpace(macrospacesName.front());
+
+        if(FileSystem::directoryExists(parameters.front().c_str()))
+        {
+            if(curMacroSpace.importFromFolder(parameters.front(), configuration)){
+                printStatMacrospace(curMacroSpace);
+            }
+            else
+                std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
+        }
+        else if(curMacroSpace.importFromFile(parameters.front(), configuration)){
+            printStatMacrospace(curMacroSpace);
+        }
+        else {
+            cout << "/!\\ Error: can't open the path provided. /!\\" << endl;
+        }
+        
+    }
     else if(commandStr == "importfile")
     {
         parameters.erase(parameters.begin());
@@ -599,7 +633,6 @@ bool CommandManager::runCommand(string input)
         }
         else {
             cout << "/!\\ Error: can't open the file provided. /!\\" << endl;
-            macrospaces.deleteMacroSpace(macrospacesName.front());
         }
     }
 
@@ -625,7 +658,6 @@ bool CommandManager::runCommand(string input)
             auto& curMacroSpace = macrospaces.getMacroSpace(macrospacesName.front());
             if(!curMacroSpace.importFromFolder(parameters[0], configuration)){
                 std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
-                macrospaces.deleteMacroSpace(macrospacesName.front());
             }
             else {
                 printStatMacrospace(curMacroSpace);
