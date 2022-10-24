@@ -35,8 +35,7 @@ static void printBasicHelp()
 {
     cout << "\nBASIC COMMANDS:" << endl;
     cout << "- help [all?] : print basic/all commands" << endl;
-    cout << "- importfile [file] : import macros from a file to the program" << endl;
-    cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
+    cout << "- import [path]: load all macros from a file or a folder" << endl;
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
     cout << "- exit : quit the program" << endl;
 
@@ -47,6 +46,7 @@ static void printAdvancedHelp()
 {
     cout << "\nBASIC COMMANDS (for first use of macro parser):" << endl;
     cout << "- help [all?] : print basic/all commands" << endl;
+    cout << "- import [path]: load all macros from a file or a folder" << endl;
     cout << "- importfile [file] : import macros from a file to the program" << endl;
     cout << "- importfolder [folder] : import all macros from all header files from a folder" << endl;
     cout << "- look [macro] : calculate the value of a macro given in input" << endl;
