@@ -1148,6 +1148,9 @@ void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::s
         if(std::isalpha(c))
             word += c;
 
+        else if(std::isdigit(c) && !word.empty())
+            word += c;
+
         else if(!word.empty())
         {
             missingMacros.push_back(word);
