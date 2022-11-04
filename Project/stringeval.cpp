@@ -1145,7 +1145,7 @@ void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::s
 
     for(char c: expr)
     {
-        if(std::isalpha(c))
+        if(std::isalpha(c) || c=='_')
             word += c;
 
         else if(std::isdigit(c) && !word.empty())
