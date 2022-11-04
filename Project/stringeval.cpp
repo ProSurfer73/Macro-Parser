@@ -1138,3 +1138,23 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
     }
 
 }
+
+void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::string& expr)
+{
+    std::string word;
+
+    for(char c: expr)
+    {
+        if(std::isalpha(c))
+            word += c;
+
+        else if(!word.empty())
+        {
+            missingMacros.push_back(word);
+            word.clear();
+        }
+    }
+
+    if(!word.empty())
+        missingMacros.push_back( std::move(word) );
+}

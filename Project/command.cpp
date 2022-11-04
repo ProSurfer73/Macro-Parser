@@ -23,6 +23,7 @@
 #include "stringeval.hpp"
 #include "macrospace.hpp"
 
+
 CommandManager::CommandManager()
 {}
 
@@ -457,6 +458,31 @@ bool CommandManager::runCommand(string input)
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
+                        };
+
+                        if(status == CalculationStatus::EVAL_ERROR)
+                        {
+                            std::vector<std::string> needToBeDefinedMacros;
+                            listUndefinedFromExpr(needToBeDefinedMacros, putput);
+
+                            if(!needToBeDefinedMacros.empty())
+                            {
+                                std::cout << (needToBeDefinedMacros.size() == 1?"\nThis macro needs":"\nMultiple macros need");
+                                std::cout << " to be defined : ";
+
+                                for(unsigned i=0; i<needToBeDefinedMacros.size(); ++i)
+                                {
+                                    std::cout << needToBeDefinedMacros[i];
+                                    if(i<needToBeDefinedMacros.size()-1)
+                                        std::cout << ", ";
+                                }
+
+                                std::cout << std::endl;
+
+                                std::cout << "In order to define " <<(needToBeDefinedMacros.size() == 1?"it":"them");
+                                std::cout << ", please type: 'define [macroName] [value]'" << std::endl;
+                                std::cout << "for instance: 'define " << needToBeDefinedMacros.front() << " 1.49'" << std::endl;
+                            }
                         }
 
                         foundSomething=true;
@@ -594,21 +620,30 @@ bool CommandManager::runCommand(string input)
 
         auto& curMacroSpace = macrospaces.getMacroSpace(macrospacesName.front());
 
-        if(FileSystem::directoryExists(parameters.front().c_str()))
+        if(parameters.empty())
         {
-            if(curMacroSpace.importFromFolder(parameters.front(), configuration)){
+
+        }
+        else
+        {
+            if(FileSystem::directoryExists(parameters.front().c_str()))
+            {
+                if(curMacroSpace.importFromFolder(parameters.front(), configuration)){
+                    printStatMacrospace(curMacroSpace);
+                }
+                else
+                    std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
+            }
+            else if(curMacroSpace.importFromFile(parameters.front(), configuration)){
                 printStatMacrospace(curMacroSpace);
             }
-            else
-                std::cout << "/!\\ Error: Can't open this directory /!\\" << endl;
+            else {
+                cout << "/!\\ Error: can't open the path provided. /!\\" << endl;
+            }
         }
-        else if(curMacroSpace.importFromFile(parameters.front(), configuration)){
-            printStatMacrospace(curMacroSpace);
-        }
-        else {
-            cout << "/!\\ Error: can't open the path provided. /!\\" << endl;
-        }
-        
+
+
+
     }
     else if(commandStr == "importfile")
     {
@@ -806,9 +841,34 @@ bool CommandManager::runCommand(string input)
             cout << endl;
         if(status == CalculationStatus::EVAL_ERROR)
         {
-            cout << "\n/!\\ The expression can't be calculated. /!\\" << endl;
+            cout << "/!\\ The expression can't be calculated. /!\\" << endl;
         }
 
+        }
+
+        if(status == CalculationStatus::EVAL_ERROR)
+        {
+            std::vector<std::string> needToBeDefinedMacros;
+            listUndefinedFromExpr(needToBeDefinedMacros, expr);
+
+            if(!needToBeDefinedMacros.empty())
+            {
+                std::cout << (needToBeDefinedMacros.size() == 1?"\nThis macro needs":"\nMultiple macros need");
+                std::cout << " to be defined : ";
+
+                for(unsigned i=0; i<needToBeDefinedMacros.size(); ++i)
+                {
+                    std::cout << needToBeDefinedMacros[i];
+                    if(i<needToBeDefinedMacros.size()-1)
+                        std::cout << ", ";
+                }
+
+                std::cout << std::endl;
+
+                std::cout << "In order to define " <<(needToBeDefinedMacros.size() == 1?"it":"them");
+                std::cout << ", please type: 'define [macroName] [value]'" << std::endl;
+                std::cout << "for instance: 'define " << needToBeDefinedMacros.front() << " 1.49'" << std::endl;
+            }
         }
     }
     else if(commandStr.substr(0,4) == "list")
