@@ -23,6 +23,8 @@
 #include "stringeval.hpp"
 #include "macrospace.hpp"
 
+static auto* gg = std::cout.rdbuf();
+
 
 CommandManager::CommandManager()
 {}
@@ -61,7 +63,8 @@ static void printAdvancedHelp()
 
     cout << "\nADVANCED COMMANDS (other useful commands):" << endl;
     cout << "- define [macro] [value] : add/replace a specific macro by a specific value" << endl;
-    cout << "- interpret [macro] : look and choose among possible definitions for this macro" << endl;
+    cout << "- interpret [macro] : look and choose among possible definitions for a macro" << endl;
+    cout << "- interpretall [macro] : interpret all macros involved in [macro] evaluation" << endl;
     cout << "- evaluate [expr] : evaluate an expression that may contain macros, boolean values.." << endl;
     cout << "- options : display the options used for file import and string evaluation" << endl;
     cout << "- changeoption [name] [value] : change the parameter given to an option" << endl;
@@ -157,7 +160,7 @@ static void printStatMacrospace(MacroContainer const& mc)
 
 
 
-bool CommandManager::runCommand(string input)
+bool CommandManager::runCommand(const string& input)
 {
     // Extract command and parameters from str
     std::vector<std::string> parameters;
@@ -277,12 +280,20 @@ bool CommandManager::runCommand(string input)
             else if(possibleValues.size()==1)
             {
                 // Let's try to interpret the macro from there.
+
+                std::cout << macroName << " has already one definition." << std::endl;
+
                 std::vector<std::string> warnings;
                 std::string expression=possibleValues.front();
-                auto status = calculateExpression(expression, *mc, configuration, &warnings);
+                std::cout.rdbuf(nullptr);
+                auto status = calculateExpression(expression, *mc, configuration, &warnings );
+                std::cout.rdbuf(gg);
                 expression=possibleValues.front();
 
                 if(!warnings.empty())
+                    std::cout << "Did you mean \"interpretall " << macroName << "\" ?" << std::endl;
+
+                /*if(!warnings.empty())
                 {
                     while(!warnings.empty())
                     {
@@ -333,7 +344,7 @@ bool CommandManager::runCommand(string input)
                 {
                     std::cout << "No need to interpret this macro." << endl;
                     std::cout << "This macro has already one definition." << endl;
-                }
+                }*/
             }
             else
             {
@@ -370,6 +381,114 @@ bool CommandManager::runCommand(string input)
             }
         }
 
+        }
+    }
+    else if(commandStr == "interpretall")
+    {
+        if(parameters.size()>3)
+        {
+            std::cout << "Error: too many parameters for this command" << std::endl;
+        }
+        else
+        {
+
+        std::cout << "\nYou are now going to find the unique possible value for " << parameters[1] << '.' << std::endl;
+
+        // Let's select the corresponding macrospace
+        MacroContainer *mc = nullptr;
+        for(unsigned i=1; i<parameters.size() && !mc; ++i){
+            mc = macrospaces.tryGetMacroSpace(parameters[i]);
+        }
+        if(!mc)
+            mc = &(macrospaces.getMacroSpace("default"));
+
+
+        // Let's try to interpret the macro from there.
+        std::vector<std::string> warnings;
+        std::vector<std::string> possibleValues;
+        std::string expression=parameters[1];
+        std::cout.rdbuf(nullptr);
+        auto status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
+        std::cout.rdbuf(gg);
+
+        if(!warnings.empty() && possibleValues.size()>1)
+        {
+            while(!warnings.empty() && possibleValues.size()>1)
+            {
+                warnings.clear();
+                expression=parameters[1];
+                std::cout.rdbuf(nullptr);
+                status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
+                std::cout.rdbuf(gg);
+
+                if(warnings.empty())
+                    break;
+
+                // List the possible values for the macro selectionned
+                std::vector<std::string> possibilities;
+                for(auto it=mc->getDefines().begin(); it!=mc->getDefines().end(); ++it){
+                    if(it->first == warnings.front())
+                        possibilities.push_back(it->second);
+                }
+
+                // Let's remove multiple from the list of possible outputs
+                auto& results = possibleValues;
+                for(auto it=results.begin(); it!=results.end();){
+                    if(*it == "multiple")
+                        it = results.erase(it);
+                    else
+                        ++it;
+                }
+
+                // Now let's print the ramaining values for
+                std::cout << std::endl << parameters[1] << " has for now " << possibleValues.size() << " possible evaluations: ";
+                for(unsigned i=0; i<possibleValues.size(); ++i){
+                        std::cout << possibleValues[i];
+                        if(i<possibleValues.size()-1)
+                            std::cout << ", ";
+                }
+                std::cout << std::endl;
+
+
+
+                std::cout << "Let's interpret " << warnings.front() << " that has " << possibilities.size() << " possible definitions." << std::endl;
+                for(unsigned i=0; i<possibilities.size(); ++i){
+                    std::cout << (i+1) << ". \"" << possibilities[i] << '\"' << std::endl;
+                }
+                std::cout << "0. Stop intepretation here" << std::endl;
+
+                std::cout << " >> ";
+
+                // Let the user choose
+                std::string userInput;
+                std::getline(std::cin, userInput);
+
+                int numInput = -1;
+
+                try
+                {
+                    numInput = std::stoi(userInput);
+                }
+                catch(std::exception& ex)
+                {
+                    numInput = -1;
+                }
+
+                if(numInput >= 1 && numInput <= possibilities.size()){
+                    mc->emplaceAndReplace(warnings.front(), possibilities[numInput-1]);
+                }
+                else
+                    break;
+            }
+
+            // Let's print the final value of B
+            std::cout << "\nCONCLUSION: " << parameters[1] << " is equal to " << expression << '.' << std::endl;
+        }
+        else
+        {
+            std::cout << "No need to interpret this macro." << endl;
+            std::cout << "This macro has already one definition." << endl;
+        }
         }
     }
     else if(parameters.front() == "look")
@@ -434,6 +553,7 @@ bool CommandManager::runCommand(string input)
                             cout << "\nIt seems that you are using macros that have been redefined." << endl;
                             cout << "The output can't be trusted." << endl;
                             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+                            cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first << "'." << endl;
                         }
                         else
                         {
@@ -455,6 +575,7 @@ bool CommandManager::runCommand(string input)
                                 cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
                                 cout << "The output can't be trusted." << endl;
                                 cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+                                cout << "To fix all macros: please type 'interpretall " << p.first << "'." << endl;
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
@@ -622,7 +743,7 @@ bool CommandManager::runCommand(string input)
 
         if(parameters.empty())
         {
-
+            std::cout << "/!\\ Error: you must specify a path. /!\\" << std::endl;
         }
         else
         {
@@ -744,7 +865,7 @@ bool CommandManager::runCommand(string input)
                     if(!searchDirectory(str2, parameters[1], configuration))
                     {
                         if(FileSystem::directoryExists(str2.c_str()))
-                            std::cout << "Can't open the directory '" << str2 << "'" << endl;
+                            std::cout << "Can't open the directory '" << str2 << "'." << endl;
                         else
                             std::cout << "The directory '" << str2 << "' doesn't seem to exist." << std::endl;
                     }
@@ -810,6 +931,7 @@ bool CommandManager::runCommand(string input)
             cout << "\nIt seems that you are using macros that have been redefined." << endl;
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+            cout << "To fix all macros: please type 'interpretall " << input.substr(9) << "'." << endl;
         }
         else
         {
@@ -836,6 +958,7 @@ bool CommandManager::runCommand(string input)
             cout << "It seems that you are using macros that have been redefined." << endl;
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
+            cout << "To fix all macros: please type 'interpretall " << input.substr(9) << "'." << endl;
         }
         else
             cout << endl;
@@ -945,6 +1068,17 @@ bool CommandManager::runCommand(string input)
                 }
             }
 
+            if(listIn)
+            {
+                for(const auto& p: mc->getIncorrectMacros())
+                {
+                    cout << " - " << p.first << " => " << p.second << endl;
+                    ++nbPrinted;
+
+
+                }
+            }
+
             if(nbPrinted >= 5000)
             {
                 std::cout << "Only printed the first 5000 results." << endl;
@@ -952,20 +1086,7 @@ bool CommandManager::runCommand(string input)
             }
         }
 
-        if(listIn)
-        {
-            for(const auto& p: mc->getIncorrectMacros())
-            {
-                cout << " - " << p.first << " => " << p.second << endl;
-                ++nbPrinted;
 
-                if(nbPrinted >= 5000)
-                {
-                    std::cout << "Only printed the first 5000 results." << endl;
-                    break;
-                }
-            }
-        }
 
         }
 
@@ -1032,7 +1153,7 @@ bool CommandManager::runCommand(string input)
 
         }
     }
-    else if(commandStr == "helpall" || (parameters.size()==2 && parameters.front()+parameters[1]=="helpall"))
+    else if(commandStr == "helpall" || (parameters.size()==2 && commandStr=="help" && parameters[1]=="all"))
         printAdvancedHelp();
     else if(commandStr == "help")
         printBasicHelp();
@@ -1100,8 +1221,6 @@ static bool isEmptyLine(const std::string& str)
     }
     return true;
 }
-
-static auto* gg = std::cout.rdbuf();
 
 bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
 {

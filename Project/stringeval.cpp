@@ -116,28 +116,28 @@ static void func(double &result, char op, double num)
     }
 }
 
-static string extractVeryRightPart(string expr, size_t pos)
+static string extractVeryRightPart(const std::string& expr, size_t pos)
 {
     std::size_t i=pos;
     for(; i < expr.size() && expr[i]!='&' && expr[i]!='|'; ++i);
     return expr.substr(i);
 }
 
-static string extractVeryLeftPart(string expr, size_t pos)
+static string extractVeryLeftPart(const string& expr, size_t pos)
 {
     std::size_t i=0;
     for(; pos-i > 0 && (i==0 || (expr[pos-i-1]!='&' && expr[pos-i-1]!='|')); ++i);
     return expr.substr(0, pos-i);
 }
 
-static string extractRightPart(string expr, size_t pos)
+static string extractRightPart(const string& expr, size_t pos)
 {
     std::size_t i=pos;
     for(; i < expr.size() && expr[i]!='&' && expr[i]!='|'; ++i);
     return expr.substr(pos, i-pos);
 }
 
-static string extractLeftPart(string expr, size_t pos)
+static string extractLeftPart(const string& expr, size_t pos)
 {
     std::size_t i=0;
     for(; pos-i > 0 && (i==0 || (expr[pos-i-1]!='&' && expr[pos-i-1]!='|')); ++i);
@@ -161,16 +161,17 @@ static bool evaluateSimpleBooleanExpr(string& expr)
         string leftPart = extractLeftPart(expr,searchedOperator);
         string rightPart = extractRightPart(expr,searchedOperator+2);
 
-        string veryLeftPart = extractVeryLeftPart(expr, searchedOperator);
-        string veryRightPart = extractVeryRightPart(expr, searchedOperator+2);
-
         /*std::cout << "&&veryLeft: " << veryLeftPart << "'" << std::endl;
         std::cout << "&&veryRight: " << veryRightPart << "'" << std::endl;
         std::cout << "&&leftPart: " << leftPart << "'" << endl;
         std::cout << "&&rightPart: " << rightPart << "'" << endl;*/
 
         if(leftPart=="false" || rightPart=="false")
+        {
+            string veryLeftPart = extractVeryLeftPart(expr, searchedOperator);
+            string veryRightPart = extractVeryRightPart(expr, searchedOperator+2);
             expr = (veryLeftPart+"false")+veryRightPart;
+        }
         else if(leftPart=="true")
             expr = rightPart;//veryLeftPart+rightPart+veryRightPart;
         else if(rightPart=="true")

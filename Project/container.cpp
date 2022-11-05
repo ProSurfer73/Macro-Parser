@@ -600,12 +600,15 @@ void MacroContainer::getListOrigins(std::vector<std::string>& v) const
 
 void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
+    // 1. Let's add or replace it in the database
     MacroDatabase::emplaceAndReplace(macroName, macroValue);
+
+    // 2. Let's note where it comes from
     std::string added = "define ";
     added += macroName;
     added += ' ';
     added += macroValue;
-    origins.emplace_back(added);
+    origins.emplace_back( std::move(added) );
 }
 
 

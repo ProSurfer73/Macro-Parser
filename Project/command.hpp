@@ -39,7 +39,7 @@ public:
 
     // Command line methods
     void dealWithUser();
-    bool runCommand(string str);
+    bool runCommand(const string& str);
     bool loadScript(const std::string& filepath, bool printStatus=false);
 
 private:

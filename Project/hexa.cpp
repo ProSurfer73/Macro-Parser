@@ -147,24 +147,12 @@ bool tryConvertToHexa(std::string& deciStr)
     long int myint = std::atol(deciStr.c_str());
 
     // Conversion to long int: okay
-    // We only convert numbers > 100, otherwise they should be written as decimal numbers
+    // We only convert numbers > 250, otherwise they should be written as decimal numbers
     if(myint > 250)
     {
         // Let's reconvert it to hexa.
-        deciStr = std::string("0x") + convertDeciToHexa(myint);
-        return true;
-    }
-
-    // There might be a problem with conversion, let's check the string
-    else
-    {
-        bool okay=true;
-
-        for(char c: deciStr){
-            if(!(c=='0'||c=='x'||c=='.'))
-                return false;
-        }
-
+        deciStr = "0x";
+        deciStr += convertDeciToHexa(myint);
         return true;
     }
 
