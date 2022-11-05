@@ -103,22 +103,28 @@ static bool destructLongComment(std::string& str)
 
 #if (defined(_WIN32) || defined(_WIN64))
 
-void explore_directory(const std::string& dirname, std::vector<std::string>& files)
+void explore_directory(std::string dirname, std::vector<std::string>& files)
 {
     WIN32_FIND_DATA data;
     HANDLE hFind;
-    if ((hFind = FindFirstFile((dirname+"\\*").c_str(), &data)) != INVALID_HANDLE_VALUE)
+
+    if(dirname.back()!='\\')
+        dirname += '\\';
+
+    //std::cout << "dirname: " << dirname << std::endl;
+
+    if ((hFind = FindFirstFile((dirname+'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
     {
         do
         {
             if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
                 if(strcmp(data.cFileName, ".")!=0 && strcmp(data.cFileName, "..")!= 0){
-                    explore_directory(dirname+'\\'+data.cFileName,files);
+                    explore_directory(dirname+data.cFileName,files);
                 }
 
             }
             else {
-                files.emplace_back(dirname+'\\'+data.cFileName);
+                files.emplace_back(dirname+data.cFileName);
             }
             //Sleep(500);
         }
