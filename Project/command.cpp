@@ -154,8 +154,8 @@ static bool isAllDigits(const std::string& str)
 static void printStatMacrospace(MacroContainer const& mc)
 {
     cout << mc.getDefines().size()+mc.getIncorrectMacros().size() << " macros were loaded." << endl;
-    cout << "|-> " << mc.getRedefinedMacros().size() << " macros have been redefined." << endl;
-    cout << "|-> " << mc.getIncorrectMacros().size() << " macros seem incorrect." << endl;
+    cout << "|-> " << mc.getRedefinedMacros().size() << " macros have multiple definitions." << endl;
+    cout << "|-> " << mc.getIncorrectMacros().size() << " macros are empty or incorrect." << endl;
 }
 
 
@@ -516,12 +516,36 @@ bool CommandManager::runCommand(const string& input)
                         auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, &redefinedList, true, &results);//&results);
                         found=true;
 
+                        // Let's show the redefined macros
+                        if(!redefinedList.empty())
+                        {
+                            std::cout << "/!\\ Warning: the macro";
+                            if(redefinedList.size()>1)
+                                std::cout << 's';
+                            std::cout << ' ';
+
+
+                            for(unsigned i=0;i<redefinedList.size(); ++i){
+                                std::cout << redefinedList[i];
+                                if(i<redefinedList.size()-1)
+                                    std::cout << ", ";
+                            }
+
+                            if(redefinedList.size()==1)
+                                std::cout << " has";
+                            else
+                                std::cout << " have";
+                            std::cout << " multiple definitions /!\\" << std::endl;
+                        }
+
+                        // Let's print what the expression looked like before evaluation
+                        cout << "first definition: " << p.second << endl;
+
                         if(!results.empty())
                         {
-                            // Sort and remove duplicates
+                            // Sort the results
                             auto& v = results;
                             std::sort(v.begin(), v.end());
-                            v.erase(std::unique(v.begin(), v.end()), v.end());
 
                             std::cout << results.size() << " possible results: ";
                             for(unsigned i=0; i<results.size(); ++i){
@@ -533,15 +557,13 @@ bool CommandManager::runCommand(const string& input)
                             }
                             std::cout << std::endl;
 
-                            cout << "\nIt seems that you are using macros that have been redefined." << endl;
+                            cout << "\nIt seems that you are using macros that have multiple definitions." << endl;
                             cout << "The output can't be trusted." << endl;
                             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
                             cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first << "'." << endl;
                         }
                         else
                         {
-                            cout << "first definition: " << p.second << endl;
-
                             //auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                             if(status == CalculationStatus::EVAL_ERROR)
                                 cout << "/!\\ The expression can't be calculated. /!\\" << endl;
@@ -555,10 +577,10 @@ bool CommandManager::runCommand(const string& input)
                                     cout << " (hexa: " << putput << ')';
                             }
                             if(status == CalculationStatus::EVAL_WARNING){
-                                cout << "\n\nIt seems that you are using macros that have been redefined." << endl;
+                                cout << "\n\nIt seems that you are using macros that have multiple definitions." << endl;
                                 cout << "The output can't be trusted." << endl;
                                 cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-                                cout << "To fix all macros: please type 'interpretall " << p.first << "'." << endl;
+                                cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first << "'." << endl;
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
@@ -584,8 +606,8 @@ bool CommandManager::runCommand(const string& input)
                                 std::cout << std::endl;
 
                                 std::cout << "In order to define " <<(needToBeDefinedMacros.size() == 1?"it":"them");
-                                std::cout << ", please type: 'define [macroName] [value]'" << std::endl;
-                                std::cout << "for instance: 'define " << needToBeDefinedMacros.front() << " 1.49'" << std::endl;
+                                std::cout << ", please type: 'define [macroName] [value]'." << std::endl;
+                                std::cout << "for instance: 'define " << needToBeDefinedMacros.front() << " 1.49'." << std::endl;
                             }
                         }
 
@@ -623,9 +645,7 @@ bool CommandManager::runCommand(const string& input)
             std::cout << "Error: no parameter was given to the define command." << endl;
         else
         {
-            string str2;
             if(parameters.size()>=3){
-                str2 = parameters[2];
                 if(!doesExprLookOk(parameters[2]))
                     cout << "/!\\ Warning: the expression of the macro doesn't look correct. /!\\" << endl;
             }
@@ -886,12 +906,33 @@ bool CommandManager::runCommand(const string& input)
         std::vector<std::string> results, warnings;
         auto status = calculateExpression(expr, *mc, configuration, &warnings, true, &results);
 
+        // Let's print the macros having multiple definitions first
+        if(!warnings.empty())
+        {
+            std::cout << "/!\\ Warning: the macro";
+            if(warnings.size()>1)
+                std::cout << 's';
+            std::cout << ' ';
+
+
+            for(unsigned i=0;i<warnings.size(); ++i){
+                std::cout << warnings[i];
+                if(i<warnings.size()-1)
+                    std::cout << ", ";
+            }
+
+            if(warnings.size()==1)
+                std::cout << " has";
+            else
+                std::cout << " have";
+            std::cout << " multiple definitions /!\\" << std::endl;
+        }
+
         if(!results.empty())
         {
-            // Sort and remove duplicates
+            // Sort
             auto& v = results;
             std::sort(v.begin(), v.end());
-            v.erase(std::unique(v.begin(), v.end()), v.end());
 
             std::cout << results.size() << " possible results: ";
             for(unsigned i=0; i<results.size(); ++i){
@@ -903,10 +944,10 @@ bool CommandManager::runCommand(const string& input)
             }
             std::cout << std::endl;
 
-            cout << "\nIt seems that you are using macros that have been redefined." << endl;
+            cout << "\nIt seems that you are using macros that have multiple definitions." << endl;
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-            cout << "To fix all macros: please type 'interpretall " << input.substr(9) << "'." << endl;
+            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9) << "'." << endl;
         }
         else
         {
@@ -930,10 +971,10 @@ bool CommandManager::runCommand(const string& input)
         if(status == CalculationStatus::EVAL_WARNING)
         {
             cout << " ???" << endl;
-            cout << "It seems that you are using macros that have been redefined." << endl;
+            cout << "It seems that you are using macros that have multiple definitions." << endl;
             cout << "The output can't be trusted." << endl;
             cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-            cout << "To fix all macros: please type 'interpretall " << input.substr(9) << "'." << endl;
+            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9) << "'." << endl;
         }
         else
             cout << endl;

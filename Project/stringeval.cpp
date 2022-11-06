@@ -457,14 +457,20 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
 
 static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
 {
-    if(v.empty()){
-        v.emplace_back(macroName);
+    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.push_back(macroName);
         return true;
     }
 
-    if(std::find(v.begin(), v.end(), macroName)==v.end())
+    return false;
+}
+
+static bool emplaceOnce(std::vector< std::string >& v, std::string&& macroName)
+{
+    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
     {
-        v.emplace_back(macroName);
+        v.emplace_back( std::move(macroName) );
         return true;
     }
 
@@ -645,19 +651,19 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                                         redef->emplace_back(pp.first, pp.second);
 
                                         auto status = calculateExpression(anotherExpr, macroContainer, config, printWarnings, enableBoolean, outputs, redef);
-                                        if(anotherExpr != "multiple")
+                                        if(!anotherExpr.empty())
                                         {
                                             if(status == CalculationStatus::EVAL_OKAY)
-                                                emplaceOnce(*outputs, anotherExpr);
+                                                emplaceOnce(*outputs, std::move(anotherExpr) );
                                             else if(status == CalculationStatus::EVAL_ERROR){
                                                 std::string sss="undefined:";
                                                 sss += anotherExpr;
-                                                emplaceOnce(*outputs, sss);
+                                                emplaceOnce(*outputs, std::move(sss) );
                                                 status = CalculationStatus::EVAL_WARNING;
                                             }
                                             else if(status == CalculationStatus::EVAL_WARNING){
                                                 anotherExpr += '?';
-                                                emplaceOnce(*outputs, anotherExpr);
+                                                emplaceOnce(*outputs, std::move(anotherExpr) );
                                                 status = CalculationStatus::EVAL_WARNING;
                                             }
                                         }
@@ -669,7 +675,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                             if(oneThing)
                             {
-                                expr = "multiple";
+                                expr.clear();
 
                                 if(deleteRedef) delete redef;
                                 return status;
@@ -686,7 +692,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
                     if(config.doesPrintReplacements()){
-                        std::cout << "replaced '" << p.first << "' by '" << *replacedBy << "'" << endl;
+                        std::cout << "replaced '" << p.first << "' by '" << *replacedBy << '\'' << endl;
                     }
 
                     // finally, let's replace-it in the expression
@@ -1104,14 +1110,6 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
     {
         expr.clear();
 
-        // Let's remove multiple from the list of possible outputs
-        for(auto it=results.begin(); it!=results.end();){
-            if(*it == "multiple")
-                it = results.erase(it);
-            else
-                ++it;
-        }
-
         // Sort and remove duplicates
         //auto& v = results;
         //std::sort(v.begin(), v.end());
@@ -1157,7 +1155,7 @@ void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::s
 
         else if(!word.empty())
         {
-            missingMacros.push_back(word);
+            missingMacros.push_back( std::move(word) );
             word.clear();
         }
     }
