@@ -285,9 +285,7 @@ bool CommandManager::runCommand(const string& input)
 
                 std::vector<std::string> warnings;
                 std::string expression=possibleValues.front();
-                std::cout.rdbuf(nullptr);
                 auto status = calculateExpression(expression, *mc, configuration, &warnings );
-                std::cout.rdbuf(gg);
                 expression=possibleValues.front();
 
                 if(!warnings.empty())
@@ -407,19 +405,16 @@ bool CommandManager::runCommand(const string& input)
         std::vector<std::string> warnings;
         std::vector<std::string> possibleValues;
         std::string expression=parameters[1];
-        std::cout.rdbuf(nullptr);
         auto status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
-        std::cout.rdbuf(gg);
 
         if(!warnings.empty() && possibleValues.size()>1)
         {
             while(!warnings.empty() && possibleValues.size()>1)
             {
                 warnings.clear();
+                possibleValues.clear();
                 expression=parameters[1];
-                std::cout.rdbuf(nullptr);
                 status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
-                std::cout.rdbuf(gg);
 
                 if(warnings.empty())
                     break;
@@ -448,10 +443,20 @@ bool CommandManager::runCommand(const string& input)
                 }
                 std::cout << "0. Stop intepretation here" << std::endl;
 
-                std::cout << " >> ";
+
 
                 // Let the user choose
                 std::string userInput;
+
+                unsigned nbEmptyTrials=0;
+
+                reask:
+
+                if(nbEmptyTrials++ >= 5){
+                    std::cout << "\nYou should be typing 0 to quit this menu" << std::endl;
+                }
+
+                std::cout << " >> ";
                 std::getline(std::cin, userInput);
 
                 int numInput = -1;
@@ -469,7 +474,7 @@ bool CommandManager::runCommand(const string& input)
                     mc->emplaceAndReplace(warnings.front(), possibilities[numInput-1]);
                 }
                 else
-                    break;
+                    goto reask;
             }
 
             // Let's print the final value of B
@@ -1276,7 +1281,7 @@ bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
         std::cout.rdbuf(gg);
 
         if(printStatus)
-            std::cout << "Ended the execution of " << filepath << "." << std::endl;
+            std::cout << "Ended the execution of " << filepath << '.' << std::endl;
 
 
         return true;
