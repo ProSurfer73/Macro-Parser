@@ -431,15 +431,6 @@ bool CommandManager::runCommand(const string& input)
                         possibilities.push_back(it->second);
                 }
 
-                // Let's remove multiple from the list of possible outputs
-                auto& results = possibleValues;
-                for(auto it=results.begin(); it!=results.end();){
-                    if(*it == "multiple")
-                        it = results.erase(it);
-                    else
-                        ++it;
-                }
-
                 // Now let's print the ramaining values for
                 std::cout << std::endl << parameters[1] << " has for now " << possibleValues.size() << " possible evaluations: ";
                 for(unsigned i=0; i<possibleValues.size(); ++i){
@@ -527,14 +518,6 @@ bool CommandManager::runCommand(const string& input)
 
                         if(!results.empty())
                         {
-                            // Let's remove multiple from the list of possible outputs
-                            for(auto it=results.begin(); it!=results.end();){
-                                if(*it == "multiple")
-                                    it = results.erase(it);
-                                else
-                                    ++it;
-                            }
-
                             // Sort and remove duplicates
                             auto& v = results;
                             std::sort(v.begin(), v.end());
@@ -905,14 +888,6 @@ bool CommandManager::runCommand(const string& input)
 
         if(!results.empty())
         {
-            // Let's remove multiple from the list of possible outputs
-            for(auto it=results.begin(); it!=results.end();){
-                if(*it == "multiple")
-                    it = results.erase(it);
-                else
-                    ++it;
-            }
-
             // Sort and remove duplicates
             auto& v = results;
             std::sort(v.begin(), v.end());

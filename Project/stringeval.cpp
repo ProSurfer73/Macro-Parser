@@ -25,6 +25,14 @@
 #include "container.hpp"
 #include "options.hpp"
 
+static bool thereIsMacroLetter(const std::string& str)
+{
+    for(unsigned i=0; i<str.size(); ++i){
+        if(isalpha(str[i]) && str[i] != 'x')
+            return true;
+    }
+    return false;
+}
 
 void clearSpaces(string& str)
 {
@@ -299,7 +307,6 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
     str.replace(start_pos, from.length(), to);
     return true;
 }
-
 
 static bool treatOperationDouble(std::string& str, const std::string& operation, bool (*operateur)(double, double))
 {
@@ -588,7 +595,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 && (searched == 0 || !isMacroCharacter(expr[searched-1]))
                 && (searched+p.first.size()>=expr.size() || !isMacroCharacter(expr[searched+p.first.size()])))
                 {
-                    string replacedBy = p.second;
+                    const string* replacedBy = &(p.second);
 
                     if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end())
                     {
@@ -598,18 +605,14 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         {
                             if(pp.first == p.first)
                             {
-                                replacedBy = pp.second;
+                                replacedBy = &(pp.second);
                                 foundRedef = true;
                             }
                             //std::cout << "'" << pp.first << "'" << std::endl;
                         }
 
-                        if(printWarnings)
-                        {
-                            if(std::find(printWarnings->begin(), printWarnings->end(), p.first) == printWarnings->end()){
-                                cout << "/!\\ Warning: the macro " << p.first << " you are using has been redefined /!\\" << endl;
-                                printWarnings->emplace_back(p.first);
-                            }
+                        if(printWarnings && std::find(printWarnings->begin(), printWarnings->end(), p.first) == printWarnings->end()){
+                            printWarnings->emplace_back(p.first);
                         }
 
                         if(outputs && !foundRedef)
@@ -642,17 +645,21 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                                         redef->emplace_back(pp.first, pp.second);
 
                                         auto status = calculateExpression(anotherExpr, macroContainer, config, printWarnings, enableBoolean, outputs, redef);
-                                        if(status == CalculationStatus::EVAL_OKAY)
-                                            emplaceOnce(*outputs, anotherExpr);
-                                        else if(status == CalculationStatus::EVAL_ERROR){
-                                            std::string sss="undefined:";
-                                            sss += anotherExpr;
-                                            emplaceOnce(*outputs, sss);
-                                            status = CalculationStatus::EVAL_WARNING;
-                                        }
-                                        else if(status == CalculationStatus::EVAL_WARNING){
-                                            emplaceOnce(*outputs, anotherExpr+'?');
-                                            status = CalculationStatus::EVAL_WARNING;
+                                        if(anotherExpr != "multiple")
+                                        {
+                                            if(status == CalculationStatus::EVAL_OKAY)
+                                                emplaceOnce(*outputs, anotherExpr);
+                                            else if(status == CalculationStatus::EVAL_ERROR){
+                                                std::string sss="undefined:";
+                                                sss += anotherExpr;
+                                                emplaceOnce(*outputs, sss);
+                                                status = CalculationStatus::EVAL_WARNING;
+                                            }
+                                            else if(status == CalculationStatus::EVAL_WARNING){
+                                                anotherExpr += '?';
+                                                emplaceOnce(*outputs, anotherExpr);
+                                                status = CalculationStatus::EVAL_WARNING;
+                                            }
                                         }
                                     }
 
@@ -679,11 +686,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
                     if(config.doesPrintReplacements()){
-                        std::cout << "replaced '" << p.first << "' by '" << replacedBy << "'" << endl;
+                        std::cout << "replaced '" << p.first << "' by '" << *replacedBy << "'" << endl;
                     }
 
                     // finally, let's replace-it in the expression
-                    simpleReplace(expr, p.first, replacedBy);
+                    simpleReplace(expr, p.first, *replacedBy);
 
                     }
                 }
@@ -781,13 +788,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     cout << "blv:" << expr << endl;
     #endif
 
-    bool thereIsLetter = false;
-    for(unsigned i=0; i<expr.size(); ++i){
-        if(isalpha(expr[i]) && expr[i] != 'x')
-            thereIsLetter = true;
-    }
 
-    if(thereIsLetter)
+
+    if(thereIsMacroLetter(expr))
     {
         //cout << "thereisLetter" << endl;
         goto skipArithmeticOperations;
@@ -1110,9 +1113,9 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
         }
 
         // Sort and remove duplicates
-        auto& v = results;
-        std::sort(v.begin(), v.end());
-        v.erase(std::unique(v.begin(), v.end()), v.end());
+        //auto& v = results;
+        //std::sort(v.begin(), v.end());
+        //v.erase(std::unique(v.begin(), v.end()), v.end());
 
         //
         for(unsigned i=0; i<results.size(); ++i){
