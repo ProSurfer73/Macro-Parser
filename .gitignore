@@ -14,3 +14,4 @@ Debug
 # IDE useless files
 *.cscope_file_list
 *.depend
+*.cscope_file_list

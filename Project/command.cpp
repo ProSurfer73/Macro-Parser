@@ -427,7 +427,7 @@ bool CommandManager::runCommand(const string& input)
                 }
 
                 // Now let's print the ramaining values for
-                std::cout << std::endl << parameters[1] << " has for now " << possibleValues.size() << " possible evaluations: ";
+                std::cout << std::endl << parameters[1] << " has now " << possibleValues.size() << " possible evaluations: ";
                 for(unsigned i=0; i<possibleValues.size(); ++i){
                         std::cout << possibleValues[i];
                         if(i<possibleValues.size()-1)
@@ -453,7 +453,7 @@ bool CommandManager::runCommand(const string& input)
                 reask:
 
                 if(nbEmptyTrials++ >= 5){
-                    std::cout << "\nYou should be typing 0 to quit this menu" << std::endl;
+                    std::cout << "You should type 0 to quit this menu" << std::endl;
                 }
 
                 std::cout << " >> ";
@@ -473,8 +473,10 @@ bool CommandManager::runCommand(const string& input)
                 if(numInput >= 1 && numInput <= possibilities.size()){
                     mc->emplaceAndReplace(warnings.front(), possibilities[numInput-1]);
                 }
-                else
+                else {
                     goto reask;
+                }
+
             }
 
             // Let's print the final value of B
@@ -564,8 +566,14 @@ bool CommandManager::runCommand(const string& input)
 
                             cout << "\nIt seems that you are using macros that have multiple definitions." << endl;
                             cout << "The output can't be trusted." << endl;
-                            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-                            cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first << "'." << endl;
+                            cout << "To fix a specific macro: please type 'interpret [macro]";
+                            if(commandMacrospaces.front()!="default")
+                                std::cout << ' ' << commandMacrospaces.front();
+                            std::cout << "'." << endl;
+                            cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first;
+                            if(commandMacrospaces.front()!="default")
+                                std::cout << ' ' << commandMacrospaces.front();
+                            std::cout << "'." << endl;
                         }
                         else
                         {
@@ -584,8 +592,14 @@ bool CommandManager::runCommand(const string& input)
                             if(status == CalculationStatus::EVAL_WARNING){
                                 cout << "\n\nIt seems that you are using macros that have multiple definitions." << endl;
                                 cout << "The output can't be trusted." << endl;
-                                cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-                                cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first << "'." << endl;
+                                cout << "To fix a specific macro: please type 'interpret [macro]";
+                                if(commandMacrospaces.front()!="default")
+                                    std::cout << ' ' << commandMacrospaces.front();
+                                std::cout << "'." << endl;
+                                cout << "To fix all macros, and get to the final result: please type 'interpretall " << p.first;
+                                if(commandMacrospaces.front()!="default")
+                                    std::cout << ' ' << commandMacrospaces.front();
+                                std::cout << "'." << endl;
                             }
                             if(status == CalculationStatus::EVAL_ERROR ||status == CalculationStatus::EVAL_OKAY)
                                 cout << endl;
@@ -951,8 +965,12 @@ bool CommandManager::runCommand(const string& input)
 
             cout << "\nIt seems that you are using macros that have multiple definitions." << endl;
             cout << "The output can't be trusted." << endl;
-            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9) << "'." << endl;
+            cout << "To fix a specific macro: please type 'interpret [macro]";
+            if(!macroSpaceNames.empty() && macroSpaceNames.front()!="default"){ std::cout << ' ' << macroSpaceNames.front(); }
+            std::cout << "'." << endl;
+            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9);
+            if(!macroSpaceNames.empty() && macroSpaceNames.front()!="default"){ std::cout << ' ' << macroSpaceNames.front(); }
+            std::cout << "'." << endl;
         }
         else
         {
@@ -978,8 +996,12 @@ bool CommandManager::runCommand(const string& input)
             cout << " ???" << endl;
             cout << "It seems that you are using macros that have multiple definitions." << endl;
             cout << "The output can't be trusted." << endl;
-            cout << "To fix a specific macro: please type 'interpret [macro]'." << endl;
-            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9) << "'." << endl;
+            cout << "To fix a specific macro: please type 'interpret [macro]";
+            if(!macroSpaceNames.empty() && macroSpaceNames.front()!="default") std::cout << ' ' << macroSpaceNames.front();
+            std::cout << "'." << endl;
+            cout << "To fix all macros, and get to the final result: please type 'interpretall " << input.substr(9);
+            if(!macroSpaceNames.empty() && macroSpaceNames.front()!="default") std::cout << ' ' << macroSpaceNames.front();
+            std::cout << "'." << endl;
         }
         else
             cout << endl;
@@ -1190,7 +1212,7 @@ bool CommandManager::runCommand(const string& input)
         if(parameters.size()>=2)
         {
             if(!loadScript(parameters[1]))
-                std::cout << "Could not load the script file '" << parameters[1] << "'." << std::endl;
+                std::cout << "Could not load the script file '" << parameters[1] << "': the file does not seem to exist." << std::endl;
         }
 
         else
@@ -1250,7 +1272,8 @@ bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
     if(file)
     {
         if(printStatus)
-            std::cout << "Currently executing " << filepath << "." << std::endl;
+            std::cout << "Currently executing " << filepath;
+        std::cout << '.';
 
         std::string line;
 
@@ -1281,7 +1304,7 @@ bool CommandManager::loadScript(const std::string& filepath, bool printStatus)
         std::cout.rdbuf(gg);
 
         if(printStatus)
-            std::cout << "Ended the execution of " << filepath << '.' << std::endl;
+            std::cout << "\nEnded the execution of " << filepath << '.' << std::endl;
 
 
         return true;

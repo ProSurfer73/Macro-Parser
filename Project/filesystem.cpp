@@ -43,8 +43,11 @@ bool WordDetector::receive(char character)
     return false;
 }
 
-
-
+// This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
+static bool isBlank(char c)
+{
+    return (c==' '||c=='\tab'||c==9);
+}
 
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
@@ -276,7 +279,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 while(file.get(characterRead)){
                     if(characterRead == '\n')
                         break;
-                    else if(characterRead != ' '){
+                    else if(!isBlank(characterRead)){
                         str1 += characterRead;
                         break;
                     }
@@ -288,7 +291,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 string str2;
 
                 // Then we load the identifier (the complete word)
-                while(file.get(characterRead) && characterRead != ' '){
+                while(file.get(characterRead) && !isBlank(characterRead)){
                         if(characterRead == '\n'){
                             goto avoidValueGetting;
                         }
@@ -354,7 +357,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         if((posIfStr == 0 && characterRead=='#')
          ||(posIfStr == 1 && characterRead=='i')
          ||(posIfStr == 2 && characterRead=='f')
-         ||(posIfStr == 3 && (characterRead==' ' || characterRead == '(')))
+         ||(posIfStr == 3 && (isBlank(characterRead) || characterRead == '(')))
         {
             ++posIfStr;
 
@@ -437,7 +440,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             string macroNameRead;
             while(file.get(characterRead))
             {
-                if(characterRead == ' ' && !macroNameRead.empty())
+                if(isBlank(characterRead) && !macroNameRead.empty())
                     break;
                 else if(isMacroCharacter(characterRead))
                     macroNameRead += characterRead;
@@ -470,7 +473,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             string macroNameRead;
             while(file.get(characterRead))
             {
-                if(characterRead == ' ' && !macroNameRead.empty())
+                if(isBlank(characterRead) && !macroNameRead.empty())
                     break;
                 else if(isMacroCharacter(characterRead))
                     macroNameRead += characterRead;

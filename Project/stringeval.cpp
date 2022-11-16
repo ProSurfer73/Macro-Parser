@@ -66,8 +66,8 @@ static bool containsAlpha(const std::string& str)
 static bool containsOperation(const std::string& str)
 {
     // Let's try to calculate the arithmetic expression without parenthesis
-    for(unsigned m=0;m<str.size();++m){
-        if(isOperationCharacter(str[m]))
+    for(char c: str){
+        if(isOperationCharacter(c))
             return true;
     }
     return false;
@@ -176,9 +176,7 @@ static bool evaluateSimpleBooleanExpr(string& expr)
 
         if(leftPart=="false" || rightPart=="false")
         {
-            string veryLeftPart = extractVeryLeftPart(expr, searchedOperator);
-            string veryRightPart = extractVeryRightPart(expr, searchedOperator+2);
-            expr = (veryLeftPart+"false")+veryRightPart;
+            expr = (extractVeryLeftPart(expr, searchedOperator)+="false")+=extractVeryRightPart(expr, searchedOperator+2);
         }
         else if(leftPart=="true")
             expr = rightPart;//veryLeftPart+rightPart+veryRightPart;

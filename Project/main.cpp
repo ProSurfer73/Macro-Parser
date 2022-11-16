@@ -42,8 +42,7 @@ int main()
     CommandManager cmd;
 
     // load boot script
-    if(cmd.loadScript("boot.txt"))
-        std::cout << std::endl;
+    cmd.loadScript("boot.txt");
 
     // Let's start the command prompt
     cmd.dealWithUser();
@@ -52,8 +51,8 @@ int main()
     catch(std::exception const& ex)
     {
         std::cout << "Fatal exception: " << ex.what() << endl;
-        std::string j;
-        std::getline(std::cin, j);
+        std::string ignorethis;
+        std::getline(std::cin, ignorethis);
     }
 
     return 0;
