@@ -227,7 +227,7 @@ bool CommandManager::runCommand(const string& input)
         cout << "macros in container";
         if(commandMacrospaces.size()>1) cout << 's';
         cout << ": ";
-        for(const std::string& str: commandMacrospaces) cout << str << " ";
+        for(const std::string& str: commandMacrospaces) cout << str << ' ';
         cout << endl;
 
         // Finally let's clear the macro database
@@ -480,7 +480,10 @@ bool CommandManager::runCommand(const string& input)
             }
 
             // Let's print the final value of B
-            std::cout << "\nCONCLUSION: " << parameters[1] << " is equal to " << expression << '.' << std::endl;
+            std::cout << "\nCONCLUSION: " << parameters[1] << " is equal to " << expression;
+            if(tryConvertToHexa(expression))
+                std::cout << " (in hexadecimal " << expression << ')';
+            std::cout << '.' << std::endl;
         }
         else
         {
