@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <thread>
 #include <mutex>
+#include <atomic>
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>

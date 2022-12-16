@@ -633,7 +633,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
 #ifdef ENABLE_FILE_LOADING_BAR
 
-static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFiles, const unsigned maxNbFiles)
+static void printNbFilesLoaded(std::atomic<bool>& ended, std::atomic<unsigned>& nbFiles, const unsigned maxNbFiles)
 {
     // First initial delay before starting to diplay loading status
     const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -645,9 +645,8 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
         std::this_thread::sleep_for(std::chrono::milliseconds(120));
         delayFirstSleep -= 120;
 
-        mymutex.lock();
+        // we read our atomic variable
         bool myend = ended;
-        mymutex.unlock();
 
         if(myend)
             break;
@@ -663,29 +662,19 @@ static void printNbFilesLoaded(std::mutex& mymutex, bool& ended, unsigned& nbFil
 
         if(notEverytime == 10)
         {
-            mymutex.lock();
+            // we read our atomic variable
             unsigned currentNbFiles = nbFiles;
-            mymutex.unlock();
-
-            #if defined DEBUG_LOG_FILE_IMPORT
-            mymutex.lock();
-            #endif // DEBUG_LOG_FILE_IMPORT
 
             cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
             << maxNbFiles*(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-start)/(currentNbFiles+1)/60000 << "min left\n" ;
-
-            #if defined DEBUG_LOG_FILE_IMPORT
-            mymutex.unlock();
-            #endif // DEBUG_LOG_FILE_IMPORT
 
             notEverytime = 0;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
-        mymutex.lock();
+        // we read our atomic variable
         bool myend = ended;
-        mymutex.unlock();
 
         if(myend)
             break;
@@ -708,11 +697,10 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
 
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
-    bool ended = false;
+    std::atomic<bool> ended(false);
+    std::atomic<unsigned> nbFiles(0);
     unsigned localNbFile = 0;
-    unsigned nbFiles = 0;
-    std::mutex mymutex;
-    std::thread tr = std::thread(printNbFilesLoaded, std::ref(mymutex), std::ref(ended), std::ref(nbFiles), fileCollection.size());
+    std::thread tr = std::thread(printNbFilesLoaded, std::ref(ended), std::ref(nbFiles), fileCollection.size());
     #endif
     #ifdef DISPLAY_FOLDER_IMPORT_TIME
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -743,17 +731,13 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
         localNbFile++;
         #endif
 
-        #ifdef ENABLE_FILE_LOADING_BAR
-            mymutex.lock();
-            nbFiles = localNbFile;
-            mymutex.unlock();
-        #endif
+        // let's write to our atomic variable
+        nbFiles = localNbFile;
     }
 
     #ifdef ENABLE_FILE_LOADING_BAR
-    mymutex.lock();
+    // let's write to our atomic variable&²
     ended = true;
-    mymutex.unlock();
     tr.join();
     #endif
     #ifdef DISPLAY_FOLDER_IMPORT_TIME
