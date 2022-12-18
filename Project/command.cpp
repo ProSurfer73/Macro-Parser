@@ -527,7 +527,7 @@ bool CommandManager::runCommand(const string& input)
                         found=true;
 
                         // Let's show the redefined macros
-                        if(!redefinedList.empty())
+                        if(!redefinedList.empty() && results.size()>1)
                         {
                             std::cout << "/!\\ Warning: the macro";
                             if(redefinedList.size()>1)
@@ -551,7 +551,7 @@ bool CommandManager::runCommand(const string& input)
                         // Let's print what the expression looked like before evaluation
                         cout << "first definition: " << p.second << endl;
 
-                        if(!results.empty())
+                        if(results.size()>1)
                         {
                             // Sort the results
                             auto& v = results;
@@ -580,6 +580,9 @@ bool CommandManager::runCommand(const string& input)
                         }
                         else
                         {
+                            if(putput.empty() && !results.empty())
+                                putput = results.front();
+
                             //auto status = calculateExpression(output, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, true, true);
                             if(status == CalculationStatus::EVAL_ERROR)
                                 cout << "/!\\ The expression can't be calculated. /!\\" << endl;
@@ -929,7 +932,7 @@ bool CommandManager::runCommand(const string& input)
         auto status = calculateExpression(expr, *mc, configuration, &warnings, true, &results);
 
         // Let's print the macros having multiple definitions first
-        if(!warnings.empty())
+        if(!warnings.empty() && results.size()>1)
         {
             std::cout << "/!\\ Warning: the macro";
             if(warnings.size()>1)
@@ -950,7 +953,7 @@ bool CommandManager::runCommand(const string& input)
             std::cout << " multiple definitions /!\\" << std::endl;
         }
 
-        if(!results.empty())
+        if(results.size()>1)
         {
             // Sort
             auto& v = results;
@@ -988,6 +991,9 @@ bool CommandManager::runCommand(const string& input)
                 cout << expr ;
             cout << endl;
         }*/
+
+        if(expr.empty() && !results.empty())
+            expr = results.front();
 
         cout << "output: " << expr;
 
