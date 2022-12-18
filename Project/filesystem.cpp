@@ -211,7 +211,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
     WordDetector defineDetector("#define ");
     WordDetector ifdefDetector("#ifdef ");
     WordDetector elifDetector("#elif ");
-    WordDetector elseDetector("#else ");
+    WordDetector elseDetector("#else");
     WordDetector endifDetector("#endif");
     WordDetector ifndefDetector("#ifndef ");
     WordDetector includeDetector("#include");
