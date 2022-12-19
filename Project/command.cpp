@@ -289,7 +289,7 @@ bool CommandManager::runCommand(const string& input)
                 expression=possibleValues.front();
 
                 if(!warnings.empty())
-                    std::cout << "Did you mean \"interpretall " << macroName << "\" ?" << std::endl;
+                    std::cout << "Note: Did you mean \"interpretall " << macroName << "\" ?" << std::endl;
 
                 /*if(!warnings.empty())
                 {

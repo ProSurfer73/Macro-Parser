@@ -22,7 +22,13 @@
 #include "options.hpp"
 #include "stringeval.hpp"
 
-// Word detector class
+// This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
+static bool isBlank(char c)
+{
+    return (c==' '||c=='\t'||c==9);
+}
+
+/// Word detector class
 
 WordDetector::WordDetector(const char* initialstr)
 : str(initialstr), pos(0)
@@ -30,7 +36,14 @@ WordDetector::WordDetector(const char* initialstr)
 
 bool WordDetector::receive(char character)
 {
-    if(str[pos]==character)
+    if(str[pos]=='\r')
+    {
+        pos=0;
+        if(isBlank(character)||character=='(')
+            return true;
+    }
+
+    else if(str[pos]==character)
     {
         ++pos;
         if(str[pos]=='\0'){
@@ -38,16 +51,14 @@ bool WordDetector::receive(char character)
             return true;
         }
     }
+
     else
         pos=0;
+
     return false;
 }
 
-// This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
-static bool isBlank(char c)
-{
-    return (c==' '||c=='\tab'||c==9);
-}
+
 
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
@@ -210,13 +221,12 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
     WordDetector defineDetector("#define ");
     WordDetector ifdefDetector("#ifdef ");
-    WordDetector elifDetector("#elif ");
+    WordDetector elifDetector("#elif\r");
     WordDetector elseDetector("#else");
     WordDetector endifDetector("#endif");
     WordDetector ifndefDetector("#ifndef ");
     WordDetector includeDetector("#include");
-    WordDetector ifDetector("#if");
-    WordDetector ifDetector2("#if(");
+    WordDetector ifDetector("#if\r");
 
     unsigned posIfStr=0;
 
@@ -354,21 +364,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         {
 
         // If we detected #if
-        if((posIfStr == 0 && characterRead=='#')
-         ||(posIfStr == 1 && characterRead=='i')
-         ||(posIfStr == 2 && characterRead=='f')
-         ||(posIfStr == 3 && (isBlank(characterRead) || characterRead == '(')))
+        if(ifDetector.receive(characterRead))
         {
-            ++posIfStr;
-
-            if(posIfStr >= 4 && config.doDisableInterpretations())
-            {
-                keepTrack.push_back(0);
-                insideConditions=true;
-                posIfStr=0;
-            }
-
-            else if(posIfStr >= 4)
             {
                 insideConditions=true;
                 firstIntrusction=false;
@@ -428,12 +425,12 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
         }
-        else
-            posIfStr=0;
 
         // If we detected ifdef
         if(ifdefDetector.receive(characterRead))
         {
+            //std::cout << "entered ifdef" << std::endl;
+
             firstIntrusction=false;
             insideConditions=true;
 
@@ -450,6 +447,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             clearSpaces(macroNameRead);
 
+            //std::cout << "macroNameRead: '" << macroNameRead << "'" << std::endl;
+
             //std::cout << "does '" << macroNameRead << "' exists." << std::endl;
             if(localContainer.exists(macroNameRead))
             {
@@ -465,6 +464,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         // If we detected ifndef
         if(ifndefDetector.receive(characterRead))
         {
+            //std::cout << "entered ifndef" << std::endl;
+
             if(!firstIntrusction)
             {
 
@@ -481,9 +482,12 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     break;
             }
 
+            clearSpaces(macroNameRead);
+
             if(localContainer.exists(macroNameRead))
             {
-                keepTrack.push_back(-1);
+                //keepTrack.push_back(-1);
+                keepTrack.push_back(-2);
             }
             else
             {
@@ -510,6 +514,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             // If it is #elif treat it like that
             if(elifDetector.receive(characterRead))
             {
+
                 // If the previous condition was evaluated to false
                 if(keepTrack.back() == -2)
                 {
