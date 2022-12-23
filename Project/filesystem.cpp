@@ -233,6 +233,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
     WordDetector includeDetector("#include");
     WordDetector ifDetector("#if\r");
 
+    std::string last;
+
     unsigned posIfStr=0;
 
     char characterRead;
@@ -405,12 +407,12 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 // If the importer has priority order
                 if((!origin && keepTrack.back()>=0)
                 || (origin && keepTrack.back()>=1)){
-                    //std::cout << "import: " << str1 << " --- " << str2 << std::endl;
+                    //std::cout << "import: " << str1 << " --- " << str2 << "---" << (int)keepTrack.back() << std::endl;
                     macroContainer.emplace(str1, str2);
                 }
 
                 else if(!config.doDisableInterpretations() && keepTrack.back()>=1){
-                    //std::cout << "import: " << str1 << " --- " << str2 << std::endl;
+                    //std::cout << "import: " << str1 << " --- " << str2 << "---" << (int)keepTrack.back() << std::endl;
                     localContainer.emplace(str1, str2);
                 }
 
@@ -419,9 +421,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 }
 
                 // Debugging trace
-                //std::cout << "state {";
-                //for(char e: keepTrack) std::cout << (int)e << ", ";
-                //std::cout << "};" << std::endl;
+                /*std::cout << "state {";
+                for(char e: keepTrack) std::cout << (int)e << ", ";
+                std::cout << "};" << std::endl;*/
         }
 
         if(!config.doDisableInterpretations())
@@ -430,6 +432,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         // If we detected #if
         if(ifDetector.receive(characterRead))
         {
+            //std::cout << "#if ";
+
             insideConditions=true;
             firstIntrusction=false;
 
@@ -442,6 +446,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             clearSpaces(conditionStr);
+
+            //std::cout << conditionStr << std::endl;
+            last = conditionStr;
 
             // Let's create a new container with our local defines
 
@@ -469,7 +476,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     //std::cout << 1 << endl;
                     keepTrack.push_back(1);
                 }
-                else if(conditionStr=="false")
+                else //if(conditionStr=="false")
                 {
                     //std::cout << -1 << endl;
                     keepTrack.push_back(-2);
@@ -486,7 +493,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         // If we detected ifdef
         if(ifdefDetector.receive(characterRead))
         {
-            //std::cout << "entered ifdef" << std::endl;
+            //std::cout << "#ifdef";
 
             firstIntrusction=false;
             insideConditions=true;
@@ -503,6 +510,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             clearSpaces(macroNameRead);
+
+            //::cout << macroNameRead << std::endl;
+            last = macroNameRead;
 
             //std::cout << "macroNameRead: '" << macroNameRead << "'" << std::endl;
 
@@ -540,6 +550,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             clearSpaces(macroNameRead);
+            last = macroNameRead;
 
             if(localContainer.exists(macroNameRead))
             {
@@ -548,7 +559,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
             else
             {
-                keepTrack.push_back(0);
+                keepTrack.push_back(1);
             }
 
             }
@@ -592,8 +603,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
                     for(const auto& p : localContainer.getDefines())
                     {
-                        simpleReplace(conditionStr, std::string("defined(")+p.first+")", "true");
-                        simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
+                        simpleReplace(conditionStr, (std::string("defined(")+=p.first)+=')', "true");
+                        simpleReplace(conditionStr, std::string("defined ")+=p.first, "true");
                     }
 
                     /*MacroContainer localContainer;
@@ -648,10 +659,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         if(endifDetector.receive(characterRead))
         {
             insideConditions=keepTrack.size()>1;
-            if(keepTrack.size()>1)
+            if(keepTrack.size()>1){
+                //std::cout << "#endif => " << last << std::endl;
                 keepTrack.pop_back();
-            else {
-                std::cout << "depop: " << pathToFile << std::endl;
             }
 
         }
