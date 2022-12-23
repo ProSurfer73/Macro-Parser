@@ -89,6 +89,8 @@ static bool destructShortComment(std::string& str)
 
 static void skipLongComment(std::ifstream& stream)
 {
+    //std::cout << "=>long" << std::endl;
+
     // Let's skip the comment in the file, until we reach the end of it
     // Skip everything from here
     char k='a';
@@ -97,7 +99,10 @@ static void skipLongComment(std::ifstream& stream)
         if(k=='*' && characterRead=='/')
             break;
         k=characterRead;
+        //std::cout << characterRead;
     }
+
+    //std::cout << "<=long" << std::endl;
 }
 
 static bool destructLongComment(std::string& str)
@@ -245,35 +250,35 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
     while(file.get(characterRead))
     {
         /// avoid to load defines that are commented
-        if(characterRead == '/' && !config.doesImportMacroCommented())
+
+        if(!config.doesImportMacroCommented())
         {
-            posLineComment++;
-
-            if(posLineComment == 2)
+            if(characterRead == '/')
             {
-                // we skip the all line
-                while(file.get(characterRead) && characterRead != '\n');
+                posLineComment++;
 
-                // we reset the slash counter
+                if(posLineComment == 2)
+                {
+                    // we skip the all line
+                    while(file.get(characterRead) && characterRead != '\n');
+
+                    // we reset the slash counter
+                    posLineComment=0;
+                }
+            }
+
+            else if(characterRead == '*' && posLineComment==1)
+            {
+                // We skip everything until we reach the end of comment "*/"
+                skipLongComment(file);
+
                 posLineComment=0;
             }
+
+            else
+                posLineComment = 0;
         }
 
-        else if(characterRead == '*' && posLineComment==1 && !config.doesImportMacroCommented())
-        {
-            // We skip everything until we reach the end of comment "*/"
-            char previousRead='r';
-
-            while(file.get(characterRead))
-            {
-                if(previousRead=='*' && characterRead=='/') {
-                    break;
-                }
-                previousRead=characterRead;
-            }
-
-            posLineComment=0;
-        }
 
 
 
@@ -317,8 +322,32 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
                 // Deal with comment that could appear on str2
                 destructShortComment(str2);
-                if(destructLongComment(str2) && !config.doesImportMacroCommented())
-                    skipLongComment(file);
+
+                if(config.doesImportMacroCommented()){
+                    // Let's skip the comment for the current line
+                    destructLongComment(str2);
+                }
+                else {
+                    // let's skip the long comment for multiple lines
+
+                    // Is there a comment
+                    relookForComment:
+                    auto r1 = str2.find("/*");
+                    auto r2 = str2.find("*/");
+                    if(r1 < r2 && r1 != std::string::npos && r2 != std::string::npos){
+                        // Let's delete this comment
+                        str2 = str2.substr(0,r1)+=str2.substr(r2+2);
+                        //std::cout << "str2: " << str2 << std::endl;
+
+                        goto relookForComment;
+                    }
+                    else if(r1 != std::string::npos && r2 == std::string::npos) {
+                        // Let's skip the comment inside the file
+                        skipLongComment(file);
+                    }
+
+                    // let's try this first on my own project
+                }
 
                 clearSpaces(str1);
                 clearSpaces(str2);
@@ -343,21 +372,56 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     str2 += inpLine;
 
                     destructShortComment(str2);
-                    if(destructLongComment(str2) && !config.doesImportMacroCommented())
-                    {
-                        skipLongComment(file);
+
+
+                    /// Let's destruct long comments
+                    if(config.doesImportMacroCommented()) {
+                        // Let's skip the comment for the current line
+                        destructLongComment(str2);
+                    }
+                    else {
+                        // let's skip the long comment for multiple lines
+
+                        // Is there a comment
+                        relookForComment2:
+                        auto r1 = str2.find("/*");
+                        auto r2 = str2.find("*/");
+                        if(r1 < r2 && r1 != std::string::npos && r2 != std::string::npos){
+                            // Let's delete this comment
+                            str2 = str2.substr(0,r1)+=str2.substr(r2+2);
+                            //std::cout << "str2: " << str2 << std::endl;
+
+                            goto relookForComment2;
+                        }
+                        else if(r1 != std::string::npos && r2 == std::string::npos) {
+                            // Let's skip the comment inside the file
+                            skipLongComment(file);
+                        }
+
+                        // let's try this first on my own project
                     }
                 }
 
                 // If the importer has priority order
                 if((!origin && keepTrack.back()>=0)
                 || (origin && keepTrack.back()>=1)){
+                    //std::cout << "import: " << str1 << " --- " << str2 << std::endl;
                     macroContainer.emplace(str1, str2);
                 }
 
-                if(!config.doDisableInterpretations() && keepTrack.back()>=1){
+                else if(!config.doDisableInterpretations() && keepTrack.back()>=1){
+                    //std::cout << "import: " << str1 << " --- " << str2 << std::endl;
                     localContainer.emplace(str1, str2);
                 }
+
+                else {
+                    //std::cout << "notimported: " << str1 << " --- " << str2 << " -- " << (int)keepTrack.back() << std::endl;
+                }
+
+                // Debugging trace
+                //std::cout << "state {";
+                //for(char e: keepTrack) std::cout << (int)e << ", ";
+                //std::cout << "};" << std::endl;
         }
 
         if(!config.doDisableInterpretations())
@@ -366,10 +430,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         // If we detected #if
         if(ifDetector.receive(characterRead))
         {
-            {
-                insideConditions=true;
-                firstIntrusction=false;
-
+            insideConditions=true;
+            firstIntrusction=false;
 
             string conditionStr;
             conditionStr += characterRead;
@@ -412,18 +474,13 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                     //std::cout << -1 << endl;
                     keepTrack.push_back(-2);
                 }
-
             }
             else
             {
                 //std::cout << "Not interpreted: " << conditionStr << endl;
                 keepTrack.push_back(0);
             }
-
-
                 posIfStr=0;
-            }
-
         }
 
         // If we detected ifdef
@@ -495,6 +552,8 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             }
 
             }
+            else
+                keepTrack.push_back(1);
 
             firstIntrusction=false;
         }
@@ -520,61 +579,61 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 {
                     // Let's evaluate this one
                     string conditionStr;
-            conditionStr += characterRead;
+                    conditionStr += characterRead;
 
-            while(file.get(characterRead) && characterRead != '\n')
-            {
-                conditionStr += characterRead;
-            }
+                    while(file.get(characterRead) && characterRead != '\n')
+                    {
+                        conditionStr += characterRead;
+                    }
 
-            clearSpaces(conditionStr);
+                    clearSpaces(conditionStr);
 
-            // Let's create a new container with our local defines
+                    // Let's create a new container with our local defines
 
-            for(const auto& p : localContainer.getDefines())
-            {
-                simpleReplace(conditionStr, std::string("defined(")+p.first+")", "true");
-                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
-            }
+                    for(const auto& p : localContainer.getDefines())
+                    {
+                        simpleReplace(conditionStr, std::string("defined(")+p.first+")", "true");
+                        simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
+                    }
 
-            /*MacroContainer localContainer;
+                    /*MacroContainer localContainer;
 
-            for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
-            {
-                if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
-                    localContainer.emplace(p.first, p.second);
-            }*/
+                    for(const std::pair<std::string,std::string>& p : macroContainer.getDefines())
+                    {
+                        if(std::find(localMacroNames.begin(), localMacroNames.end(), p.first) != localMacroNames.end())
+                            localContainer.emplace(p.first, p.second);
+                    }*/
 
-            //std::cout << "conditionStr: " << conditionStr << endl;
-            auto status = calculateExpression(conditionStr, localContainer, config, nullptr);
+                    //std::cout << "conditionStr: " << conditionStr << endl;
+                    auto status = calculateExpression(conditionStr, localContainer, config, nullptr);
 
-            /*for(const string& str : localMacroNames)
-            {
-                simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
-                simpleReplace(conditionStr, std::string("defined ")+str, "true");
-            }*/
+                    /*for(const string& str : localMacroNames)
+                    {
+                        simpleReplace(conditionStr, std::string("defined(")+str+")", "true");
+                        simpleReplace(conditionStr, std::string("defined ")+str, "true");
+                    }*/
 
-            //std::cout << "conditionStr: " << conditionStr << endl;
+                    //std::cout << "conditionStr: " << conditionStr << endl;
 
-            if(status == CalculationStatus::EVAL_OKAY )
-            {
-                if(conditionStr == "true")
-                {
-                    //std::cout << 1 << endl;
-                    keepTrack.push_back(1);
-                }
-                else if(conditionStr=="false")
-                {
-                    //std::cout << -1 << endl;
-                    keepTrack.push_back(-2);
-                }
+                    if(status == CalculationStatus::EVAL_OKAY )
+                    {
+                        if(conditionStr == "true")
+                        {
+                            //std::cout << 1 << endl;
+                            keepTrack.push_back(1);
+                        }
+                        else if(conditionStr=="false")
+                        {
+                            //std::cout << -1 << endl;
+                            keepTrack.push_back(-2);
+                        }
 
-            }
-            else
-            {
-                //std::cout << "Not interpreted: " << conditionStr << endl;
-                keepTrack.push_back(0);
-            }
+                    }
+                    else
+                    {
+                        //std::cout << "Not interpreted: " << conditionStr << endl;
+                        keepTrack.push_back(0);
+                    }
 
                 }
                 // If the previous condition was evaluated to true
@@ -591,6 +650,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             insideConditions=keepTrack.size()>1;
             if(keepTrack.size()>1)
                 keepTrack.pop_back();
+            else {
+                std::cout << "depop: " << pathToFile << std::endl;
+            }
+
         }
 
         // If we detected #include

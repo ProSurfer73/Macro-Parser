@@ -39,7 +39,7 @@ class Options
 public:
     Options();
     void toStream(std::ostream& stream) const;
-    bool changeOption(const std::string& s1, std::string& s2);
+    bool changeOption(std::string s1, std::string& s2);
 
     // Getters
     bool doesImportOnlySourceFileExtension() const;

@@ -130,11 +130,12 @@ bool Options::saveToFile(const char* filename) const
 }
 
 
-bool Options::changeOption(const std::string& s1, std::string& s2)
+bool Options::changeOption(std::string s1, std::string& s2)
 {
     bool valueToBeSet=false;
 
-    // lower s2
+    // lower the two strings
+    lowerString(s1);
     lowerString(s2);
 
     // Interpret s2
@@ -150,22 +151,22 @@ bool Options::changeOption(const std::string& s1, std::string& s2)
     }
 
 
-    if(s1=="importOnlySourceFileExtension"){
+    if(s1=="importonlysourcefileextension"){
         importOnlySourceFileExtension=valueToBeSet;
     }
-    else if(s1=="importMacroCommented"){
+    else if(s1=="importmacrocommented"){
         importMacroCommented=valueToBeSet;
     }
-    else if(s1=="printReplacements"){
+    else if(s1=="printreplacements"){
         printReplacements=valueToBeSet;
     }
-    else if(s1=="printExprAtEveryStep"){
+    else if(s1=="printexprateverystep"){
         printExprAtEveryStep=valueToBeSet;
     }
-    else if(s1=="keepListRedefinedMacros"){
+    else if(s1=="keeplistredefinedmacros"){
         keepListRedefinedMacros=valueToBeSet;
     }
-    else if(s1=="disableInterpretations"){
+    else if(s1=="disableinterpretations"){
         disableInterpretations=valueToBeSet;
     }
     else {
