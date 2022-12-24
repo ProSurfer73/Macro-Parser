@@ -43,6 +43,7 @@ public:
     inline const std::unordered_multimap< std::string, std::string >& getDefines() const { return defines; }
     bool exists(const std::string& macroName) const;
     bool isRedefined(const std::string& macroName) const;
+    bool alreadyExists(const std::string& macroName, const std::string& macroValue) const;
 
 private:
     static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);

@@ -39,6 +39,17 @@ bool MacroDatabase::exists(const std::string& macroName) const
     return false;
 }
 
+bool MacroDatabase::alreadyExists(const std::string& macroName, const std::string& macroValue) const
+{
+    auto range = defines.equal_range(macroName);
+    for(auto it=range.first; it!=range.second; ++it){
+        if(it->second == macroValue && it->first==macroName){
+            return true;
+        }
+    }
+    return false;
+}
+
 void MacroDatabase::compress()
 {
     /*for(auto& p: defines)
@@ -50,22 +61,8 @@ void MacroDatabase::compress()
 
 void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
 {
-    if(doesExprLookOk(macroValue))
-    {
-        bool alreadyExists=false;
-
-        for(const auto& p: defines)
-        {
-            if(p.first == macroName && p.second!=macroValue){
-                alreadyExists=true;
-                break;
-            }
-        }
-
-        (defines, macroName, macroValue);
-
+    if(!alreadyExists(macroName, macroValue))
         defines.emplace(macroName,macroValue);
-    }
 }
 
 void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
