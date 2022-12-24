@@ -494,8 +494,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     CalculationStatus status = CalculationStatus::EVAL_OKAY;
 
     const auto& dictionary = macroContainer.getDefines();
-    const auto& redefinedMacros = macroContainer.getRedefinedMacros();
-    //const auto& incorrectMacros = macroContainer.getIncorrectMacros();
 
     unsigned replaceCounter = 0;
     unsigned arithmeticCounter = 0;
@@ -580,8 +578,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
         // Replace it
-        for(const pair<string,string>& p: dictionary)
         {
+            auto p = *(dictionary.find(maxSizeReplace));
+
             if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/)
             {
 
@@ -601,7 +600,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 {
                     const string* replacedBy = &(p.second);
 
-                    if(std::find(redefinedMacros.begin(), redefinedMacros.end(), p.first) != redefinedMacros.end())
+                    if(macroContainer.isRedefined(p.first))
                     {
                         bool foundRedef=false;
 

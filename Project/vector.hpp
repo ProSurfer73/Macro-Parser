@@ -23,5 +23,23 @@ void removeDuplicates(std::vector<T>& vec)
 }
 
 
+template<typename T>
+bool emplaceOnce(std::vector<T>& v, const T& macroName)
+{
+    if(v.empty()){
+        v.push_back(macroName);
+        return true;
+    }
+
+    if(std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.push_back(macroName);
+        return true;
+    }
+
+    return false;
+}
+
+
 
 #endif // VECTOR_HPP

@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "options.hpp"
 #include "filesystem.hpp"
@@ -39,10 +40,9 @@ public:
     void compress();
 
     // Getters
-    inline const std::vector< std::pair< std::string, std::string> >& getDefines() const { return defines; }
-    inline const std::vector< std::string >& getRedefinedMacros() const { return redefinedMacros; }
-    inline const std::vector< std::pair< std::string, std::string> >& getIncorrectMacros() const { return incorrectMacros; }
+    inline const std::unordered_multimap< std::string, std::string >& getDefines() const { return defines; }
     bool exists(const std::string& macroName) const;
+    bool isRedefined(const std::string& macroName) const;
 
 private:
     static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);
@@ -51,9 +51,7 @@ private:
     static void removeFromVector(std::vector<std::string>& v, const std::string& str);
 
 protected:
-    std::vector< std::pair<std::string,std::string> > defines;
-    std::vector< std::string > redefinedMacros;
-    std::vector< std::pair<std::string,std::string> > incorrectMacros;
+    std::unordered_multimap< std::string, std::string > defines;
 };
 
 class MacroContainer : public MacroDatabase

@@ -153,9 +153,9 @@ static bool isAllDigits(const std::string& str)
 
 static void printStatMacrospace(MacroContainer const& mc)
 {
-    cout << mc.getDefines().size()+mc.getIncorrectMacros().size() << " macros were loaded." << endl;
-    cout << "|-> " << mc.getRedefinedMacros().size() << " macros have multiple definitions." << endl;
-    cout << "|-> " << mc.getIncorrectMacros().size() << " macros are empty or incorrect." << endl;
+    cout << mc.getDefines().size() << " macros were loaded." << endl;
+    cout << "|-> " << '?' << " macros have multiple definitions." << endl;
+    cout << "|-> " << '?' << " macros are empty or incorrect." << endl;
 }
 
 
@@ -1119,26 +1119,24 @@ bool CommandManager::runCommand(const string& input)
 
         for(const auto& p : mc->getDefines())
         {
-            if(listRe)
+            if(!doesExprLookOk(p.second))
             {
-                for(const string& str: mc->getRedefinedMacros())
-                {
-                    if(p.first == str){
-                        cout << " - " << p.first << " => " << p.second << endl;
-                        ++nbPrinted;
-                    }
-                }
+                cout << " - " << p.first << " => " << p.second << endl;
+                ++nbPrinted;
             }
 
-            if(listOk)
+            if(listRe && mc->isRedefined(p.first))
             {
-                if(std::find(mc->getRedefinedMacros().begin(), mc->getRedefinedMacros().end(), p.first)==mc->getRedefinedMacros().end())
-                {
-                    cout << " - " << p.first << " => " << p.second << endl;
-                    ++nbPrinted;
-                    continue;
-                }
+                cout << " - " << p.first << " => " << p.second << endl;
+                ++nbPrinted;
             }
+
+            else if(listOk)
+            {
+                cout << " - " << p.first << " => " << p.second << endl;
+                ++nbPrinted;
+            }
+
 
             if(nbPrinted >= 5000)
             {
@@ -1147,20 +1145,7 @@ bool CommandManager::runCommand(const string& input)
             }
         }
 
-        if(listIn)
-        {
-            for(const auto& p: mc->getIncorrectMacros())
-            {
-                cout << " - " << p.first << " => " << p.second << endl;
-                ++nbPrinted;
 
-                if(nbPrinted >= 5000)
-                {
-                    std::cout << "Only printed the first 5000 results." << endl;
-                    break;
-                }
-            }
-        }
 
 
 

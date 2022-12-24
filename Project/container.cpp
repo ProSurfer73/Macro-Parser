@@ -27,9 +27,7 @@ MacroDatabase::MacroDatabase()
 {
     // Set large default presize
     // avoid reallocating small amount of memory each time
-    defines.reserve(10000);
-    redefinedMacros.reserve(1000);
-    incorrectMacros.reserve(1000);
+    defines.reserve(50000);
 }
 
 bool MacroDatabase::exists(const std::string& macroName) const
@@ -38,31 +36,16 @@ bool MacroDatabase::exists(const std::string& macroName) const
         if(p.first == macroName )
             return true;
     }
-    for(const auto& p: incorrectMacros){
-        if(p.first == macroName)
-            return true;
-    }
     return false;
 }
 
 void MacroDatabase::compress()
 {
-    for(auto& p: defines)
+    /*for(auto& p: defines)
     {
         p.first.shrink_to_fit();
         p.second.shrink_to_fit();
-    }
-
-    for(auto& p: incorrectMacros)
-    {
-        p.first.shrink_to_fit();
-        p.second.shrink_to_fit();
-    }
-
-    for(std::string& str: redefinedMacros)
-    {
-        str.shrink_to_fit();
-    }
+    }*/
 }
 
 void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
@@ -79,28 +62,16 @@ void MacroDatabase::emplace(const std::string& macroName, const std::string& mac
             }
         }
 
-        if(alreadyExists)
-        {
-            emplaceOnce(redefinedMacros, macroName);
-        }
+        (defines, macroName, macroValue);
 
-        emplaceOnce(defines, macroName, macroValue);
-
-        //defines.emplace_back(macroName,macroValue);
+        defines.emplace(macroName,macroValue);
     }
-    else
-    {
-        emplaceOnce(incorrectMacros, macroName, macroValue);
-    }
-
 }
 
 void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
-    removeFromVector(defines, macroName);
-    removeFromVector(incorrectMacros, macroName);
-    removeFromVector(redefinedMacros, macroName);
-    defines.emplace_back(macroName, macroValue);
+    //removeFromVector(defines, macroName);
+    defines.emplace(macroName, macroValue);
 }
 
 bool MacroDatabase::importFromFile(const std::string& filepath, const Options& config)
@@ -115,21 +86,7 @@ bool MacroDatabase::importFromFolder(const std::string& folderpath, const Option
 
 // Getters
 
-bool MacroDatabase::emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
-{
-    if(v.empty()){
-        v.push_back(macroName);
-        return true;
-    }
 
-    if(std::find(v.begin(), v.end(), macroName)==v.end())
-    {
-        v.push_back(macroName);
-        return true;
-    }
-
-    return false;
-}
 
 bool MacroDatabase::emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue)
 {
@@ -186,6 +143,11 @@ void MacroDatabase::removeFromVector(std::vector<std::string>& v, const std::str
     }
 }
 
+bool MacroDatabase::isRedefined(const std::string& macroName) const
+{
+    return defines.count(macroName) > 1;
+}
+
 /*** MacroContainer class implementation ***/
 
 MacroContainer::MacroContainer()
@@ -210,10 +172,6 @@ void MacroContainer::clearDatabase(bool clearDefines, bool clearRedefined, bool 
 {
     if(clearDefines)
         defines.clear();
-    if(clearRedefined)
-        redefinedMacros.clear();
-    if(clearIncorrect)
-        incorrectMacros.clear();
 }
 
 
