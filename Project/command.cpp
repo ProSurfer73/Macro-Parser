@@ -18,10 +18,10 @@
   */
 
 #include "command.hpp"
-
 #include "container.hpp"
 #include "stringeval.hpp"
 #include "macrospace.hpp"
+#include "vector.hpp"
 
 static auto* gg = std::cout.rdbuf();
 
@@ -853,9 +853,9 @@ bool CommandManager::runCommand(const string& input)
     }
     else if(commandStr=="where")
     {
-        if(parameters.size()<3)
+        if(parameters.size()<2)
         {
-            cout << "Error: incorrect parameters." << endl;
+            cout << "Error: please type a macro name to search." << endl;
         }
         else
         {
@@ -882,31 +882,52 @@ bool CommandManager::runCommand(const string& input)
                 lookupFolders.push_back(parameters[2]);
             }
 
-            if(lookupFolders.empty())
+            // 3. If no folder is specified, let's specify everything
+            if(!parameters.empty())
             {
-                std::cout << "No source folder or file was specified." << endl;
-            }
-            else
+
+            for(auto& p: macrospaces.macrospaces)
             {
-                for(const std::string& str2 : lookupFolders)
+                if(p.first != "msall")
                 {
-                    if(!searchDirectory(str2, parameters[1], configuration))
+                    for(const std::string& s: p.second.getListOrigins())
                     {
-                        if(FileSystem::directoryExists(str2.c_str()))
-                            std::cout << "Can't open the directory '" << str2 << "'." << endl;
-                        else
-                            std::cout << "The directory '" << str2 << "' doesn't seem to exist." << std::endl;
-                    }
-                    else if(searchFile(str2, parameters[1], configuration))
-                    {
-                        std::cout << " - " << str2 << std::endl;
+                        if(s.substr(0,7)!="define ")
+                            lookupFolders.push_back(s);
                     }
                 }
             }
 
+            }
 
+            // 4. Remove duplicate sources
+            removeDuplicates(lookupFolders);
 
-
+            // 5. Let's search, finally !
+            std::vector<std::string> results;
+            for(const std::string& str2 : lookupFolders)
+            {
+                // If we cannot open the folder
+                if(!searchDirectory(str2, parameters[1], configuration, results))
+                {
+                    if(FileSystem::directoryExists(str2.c_str()))
+                        std::cout << "Can't open the directory '" << str2 << "'." << endl;
+                    else
+                        std::cout << "The directory '" << str2 << "' doesn't seem to exist." << std::endl;
+                }
+                else if(searchFile(str2, parameters[1], configuration))
+                {
+                    std::cout << " - " << str2 << std::endl;
+                    results.emplace_back(std::move(str2));
+                }
+            }
+            unsigned total = results.size();
+            if(total==0)
+                std::cout << "No result found." << std::endl;
+            else if(total==1)
+                std::cout << "1 result found." << std::endl;
+            else
+                std::cout << total << " results found." << std::endl;
         }
     }
     else if(commandStr == "evaluate")
@@ -1105,7 +1126,6 @@ bool CommandManager::runCommand(const string& input)
                     if(p.first == str){
                         cout << " - " << p.first << " => " << p.second << endl;
                         ++nbPrinted;
-                        continue;
                     }
                 }
             }
@@ -1120,21 +1140,25 @@ bool CommandManager::runCommand(const string& input)
                 }
             }
 
-            if(listIn)
-            {
-                for(const auto& p: mc->getIncorrectMacros())
-                {
-                    cout << " - " << p.first << " => " << p.second << endl;
-                    ++nbPrinted;
-
-
-                }
-            }
-
             if(nbPrinted >= 5000)
             {
                 std::cout << "Only printed the first 5000 results." << endl;
                 break;
+            }
+        }
+
+        if(listIn)
+        {
+            for(const auto& p: mc->getIncorrectMacros())
+            {
+                cout << " - " << p.first << " => " << p.second << endl;
+                ++nbPrinted;
+
+                if(nbPrinted >= 5000)
+                {
+                    std::cout << "Only printed the first 5000 results." << endl;
+                    break;
+                }
             }
         }
 

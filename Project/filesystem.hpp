@@ -22,18 +22,11 @@
 
 #include <string>
 #include <vector>
-#include <fstream>
-#include <sstream>
 #include <iostream>
-#include <thread>
 #include <iomanip>
-#include <thread>
-#include <mutex>
 #include <atomic>
 
-#if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
-#endif
+
 
 using namespace std;
 
@@ -74,14 +67,9 @@ friend class MacroDatabase;
 };
 
 bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
-bool searchDirectory(string dir, const std::string& macroName, const Options& config);
+bool searchDirectory(string dir, const std::string& macroName, const Options& config, std::vector<std::string>& previousResults);
 
 void listFilesRecursively(const char* basepath, std::vector<char*>& vec);
 
-#if defined(_WIN32) || defined(_WIN64)
-
-#else
-
-#endif
 
 #endif // FILESYSTEM_HPP

@@ -17,8 +17,15 @@
   ******************************************************************************
   */
 
-#include "filesystem.hpp"
+#include <fstream>
+#include <sstream>
+#include <thread>
+#include <chrono>
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+#endif
 
+#include "filesystem.hpp"
 #include "options.hpp"
 #include "stringeval.hpp"
 
@@ -402,10 +409,9 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 || (origin && keepTrack.back()>=1)){
                     //std::cout << "import: " << str1 << " --- " << str2 << "---" << (int)keepTrack.back() << std::endl;
                     macroContainer.emplace(str1, str2);
-                    localContainer.emplace(str1, str2);
                 }
 
-                else if(!config.doDisableInterpretations() && keepTrack.back()>=1){
+                if(!config.doDisableInterpretations() && keepTrack.back()>=1){
                     //std::cout << "import: " << str1 << " --- " << str2 << "---" << (int)keepTrack.back() << std::endl;
                     localContainer.emplace(str1, str2);
                 }
@@ -835,7 +841,7 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
     return false;
 }
 
-bool searchDirectory(string dir, const std::string& macroName, const Options& config)
+bool searchDirectory(string dir, const std::string& macroName, const Options& config, std::vector<std::string>& previousResults)
 {
     std::vector<std::string> fileCollection;
     explore_directory(dir, fileCollection);
@@ -843,18 +849,15 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
     if(fileCollection.empty())
         return false;
 
-    unsigned nbResults=0;
-
     for(auto& str: fileCollection)
     {
-        if(searchFile(str, macroName, config))
+        if(std::find(previousResults.begin(), previousResults.end(), str) == previousResults.end()
+        && searchFile(str, macroName, config))
         {
             std::cout << str << endl;
-            ++nbResults;
+            previousResults.emplace_back(std::move(str));
         }
     }
-
-    std::cout << nbResults << " results found." << endl;
 
     return true;
 }

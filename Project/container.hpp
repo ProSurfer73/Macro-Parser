@@ -81,6 +81,7 @@ public:
     void printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param) const;
 
     void getListOrigins(std::vector<std::string>& v) const;
+    const std::vector<std::string>& getListOrigins() const;
     virtual void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
 
 private:

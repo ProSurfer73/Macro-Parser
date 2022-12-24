@@ -614,4 +614,9 @@ void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::
     origins.emplace_back( std::move(added) );
 }
 
+const std::vector<std::string>& MacroContainer::getListOrigins() const
+{
+    return origins;
+}
+
 

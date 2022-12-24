@@ -40,7 +40,7 @@ public:
 private:
     void updateMsAll();
 
-private:
+public:
     std::vector< std::pair<std::string, MacroContainer> > macrospaces;
 };
 
