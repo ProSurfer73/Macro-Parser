@@ -85,11 +85,14 @@ void MacroDatabase::emplace(const std::string& macroName, const std::string& mac
         }
 
         emplaceOnce(defines, macroName, macroValue);
+
+        //defines.emplace_back(macroName,macroValue);
     }
     else
     {
         emplaceOnce(incorrectMacros, macroName, macroValue);
     }
+
 }
 
 void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)

@@ -52,8 +52,8 @@ std::string extractDirPathFromFilePath(const std::string& filepath);
 class WordDetector
 {
 public:
-    WordDetector(const char* initialstr);
-    bool receive(char character);
+    inline WordDetector(const char* initialstr);
+    inline bool receive(char character);
 
 private:
     const char* str;
