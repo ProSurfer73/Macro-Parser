@@ -517,7 +517,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             //std::cout << "macroNameRead: '" << macroNameRead << "'" << std::endl;
 
-            std::cout << "does '" << macroNameRead << "' exists?" << std::endl;
+            //std::cout << "does '" << macroNameRead << "' exists?" << std::endl;
             if(localContainer.exists(macroNameRead))
             {
                 //std::cout << "yes!" << std::endl;

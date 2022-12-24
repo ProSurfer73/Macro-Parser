@@ -24,20 +24,49 @@ void removeDuplicates(std::vector<T>& vec)
 
 
 template<typename T>
-bool emplaceOnce(std::vector<T>& v, const T& macroName)
+bool emplaceOnce(std::vector<T>& v, const T& value)
 {
     if(v.empty()){
-        v.push_back(macroName);
+        v.push_back(value);
         return true;
     }
 
-    if(std::find(v.begin(), v.end(), macroName)==v.end())
+    if(std::find(v.begin(), v.end(), value)==v.end())
     {
-        v.push_back(macroName);
+        v.push_back(value);
         return true;
     }
 
     return false;
+}
+
+template<typename T>
+bool emplaceOnce(std::vector<T>& v, const T&& value)
+{
+    if(v.empty()){
+        v.push_back(std::move(value));
+        return true;
+    }
+
+    if(std::find(v.begin(), v.end(), value)==v.end())
+    {
+        v.push_back(std::move(value));
+        return true;
+    }
+
+    return false;
+}
+
+template<typename T>
+void removeFromVector(std::vector<T>& v, const T& value)
+{
+    for(auto it=v.begin(); it!=v.end();)
+    {
+        if(*it == value)
+            it = v.erase(it);
+        else
+            ++it;
+    }
 }
 
 

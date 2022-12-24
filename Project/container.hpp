@@ -45,12 +45,6 @@ public:
     bool isRedefined(const std::string& macroName) const;
     bool alreadyExists(const std::string& macroName, const std::string& macroValue) const;
 
-private:
-    static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName);
-    static bool emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue);
-    static void removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName);
-    static void removeFromVector(std::vector<std::string>& v, const std::string& str);
-
 protected:
     std::unordered_multimap< std::string, std::string > defines;
 };

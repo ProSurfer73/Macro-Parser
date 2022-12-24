@@ -87,33 +87,6 @@ bool MacroDatabase::importFromFolder(const std::string& folderpath, const Option
 
 // Getters
 
-
-
-bool MacroDatabase::emplaceOnce(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName, const std::string& macroValue)
-{
-    if(v.empty()){
-        v.emplace_back(macroName, macroValue);
-        return true;
-    }
-
-
-    bool exists=false;
-    for(auto it=v.begin(); it!=v.end(); ++it)
-    {
-        if(it->first == macroName && it->second == macroValue)
-        {
-            exists=true;
-        }
-    }
-
-    if(!exists)
-    {
-        v.emplace_back(macroName, macroValue);
-    }
-
-    return !exists;
-}
-
 void MacroDatabase::import(const MacroDatabase& mdatabase)
 {
     for(const auto& p : mdatabase.defines)
@@ -122,27 +95,6 @@ void MacroDatabase::import(const MacroDatabase& mdatabase)
     }
 }
 
-void MacroDatabase::removeFromVector(std::vector< std::pair<std::string,std::string> >& v, const std::string& macroName)
-{
-    for(auto it=v.begin(); it!=v.end();){
-        if(it->first == macroName)
-            it=v.erase(it);
-        else
-            ++it;
-    }
-}
-
-void MacroDatabase::removeFromVector(std::vector<std::string>& v, const std::string& macroName)
-{
-
-    for(auto it=v.begin(); it!=v.end();)
-    {
-        if(*it == macroName)
-            it = v.erase(it);
-        else
-            ++it;
-    }
-}
 
 bool MacroDatabase::isRedefined(const std::string& macroName) const
 {
