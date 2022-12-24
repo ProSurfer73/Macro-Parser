@@ -20,11 +20,7 @@
 #ifndef HEXA_HPP
 #define HEXA_HPP
 
-#include <math.h>
-#include <string.h>
-#include <iostream>
 #include <string>
-#include <ctype.h>
 
 #include "options.hpp"
 

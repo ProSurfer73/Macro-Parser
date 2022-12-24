@@ -20,11 +20,8 @@
 #ifndef STRINGEVAL_HPP
 #define STRINGEVAL_HPP
 
-
 #include <vector>
 #include <string>
-#include <sstream>
-#include <cassert>
 
 #include "container.hpp"
 #include "stringeval.hpp"

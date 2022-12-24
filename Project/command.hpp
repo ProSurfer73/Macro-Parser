@@ -20,10 +20,7 @@
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
 
-#include <iostream>
-#include <vector>
-#include <sstream>
-#include <map>
+#include <string>
 
 using namespace std;
 

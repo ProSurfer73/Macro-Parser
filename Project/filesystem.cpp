@@ -21,6 +21,10 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <iomanip>
+#include <atomic>
+#include <iostream>
+#include <algorithm>
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
 #endif
@@ -449,10 +453,13 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             // Let's create a new container with our local defines
 
+
             for(const auto& p : localContainer.getDefines())
             {
-                simpleReplace(conditionStr, std::string("defined(")+p.first+')', "true");
-                simpleReplace(conditionStr, std::string("defined ")+p.first, "true");
+                if(doesExprLookOk(p.first)){
+                    simpleReplace(conditionStr, (std::string("defined(")+=p.first)+=')', "true");
+                    simpleReplace(conditionStr, std::string("defined ")+=p.first, "true");
+                }
             }
 
             //std::cout << "conditionStr: " << conditionStr << endl;
@@ -510,7 +517,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             //std::cout << "macroNameRead: '" << macroNameRead << "'" << std::endl;
 
-            //std::cout << "does '" << macroNameRead << "' exists?" << std::endl;
+            std::cout << "does '" << macroNameRead << "' exists?" << std::endl;
             if(localContainer.exists(macroNameRead))
             {
                 //std::cout << "yes!" << std::endl;
@@ -594,8 +601,10 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
                     for(const auto& p : localContainer.getDefines())
                     {
-                        simpleReplace(conditionStr, (std::string("defined(")+=p.first)+=')', "true");
-                        simpleReplace(conditionStr, std::string("defined ")+=p.first, "true");
+                        if(doesExprLookOk(p.first)){
+                            simpleReplace(conditionStr, (std::string("defined(")+=p.first)+=')', "true");
+                            simpleReplace(conditionStr, std::string("defined ")+=p.first, "true");
+                        }
                     }
 
                     //MacroContainer localContainer;

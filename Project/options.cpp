@@ -17,6 +17,10 @@
   ******************************************************************************
   */
 
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+
 #include "options.hpp"
 #include "container.hpp"
 

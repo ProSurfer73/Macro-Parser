@@ -17,11 +17,12 @@
   ******************************************************************************
   */
 
-
+#include <iostream>
+#include <sstream>
+#include <cassert>
+#include <algorithm>
 
 #include "stringeval.hpp"
-
-#include <iostream>
 #include "container.hpp"
 #include "options.hpp"
 
@@ -545,6 +546,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
         // Look for the longest word to replace
+        /// TP DO: To be replaced by a more efficient implementation
         for(const pair<string,string>& p: dictionary)
         {
             const string& mac = p.first;

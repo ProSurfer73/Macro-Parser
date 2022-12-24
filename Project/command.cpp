@@ -17,6 +17,13 @@
   ******************************************************************************
   */
 
+#include <iostream>
+#include <vector>
+#include <sstream>
+#include <map>
+#include <algorithm>
+#include <fstream>
+
 #include "command.hpp"
 #include "container.hpp"
 #include "stringeval.hpp"

@@ -27,10 +27,8 @@
 /// Dynamic options ///
 // Options that can be modified and configured by the user at runtime
 
-#include <fstream>
+#include <ostream>
 #include <string>
-#include <iostream>
-#include <algorithm>
 
 #include "config.hpp"
 

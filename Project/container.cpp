@@ -17,6 +17,10 @@
   ******************************************************************************
   */
 
+#include <iostream>
+#include <cassert>
+#include <algorithm>
+
 #include "container.hpp"
 
 /*** MacroDatabase ***/

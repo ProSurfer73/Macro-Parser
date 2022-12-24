@@ -21,6 +21,7 @@
 #define MACROSPACE_HPP
 
 #include <vector>
+
 #include "container.hpp"
 
 class Macrospaces

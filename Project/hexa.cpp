@@ -17,6 +17,11 @@
   ******************************************************************************
   */
 
+#include <iostream>
+#include <cctype>
+#include <cmath>
+#include <cstring>
+
 #include "hexa.hpp"
 
 using namespace std;
