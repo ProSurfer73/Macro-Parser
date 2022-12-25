@@ -1132,7 +1132,7 @@ bool CommandManager::runCommand(const string& input)
                 ++nbPrinted;
             }
 
-            if(listRe && mc->isRedefined(p.first))
+            else if(listRe && mc->isRedefined(p.first))
             {
                 cout << " - " << p.first << " => " << p.second << endl;
                 ++nbPrinted;
