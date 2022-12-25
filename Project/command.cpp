@@ -1126,29 +1126,21 @@ bool CommandManager::runCommand(const string& input)
 
         for(const auto& p : mc->getDefines())
         {
-            if(!doesExprLookOk(p.second))
+            bool isCorrect = doesExprLookOk(p.second);
+            bool isRedef = mc->isRedefined(p.first);
+
+            if((listIn && !isCorrect)
+            || (listRe && isRedef && isCorrect)
+            || (listOk && !isRedef && isCorrect))
             {
                 cout << " - " << p.first << " => " << p.second << endl;
                 ++nbPrinted;
-            }
 
-            else if(listRe && mc->isRedefined(p.first))
-            {
-                cout << " - " << p.first << " => " << p.second << endl;
-                ++nbPrinted;
-            }
-
-            else if(listOk)
-            {
-                cout << " - " << p.first << " => " << p.second << endl;
-                ++nbPrinted;
-            }
-
-
-            if(nbPrinted >= 5000)
-            {
-                std::cout << "Only printed the first 5000 results." << endl;
-                break;
+                if(nbPrinted >= 5000)
+                {
+                    std::cout << "Only printed the first 5000 results." << endl;
+                    break;
+                }
             }
         }
 
