@@ -24,9 +24,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "options.hpp"
-#include "filesystem.hpp"
-
+class Options;
 
 class MacroDatabase
 {

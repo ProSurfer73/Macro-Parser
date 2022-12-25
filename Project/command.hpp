@@ -22,10 +22,8 @@
 
 #include <string>
 
-using namespace std;
 
 #include "macrospace.hpp"
-#include "container.hpp"
 
 class CommandManager
 {
@@ -36,7 +34,7 @@ public:
 
     // Command line methods
     void dealWithUser();
-    bool runCommand(const string& str);
+    bool runCommand(const std::string& str);
     bool loadScript(const std::string& filepath, bool printStatus=false);
 
 private:

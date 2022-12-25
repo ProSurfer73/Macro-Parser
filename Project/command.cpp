@@ -20,7 +20,6 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
-#include <map>
 #include <algorithm>
 #include <fstream>
 
@@ -29,6 +28,11 @@
 #include "stringeval.hpp"
 #include "macrospace.hpp"
 #include "vector.hpp"
+#include "filesystem.hpp"
+#include "config.hpp"
+#include "closeto.hpp"
+
+using namespace std;
 
 static auto* gg = std::cout.rdbuf();
 
@@ -99,6 +103,8 @@ static void printAdvancedHelp()
     std::cout << "Scripts accept single line comments // just like in C." << std::endl;
 }
 
+#include <chrono>
+
 void CommandManager::dealWithUser()
 {
     bool running=true;
@@ -110,7 +116,13 @@ void CommandManager::dealWithUser()
         string userInput;
         getline(cin, userInput);
 
+        const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
         running = runCommand(userInput);
+
+        const auto end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+
+        std::cout << end-start << std::endl;
 
         cout << endl;
     }
@@ -187,7 +199,7 @@ bool CommandManager::runCommand(const string& input)
             commandMacrospaces.emplace_back(parameters[i]);
     }*/
 
-    if(commandStr.substr(0,5) == "clear")
+    if(isRoughlyEqualTo("clear",commandStr.substr(0,5)))
     {
         if(commandStr.size()>5)
             parameters.emplace_back(commandStr.substr(5));
@@ -219,29 +231,31 @@ bool CommandManager::runCommand(const string& input)
             cout << "No option parameter was given. No macro was erased." << endl;
             cout << "Try 'clear all' or 'clear ok' or 'clear in'." << endl;
         }
+        else
+        {
+            std::vector<std::string> commandMacrospaces;
+            for(unsigned i=1; i<parameters.size(); ++i){
+                if(macrospaces.doesMacrospaceExists(parameters[i]))
+                    commandMacrospaces.emplace_back(parameters[i]);
+            }
+            if(commandMacrospaces.empty())
+                commandMacrospaces.emplace_back("default");
 
-        std::vector<std::string> commandMacrospaces;
-        for(unsigned i=1; i<parameters.size(); ++i){
-            if(macrospaces.doesMacrospaceExists(parameters[i]))
-                commandMacrospaces.emplace_back(parameters[i]);
+            // User message to explain what the program did
+            std::cout << "Cleared ";
+            if(eraseRe&&eraseOk&&eraseIn) cout << "all "; else cout << "some ";
+            cout << "macros in container";
+            if(commandMacrospaces.size()>1) cout << 's';
+            cout << ": ";
+            for(const std::string& str: commandMacrospaces) cout << str << ' ';
+            cout << endl;
+
+            // Finally let's clear the macro database
+            for(const std::string& str: commandMacrospaces)
+                macrospaces.getMacroSpace(str).clearDatabase(eraseOk, eraseRe, eraseIn);
         }
-        if(commandMacrospaces.empty())
-            commandMacrospaces.emplace_back("default");
-
-        // User message to explain what the program did
-        std::cout << "Cleared ";
-        if(eraseRe&&eraseOk&&eraseIn) cout << "all "; else cout << "some ";
-        cout << "macros in container";
-        if(commandMacrospaces.size()>1) cout << 's';
-        cout << ": ";
-        for(const std::string& str: commandMacrospaces) cout << str << ' ';
-        cout << endl;
-
-        // Finally let's clear the macro database
-        for(const std::string& str: commandMacrospaces)
-            macrospaces.getMacroSpace(str).clearDatabase(eraseOk, eraseRe, eraseIn);
     }
-    else if(commandStr == "interpret")
+    else if(isRoughlyEqualTo("interpret",commandStr))
     {
         parameters.erase(parameters.begin());
 
@@ -388,7 +402,7 @@ bool CommandManager::runCommand(const string& input)
 
         }
     }
-    else if(commandStr == "interpretall")
+    else if(isRoughlyEqualTo("interpretall",commandStr))
     {
         if(parameters.size()>3)
         {
@@ -499,7 +513,7 @@ bool CommandManager::runCommand(const string& input)
         }
         }
     }
-    else if(parameters.front() == "look")
+    else if(isRoughlyEqualTo("look",commandStr))
     {
         /*if(parameters.size()>2 && !macrospaces.doesMacrospaceExists(parameters[2]))
             cout << "The macrospace '" << parameters[1] << "' does not exist." << endl;
@@ -671,7 +685,7 @@ bool CommandManager::runCommand(const string& input)
 
 
     }
-    else if(commandStr == "define")
+    else if(isRoughlyEqualTo("define",commandStr))
     {
         if(parameters.empty())
             std::cout << "Error: no parameter was given to the define command." << endl;
@@ -688,7 +702,7 @@ bool CommandManager::runCommand(const string& input)
             macrospaces.getMacroSpace(macroStringName).emplaceAndReplace(parameters[1], parameters[2]);
         }
     }
-    else if(commandStr.substr(0,4) == "stat")
+    else if(isRoughlyEqualTo("stat",commandStr))
     {
         if(parameters.front().size()>4){
             parameters.emplace_back(commandStr.substr(4));
@@ -710,7 +724,7 @@ bool CommandManager::runCommand(const string& input)
             printStatMacrospace(macrospaces.getMacroSpace("default"));
         }
     }
-    else if(commandStr == "search")
+    else if(isRoughlyEqualTo("search",commandStr))
     {
         std::vector<MacroContainer*> macrospacesCur;
         parameters.erase(parameters.begin());
@@ -745,12 +759,12 @@ bool CommandManager::runCommand(const string& input)
             }
         }
     }
-    else if(commandStr == "options"){
+    else if(isRoughlyEqualTo("options",commandStr)){
         // Print the configuration
         configuration.toStream(cout);
         cout << "The options are saved in the file '" << OPTIONS_FILENAME << "' next to the executable." << endl;
     }
-    else if(commandStr == "changeoption"){
+    else if(isRoughlyEqualTo("changeoption",commandStr)){
         if(parameters.size()<3 || parameters.size()>3){
             cout << "Error: wrong number of parameters." << endl;
         }
@@ -758,7 +772,7 @@ bool CommandManager::runCommand(const string& input)
             configuration.changeOption(parameters[1],parameters[2]);
         }
     }
-    else if(commandStr == "import")
+    else if(isRoughlyEqualTo("import",commandStr))
     {
         parameters.erase(parameters.begin());
 
@@ -801,7 +815,7 @@ bool CommandManager::runCommand(const string& input)
 
 
     }
-    else if(commandStr == "importfile")
+    else if(isRoughlyEqualTo("importfile",commandStr))
     {
         parameters.erase(parameters.begin());
 
@@ -827,7 +841,7 @@ bool CommandManager::runCommand(const string& input)
         }
     }
 
-    else if(commandStr == "importfolder")
+    else if(isRoughlyEqualTo("importfolder",commandStr))
     {
         std::vector<std::string> macrospacesName;
         parameters.erase(parameters.begin());
@@ -858,7 +872,7 @@ bool CommandManager::runCommand(const string& input)
             cout << "/!\\ Error: no directory was provided. /!\\" << endl;
         }
     }
-    else if(commandStr=="where")
+    else if(isRoughlyEqualTo("where",commandStr))
     {
         if(parameters.size()<2)
         {
@@ -937,7 +951,7 @@ bool CommandManager::runCommand(const string& input)
                 std::cout << total << " results found." << std::endl;
         }
     }
-    else if(commandStr == "evaluate")
+    else if(isRoughlyEqualTo("evaluate",commandStr))
     {
         string expr = input.substr(9);
 
@@ -1074,7 +1088,7 @@ bool CommandManager::runCommand(const string& input)
             }
         }
     }
-    else if(commandStr.substr(0,4) == "list")
+    else if(isRoughlyEqualTo("list",commandStr.substr(0,4)))
     {
         if(commandStr.substr(4).size()>=1)
             parameters.push_back(commandStr.substr(4));
@@ -1151,7 +1165,7 @@ bool CommandManager::runCommand(const string& input)
         }
 
     }
-    else if(commandStr == "printsources"){
+    else if(isRoughlyEqualTo("printsources",commandStr)){
         if(parameters.size()==1)
             std::cout << "Error: you need to specify at least one macrospace." << std::endl;
         else {
@@ -1164,7 +1178,7 @@ bool CommandManager::runCommand(const string& input)
             }
         }
     }
-    else if(commandStr == "spacediff")
+    else if(isRoughlyEqualTo("spacediff",commandStr))
     {
         if(parameters.size()<3)
         {
@@ -1177,8 +1191,6 @@ bool CommandManager::runCommand(const string& input)
             if(parameters.size()<3){
                 std::cout << "Spacediff need at least 2 different macrospaces." << endl;
             }
-
-            int sortPolicy=0;
 
             bool inputOkay=true;
             for(unsigned i=1; i<parameters.size(); ++i)
@@ -1213,9 +1225,10 @@ bool CommandManager::runCommand(const string& input)
 
         }
     }
-    else if(commandStr == "helpall" || (parameters.size()==2 && commandStr=="help" && parameters[1]=="all"))
+    else if(isRoughlyEqualTo("helpall",commandStr)
+    || (parameters.size()==2 && commandStr=="help" && parameters[1]=="all"))
         printAdvancedHelp();
-    else if(commandStr == "help")
+    else if(isRoughlyEqualTo("help",commandStr))
         printBasicHelp();
     else if(commandStr == "cls"){
 #if defined(_WIN32) || defined(_WIN64)
@@ -1224,7 +1237,7 @@ bool CommandManager::runCommand(const string& input)
         std::cout << "The cls command has not yet been ported on this OS." << std::endl;
 #endif
     }
-    else if(commandStr == "loadscript")
+    else if(isRoughlyEqualTo("loadscript",commandStr))
     {
         if(parameters.size()>=2)
         {
@@ -1235,7 +1248,7 @@ bool CommandManager::runCommand(const string& input)
         else
             std::cout << "Error: no parameter given to the command." << std::endl;
     }
-    else if(commandStr == "exit")
+    else if(isRoughlyEqualTo("exit",commandStr))
         return false;
     else {
         cout << "This command is unknown." << endl;

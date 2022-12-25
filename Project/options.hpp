@@ -30,8 +30,6 @@
 #include <ostream>
 #include <string>
 
-#include "config.hpp"
-
 class Options
 {
 public:

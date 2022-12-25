@@ -18,7 +18,6 @@
   */
 
 #include <fstream>
-#include <sstream>
 #include <thread>
 #include <chrono>
 #include <iomanip>
@@ -32,6 +31,7 @@
 #include "filesystem.hpp"
 #include "options.hpp"
 #include "stringeval.hpp"
+#include "config.hpp"
 
 // This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
 static bool isBlank(char c)

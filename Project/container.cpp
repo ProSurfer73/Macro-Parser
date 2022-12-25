@@ -22,6 +22,8 @@
 #include <algorithm>
 
 #include "container.hpp"
+#include "filesystem.hpp"
+#include "options.hpp"
 
 /*** MacroDatabase ***/
 

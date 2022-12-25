@@ -23,6 +23,8 @@
 
 #include "options.hpp"
 #include "container.hpp"
+#include "config.hpp"
+#include "closeto.hpp"
 
 Options::Options()
 {
@@ -143,10 +145,10 @@ bool Options::changeOption(std::string s1, std::string& s2)
     lowerString(s2);
 
     // Interpret s2
-    if(s2=="1"||s2=="true"){
+    if(s2=="1"||isRoughlyEqualTo("true",s2)){
         valueToBeSet=true;
     }
-    else if(s2=="0"||s2=="false"){
+    else if(s2=="0"||isRoughlyEqualTo("false",s2)){
         valueToBeSet=false;
     }
     else {
@@ -155,22 +157,22 @@ bool Options::changeOption(std::string s1, std::string& s2)
     }
 
 
-    if(s1=="importonlysourcefileextension"){
+    if(isRoughlyEqualTo("importonlysourcefileextension",s1)){
         importOnlySourceFileExtension=valueToBeSet;
     }
-    else if(s1=="importmacrocommented"){
+    else if(isRoughlyEqualTo("importmacrocommented", s1)){
         importMacroCommented=valueToBeSet;
     }
-    else if(s1=="printreplacements"){
+    else if(isRoughlyEqualTo("printreplacements",s1)){
         printReplacements=valueToBeSet;
     }
-    else if(s1=="printexprateverystep"){
+    else if(isRoughlyEqualTo("printexprateverystep",s1)){
         printExprAtEveryStep=valueToBeSet;
     }
-    else if(s1=="keeplistredefinedmacros"){
+    else if(isRoughlyEqualTo("keeplistredefinedmacros",s1)){
         keepListRedefinedMacros=valueToBeSet;
     }
-    else if(s1=="disableinterpretations"){
+    else if(isRoughlyEqualTo("disableinterpretations",s1)){
         disableInterpretations=valueToBeSet;
     }
     else {
