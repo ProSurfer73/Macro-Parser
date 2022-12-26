@@ -25,6 +25,7 @@
 #include "stringeval.hpp"
 #include "container.hpp"
 #include "options.hpp"
+#include "config.hpp"
 
 static bool thereIsMacroLetter(const std::string& str)
 {

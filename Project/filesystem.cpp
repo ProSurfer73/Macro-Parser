@@ -552,12 +552,11 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 
             if(localContainer.exists(macroNameRead))
             {
-                //keepTrack.push_back(-1);
-                keepTrack.push_back(1);
+                keepTrack.push_back(-2);
             }
             else
             {
-                keepTrack.push_back(-2);
+                keepTrack.push_back(0);
             }
 
             }
@@ -631,19 +630,19 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                         if(conditionStr == "true")
                         {
                             //std::cout << 1 << endl;
-                            keepTrack.push_back(1);
+                            keepTrack[keepTrack.size()-1] = 1;
                         }
                         else if(conditionStr=="false")
                         {
                             //std::cout << -1 << endl;
-                            keepTrack.push_back(-2);
+                            keepTrack[keepTrack.size()-1] = 2;
                         }
 
                     }
                     else
                     {
                         //std::cout << "Not interpreted: " << conditionStr << endl;
-                        keepTrack.push_back(0);
+                        keepTrack[keepTrack.size()-1] = 0;
                     }
 
                 }
@@ -666,7 +665,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         }
 
         // If we detected #include
-        if(includeDetector.receive(characterRead))
+        if(false && includeDetector.receive(characterRead))
         {
             // Let's extract the filename
             string wholeWord;

@@ -116,13 +116,12 @@ void CommandManager::dealWithUser()
         string userInput;
         getline(cin, userInput);
 
-        const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        //const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         running = runCommand(userInput);
 
-        const auto end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-        std::cout << end-start << std::endl;
+        //const auto end = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        //std::cout << end-start << std::endl;
 
         cout << endl;
     }
