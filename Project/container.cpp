@@ -73,7 +73,7 @@ void MacroDatabase::emplace(const std::string& macroName, const std::string& mac
 
 void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
-    //removeFromVector(defines, macroName);
+    defines.erase(macroName);
     defines.emplace(macroName, macroValue);
 }
 
