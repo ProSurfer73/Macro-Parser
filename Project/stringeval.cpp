@@ -627,8 +627,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         {
                             bool oneThing=false;
 
-                            for(const auto& pp: dictionary)
+                            auto range = dictionary.equal_range(p.first);
+                            for(auto it2=range.first; it2!=range.second; it2++)
                             {
+                                const auto& pp = *it2;
+
                                 if(pp.first == p.first && p.first != expr &&
                                 std::find(outputs->begin(), outputs->end(), expr) == outputs->end())
                                 {
