@@ -34,7 +34,7 @@
 #include "config.hpp"
 
 // This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
-static bool isBlank(char c)
+inline static bool isBlank(char c)
 {
     return (c==' '||c=='\t'||c==9);
 }
@@ -54,7 +54,8 @@ bool WordDetector::receive(char character)
             return true;
     }
 
-    else if(str[pos]==character)
+    else if(str[pos]==character
+         ||(str[pos]==' ' && isBlank(character)))
     {
         ++pos;
         if(str[pos]=='\0'){
@@ -665,7 +666,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
         }
 
         // If we detected #include
-        if(false && includeDetector.receive(characterRead))
+        if(includeDetector.receive(characterRead))
         {
             // Let's extract the filename
             string wholeWord;
