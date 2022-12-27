@@ -258,7 +258,7 @@ bool CommandManager::runCommand(const string& input)
     {
         if(parameters.size()>3)
         {
-            std::cout << "Error: too many parameters for this command" << std::endl;
+            std::cout << "Error: too many parameters for this command." << std::endl;
         }
         else
         {
@@ -326,7 +326,7 @@ bool CommandManager::runCommand(const string& input)
                 reask:
 
                 if(nbEmptyTrials++ >= 5){
-                    std::cout << "You should type 0 to quit this menu" << std::endl;
+                    std::cout << "You should type 0 to quit this menu." << std::endl;
                 }
 
                 std::cout << " >> ";
@@ -1124,7 +1124,7 @@ bool CommandManager::runCommand(const string& input)
         }
         if(!listRe && !listOk && !listIn)
         {
-            cout << "No option parameter was given. No list was erased." << endl;
+            cout << "No option parameter was given. No list was shown." << endl;
             cout << "Try 'list all' or 'list ok' or 'list in' instead." << endl;
         }
 

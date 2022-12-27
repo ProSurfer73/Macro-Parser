@@ -414,6 +414,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 || (origin && keepTrack.back()>=1)){
                     //std::cout << "import: " << str1 << " --- " << str2 << "---" << (int)keepTrack.back() << std::endl;
                     macroContainer.emplace(str1, str2);
+                    localContainer.emplace(str1, str2);
                 }
 
                 if(!config.doDisableInterpretations() && keepTrack.back()>=1){
