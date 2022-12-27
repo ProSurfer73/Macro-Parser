@@ -553,8 +553,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         std::vector< std::pair<string,string>* > cutted;
 
         string currentWord;
-        for(char c: expr)
+        for(unsigned i=0; i<=expr.size();++i)
         {
+            char c = expr[i];
+
             if((isalpha(c)||(c=='_'))||(!currentWord.empty()&&isdigit(c)))
             {
                 currentWord += c;
