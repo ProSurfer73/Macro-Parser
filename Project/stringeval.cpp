@@ -548,8 +548,41 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
         // Look for the longest word to replace
         /// TP DO: To be replaced by a more efficient implementation
-        for(const pair<string,string>& p: dictionary)
+
+
+        std::vector< std::pair<string,string>* > cutted;
+
+        string currentWord;
+        for(char c: expr)
         {
+            if(isMacroCharacter(c))
+            {
+                currentWord += c;
+            }
+            else if(!currentWord.empty())
+            {
+                // If it is a parametered macro
+                if(c=='(') {
+                    currentWord += "(x)";
+                }
+
+                auto range = dictionary.equal_range(currentWord);
+
+                for(auto it=range.first; it!=range.second; ++it) {
+
+                    auto& ppp = *it;
+                    cutted.push_back((std::pair<string,string>*)&ppp);
+                }
+
+                currentWord.clear();
+            }
+        }
+
+
+        for(const pair<string,string>* pkpk: cutted)
+        {
+            auto& p = *pkpk;
+
             const string& mac = p.first;
 
             if(expr.find(p.first) != string::npos)
