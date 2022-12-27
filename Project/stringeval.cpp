@@ -555,7 +555,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         string currentWord;
         for(char c: expr)
         {
-            if(isMacroCharacter(c))
+            if((isalpha(c)||(c=='_'))||(!currentWord.empty()&&isdigit(c)))
             {
                 currentWord += c;
             }
@@ -569,9 +569,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 auto range = dictionary.equal_range(currentWord);
 
                 for(auto it=range.first; it!=range.second; ++it) {
-
-                    auto& ppp = *it;
-                    cutted.push_back((std::pair<string,string>*)&ppp);
+                    if(doesExprLookOk(it->first))
+                        cutted.push_back((std::pair<string,string>*)&(*it));
                 }
 
                 currentWord.clear();
@@ -585,21 +584,20 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
             const string& mac = p.first;
 
-            if(expr.find(p.first) != string::npos)
+            if(p.first.back()!=')')
             {
                 #ifdef DEBUG_LOG_STRINGEVAL
                     cout << "found\n";
                     cout << p.first.size() << " --- " << maxSizeReplace << endl;
                 #endif // DEBUG_LOG_STRINGEVAL
 
-                if(p.first.size() >= maxSizeReplace.size() /*&& doesExprLookOk(p.first)*/ && doesExprLookOk(p.second)){
+                if(p.first.size() >= maxSizeReplace.size() /*&& doesExprLookOk(p.first)*/){
                     maxSizeReplace = p.first;
                 }
             }
-            else if(mac.size()>3 && mac[mac.size()-1] == ')' && mac[mac.size()-2] == 'x' && mac[mac.size()-3] == '('
-                && expr.find(mac.substr(0,mac.size()-3)) != string::npos)
+            else
             {
-                if(mac.size() > maxSizeReplaceSig.size() /*&& doesExprLookOk(p.first)*/ && doesExprLookOk(p.second))
+                if(mac.size() > maxSizeReplaceSig.size() /*&& doesExprLookOk(p.first)*/)
                     maxSizeReplaceSig = mac;
             }
         }
@@ -619,7 +617,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         {
             auto& p = *it;
 
-            if(p.first == maxSizeReplace /*&& expr.find(p.first) != string::npos*/)
+            if(true/*p.first == maxSizeReplace*/ /*&& expr.find(p.first) != string::npos*/)
             {
 
                 // If replacement strings aren't correct
@@ -638,7 +636,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 {
                     const string* replacedBy = &(p.second);
 
-                    if(macroContainer.isRedefined(p.first))
+                    // if the macro is redefined
+                    if(range.first != range.second)
                     {
                         bool foundRedef=false;
 
