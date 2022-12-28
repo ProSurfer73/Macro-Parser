@@ -281,16 +281,17 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         /// Look for the best position
 
         // If there are * or / or % operators
-        for(unsigned i=0;i<nbOperators;++i){
+        pos=0;
+        for(unsigned i=0; i<nbOperators; ++i){
             if(operators[i] == '*' || operators[i]=='/' || operators[i]=='%')
                 pos=i;
         }
         func(numbers[pos], operators[pos], numbers[1+pos]);
 
         // let's move each array, one step to the left
-        for(unsigned i=pos+1; i<nbOperators; ++i)
+        for(unsigned i=pos; i<nbOperators; ++i)
             operators[i]=operators[i+1];
-        for(unsigned i=pos; i<=nbOperators; ++i)
+        for(unsigned i=pos+1; i<=nbOperators; ++i)
             numbers[i]=numbers[i+1];
 
         nbOperators--;
