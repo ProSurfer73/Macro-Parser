@@ -21,6 +21,7 @@
 #include <sstream>
 #include <cassert>
 #include <algorithm>
+#include <memory>
 
 #include "stringeval.hpp"
 #include "container.hpp"
@@ -121,7 +122,7 @@ static void func(double &result, char op, double num)
             }
             break;
         default:
-            throw std::runtime_error( std::string("Unrecognized character: ")+op+'\n' );
+            throw std::runtime_error( std::string("Unrecognized character: ")+=op+='\n' );
             break;
     }
 }
@@ -259,45 +260,46 @@ bool doesExprLookOk(const string& expr)
 // The arithmetic expression must be correct and must NOT contain spaces.
 double evaluateSimpleArithmeticExpr(const string& expr)
 {
-    std::vector<double> numbers;
-    std::vector<char> operators;
+    // Let's allocate manually memory (for a operators[] and numbers[])
+    unsigned nbOperators=0;
+    for(char c: expr) {
+        if(isOperationCharacter(c))
+            ++nbOperators;
+    }
+    char* operators = (char*)new uint8_t[nbOperators*sizeof(char)+(nbOperators+1)*sizeof(double)]; // operators.size => nbOperators
+    double *numbers = (double*)((uint8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1
 
     istringstream mathStrm(expr);
-    double result = (-3);
-    if(!(mathStrm >> result))
+    if(!(mathStrm >> numbers[0]))
         throw std::runtime_error("getting first argument simple arthmetic expression.");
-    numbers.push_back(result);
-    char op;
-    double num;
-    while (mathStrm >> op >> num)
-    {
-        operators.push_back(op);
-        numbers.push_back(num);
-    }
 
-    while(!operators.empty())
-    {
-        unsigned curPos = 0;
+    unsigned pos=0;
+    while (mathStrm >> operators[pos] >> numbers[++pos]);
 
+    while(nbOperators > 0)
+    {
         /// Look for the best position
 
         // If there are * or / or % operators
-        for(unsigned i=1;i<operators.size();++i){
+        for(unsigned i=0;i<nbOperators;++i){
             if(operators[i] == '*' || operators[i]=='/' || operators[i]=='%')
-                curPos=i;
+                pos=i;
         }
+        func(numbers[pos], operators[pos], numbers[1+pos]);
 
-        result = numbers[curPos];
-        func(result, operators[curPos], numbers[1+curPos]);
-        numbers.erase(numbers.begin()+curPos);
-        numbers.erase(numbers.begin()+curPos);
-        numbers.insert(numbers.begin()+curPos, result);
-        operators.erase(operators.begin()+curPos);
+        // let's move each array, one step to the left
+        for(unsigned i=pos+1; i<nbOperators; ++i)
+            operators[i]=operators[i+1];
+        for(unsigned i=pos; i<=nbOperators; ++i)
+            numbers[i]=numbers[i+1];
+
+        nbOperators--;
     }
 
-    return result;
+    double myreturn=numbers[0];
+    delete[] operators;
+    return myreturn;
 }
-
 
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to)
 {
