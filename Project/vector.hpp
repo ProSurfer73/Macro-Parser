@@ -22,41 +22,6 @@ void removeDuplicates(std::vector<T>& vec)
     }
 }
 
-
-template<typename T>
-bool emplaceOnce(std::vector<T>& v, const T& value)
-{
-    if(v.empty()){
-        v.push_back(value);
-        return true;
-    }
-
-    if(std::find(v.begin(), v.end(), value)==v.end())
-    {
-        v.push_back(value);
-        return true;
-    }
-
-    return false;
-}
-
-template<typename T>
-bool emplaceOnce(std::vector<T>& v, const T&& value)
-{
-    if(v.empty()){
-        v.push_back(std::move(value));
-        return true;
-    }
-
-    if(std::find(v.begin(), v.end(), value)==v.end())
-    {
-        v.push_back(std::move(value));
-        return true;
-    }
-
-    return false;
-}
-
 template<typename T>
 void removeFromVector(std::vector<T>& v, const T& value)
 {
@@ -66,6 +31,24 @@ void removeFromVector(std::vector<T>& v, const T& value)
             it = v.erase(it);
         else
             ++it;
+    }
+}
+
+template<typename T>
+void emplaceOnce(std::vector<T>& v, const T& macroName)
+{
+    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.push_back(macroName);
+    }
+}
+
+template<typename T>
+void emplaceOnce(std::vector<T>& v, T&& macroName)
+{
+    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
+    {
+        v.emplace_back( std::move(macroName) );
     }
 }
 

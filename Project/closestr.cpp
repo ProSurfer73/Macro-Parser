@@ -1,6 +1,6 @@
-#include "closeto.hpp"
+#include "closestr.hpp"
 
-#ifdef ENABLE_CLOSETO
+#ifdef ENABLE_CLOSESTR
 
 bool isRoughlyEqualTo(const std::string& original, const std::string& current)
 {

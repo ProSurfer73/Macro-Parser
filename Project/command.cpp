@@ -30,9 +30,10 @@
 #include "vector.hpp"
 #include "filesystem.hpp"
 #include "config.hpp"
-#include "closeto.hpp"
+#include "closestr.hpp"
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 static auto* gg = std::cout.rdbuf();
 
@@ -114,7 +115,7 @@ void CommandManager::dealWithUser()
         cout << " > ";
 
         string userInput;
-        getline(cin, userInput);
+        getline(std::cin, userInput);
 
         //const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -129,7 +130,7 @@ void CommandManager::dealWithUser()
 
 static void extractList(std::vector<std::string>& outputList, const std::string& initialString)
 {
-    istringstream iss(initialString);
+    std::istringstream iss(initialString);
     string str;
     while(iss >> str)
     {
@@ -139,7 +140,7 @@ static void extractList(std::vector<std::string>& outputList, const std::string&
 
 static void extractList2(std::vector<std::string>& outputList, const std::string& initialString)
 {
-    istringstream iss(initialString);
+    std::istringstream iss(initialString);
     string str;
 
     while(iss >> str)
@@ -487,7 +488,7 @@ bool CommandManager::runCommand(const string& input)
                 std::cout << "0. Cancel, don't interpret this macro." << endl;
 
                 std::string ss;
-                getline(cin, ss);
+                getline(std::cin, ss);
 
                 if(isAllDigits(ss))
                 {

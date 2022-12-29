@@ -24,9 +24,6 @@
 #include <atomic>
 #include <iostream>
 #include <algorithm>
-#if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
-#endif
 
 #include "filesystem.hpp"
 #include "options.hpp"
@@ -134,6 +131,8 @@ static bool destructLongComment(std::string& str)
 
 #if (defined(_WIN32) || defined(_WIN64))
 
+#include <windows.h>
+
 void explore_directory(std::string dirname, std::vector<std::string>& files)
 {
     WIN32_FIND_DATA data;
@@ -225,7 +224,7 @@ bool FileSystem::directoryExists(const char* basepath)
 
 bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config, MacroContainer* origin)
 {
-    ifstream file(pathToFile);
+    std::ifstream file(pathToFile);
 
     if(!file.is_open())
         return false;
@@ -743,7 +742,7 @@ static void printNbFilesLoaded(std::atomic<bool>& ended, std::atomic<unsigned>& 
             // we read our atomic variable
             unsigned currentNbFiles = nbFiles;
 
-            cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
+            std::cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
             << maxNbFiles*(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-start)/(currentNbFiles+1)/60000 << "min left\n" ;
 
             notEverytime = 0;
@@ -791,14 +790,14 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
             try
             {
                 if(!FileSystem::importFile(str.c_str(), macroContainer, config)){
-                    std::cerr << "Couldn't read/open file : " << str << endl;
+                    std::cerr << "Couldn't read/open file : " << str << std::endl;
                 }
             }
             catch(const std::exception& ex)
             {
-                std::cerr << "An error has occured while trying to interpret this source file:" << endl;
-                std::cerr << str << endl;
-                std::cerr << "Exception message: " << ex.what() << endl;
+                std::cerr << "An error has occured while trying to interpret this source file:" << std::endl;
+                std::cerr << str << std::endl;
+                std::cerr << "Exception message: " << ex.what() << std::endl;
             }
 
 
@@ -820,7 +819,7 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     #endif
     #ifdef DISPLAY_FOLDER_IMPORT_TIME
     auto importTime = (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-now);
-    cout << "Import time: " << importTime << " ms.\n";
+    std::cout << "Import time: " << importTime << " ms.\n";
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
 
@@ -864,7 +863,7 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
         if(std::find(previousResults.begin(), previousResults.end(), str) == previousResults.end()
         && searchFile(str, macroName, config))
         {
-            std::cout << str << endl;
+            std::cout << str << std::endl;
             previousResults.emplace_back(std::move(str));
         }
     }

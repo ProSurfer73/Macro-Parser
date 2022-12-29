@@ -146,7 +146,7 @@ void MacroContainer::searchKeywords(const std::vector<std::string>& keywords, st
             }
         }
         if(okay)
-            outputStreamResults << " - " << p.first << " => " << p.second << '\'' << endl;
+            outputStreamResults << " - " << p.first << " => " << p.second << '\'' << std::endl;
     }
 }
 
@@ -196,7 +196,7 @@ bool MacroContainer::importFromFolder(const std::string& folderpath, const Optio
 void MacroContainer::printOrigins() const
 {
     for(const std::string& str: origins){
-        std::cout << " - " << str << endl;
+        std::cout << " - " << str << std::endl;
     }
 }
 
@@ -326,7 +326,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
         }
     }
 
-    std::cout << "Number of common macros: " << commonMacroList.size() << endl;
+    std::cout << "Number of common macros: " << commonMacroList.size() << std::endl;
 
     // Second step: list the result corresponding to these common macros
 
@@ -427,7 +427,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                     rrr.push_back( " | " );
             }
             else
-                std::cout << "not found"<< endl;
+                std::cout << "not found"<< std::endl;
         }
 
         if(!rrr.empty())
@@ -494,7 +494,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
                     std::cout << " | ";
             }
             else
-                std::cout << "not found"<< endl;
+                std::cout << "not found"<< std::endl;
         }
 
         std::cout << std::endl;

@@ -24,7 +24,7 @@
 
 #include "hexa.hpp"
 
-using namespace std;
+using std::string;
 
 static bool isStrictHexaLetter(char c)
 {
@@ -59,11 +59,11 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
         cout << "begStr:" << begStr << "'" << endl;
         cout << "midStr:" << midStr << "'" << endl; */
 
-        str = begStr + to_string(convertHexaToDeci(midStr)) + endStr;
+        str = begStr + std::to_string(convertHexaToDeci(midStr)) + endStr;
 
         if(options.doesPrintExprAtEveryStep())
         {
-            cout << str << endl;
+            std::cout << str << std::endl;
         }
 
         searchedX = str.find('x');

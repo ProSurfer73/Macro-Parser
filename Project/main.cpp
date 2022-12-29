@@ -25,8 +25,6 @@
 #include "command.hpp"
 #include "options.hpp"
 
-using namespace std;
-
 
 
 
@@ -34,7 +32,7 @@ int main()
 {
     // Welcoming message
     std::cout << "WELCOME TO MACRO PARSER.\n";
-    std::cout << "Type 'help' to see the available commands.\n" << endl;
+    std::cout << "Type 'help' to see the available commands.\n" << std::endl;
 
     try {
 
@@ -51,7 +49,7 @@ int main()
     }
     catch(std::exception const& ex)
     {
-        std::cout << "Fatal exception: " << ex.what() << endl;
+        std::cout << "Fatal exception: " << ex.what() << std::endl;
         std::string ignorethis;
         std::getline(std::cin, ignorethis);
     }

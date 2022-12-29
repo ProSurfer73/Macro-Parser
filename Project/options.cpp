@@ -24,7 +24,7 @@
 #include "options.hpp"
 #include "container.hpp"
 #include "config.hpp"
-#include "closeto.hpp"
+#include "closestr.hpp"
 
 Options::Options()
 {

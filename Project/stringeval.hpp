@@ -29,9 +29,6 @@
 
 void clearBlacklist();
 
-using namespace std;
-
-
 enum class CalculationStatus { EVAL_ERROR, EVAL_WARNING, EVAL_OKAY };
 
 bool isMacroCharacter(char c);
@@ -40,21 +37,21 @@ void lowerString(std::string& str);
 
 void searchAndReplaceMacros(std::string& expr);
 
-void clearSpaces(string& str);
+void clearSpaces(std::string& str);
 
 void splitString(std::vector<std::string>& outputVector, std::string initialStr);
 
-bool doesExprLookOk(const string& expr);
+bool doesExprLookOk(const std::string& expr);
 
 double evaluateSimpleArithmeticExpr(const std::string& expr);
 
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
-enum CalculationStatus calculateExpression(string& expr, const MacroContainer& macroContainer, const Options& config,
+enum CalculationStatus calculateExpression(std::string& expr, const MacroContainer& macroContainer, const Options& config,
 std::vector<std::string>* printWarnings=nullptr, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr,
 std::vector< std::pair<std::string, std::string> >* redef=nullptr);
 
-void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer,
+void calculateExprWithStrOutput(std::string& expr, const MacroContainer& macroContainer,
             const Options& options, bool expand=true, std::vector<std::pair<std::string,std::string> >* redef=nullptr);
 
 void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::string& expr);

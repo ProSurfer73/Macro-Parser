@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
+using std::string;
 
 typedef std::vector<std::string> stringvec;
 

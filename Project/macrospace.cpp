@@ -87,7 +87,7 @@ void Macrospaces::printContentToUser()
 {
     updateMsAll();
     for(const auto& p: macrospaces){
-            std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << endl;
+            std::cout << "- " << p.first << " => " << p.second.getDefines().size() << " macros." << std::endl;
     }
 }
 

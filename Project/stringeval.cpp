@@ -27,6 +27,9 @@
 #include "container.hpp"
 #include "options.hpp"
 #include "config.hpp"
+#include "vector.hpp"
+
+using std::string;
 
 static bool thereIsMacroLetter(const std::string& str)
 {
@@ -112,12 +115,8 @@ static void func(double &result, char op, double num)
             break;
         case '%':
             if(num<=0)
-            {
                 throw std::runtime_error("modulo < 0");
-                break;
-            }
-
-            while(result>num){
+            while(result>num) {
                 result -= num;
             }
             break;
@@ -266,10 +265,10 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         if(isOperationCharacter(c))
             ++nbOperators;
     }
-    char* operators = (char*)new uint8_t[nbOperators*sizeof(char)+(nbOperators+1)*sizeof(double)]; // operators.size => nbOperators
-    double *numbers = (double*)((uint8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1
+    char* operators = (char*)new int8_t[nbOperators*sizeof(char)+(nbOperators+1)*sizeof(double)]; // operators.size => nbOperators
+    double *numbers = (double*)((int8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1
 
-    istringstream mathStrm(expr);
+    std::istringstream mathStrm(expr);
     if(!(mathStrm >> numbers[0]))
         throw std::runtime_error("getting first argument simple arthmetic expression.");
 
@@ -458,28 +457,6 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
     return didSomething;
 }
 
-static bool emplaceOnce(std::vector< std::string >& v, const std::string& macroName)
-{
-    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
-    {
-        v.push_back(macroName);
-        return true;
-    }
-
-    return false;
-}
-
-static bool emplaceOnce(std::vector< std::string >& v, std::string&& macroName)
-{
-    if(v.empty() || std::find(v.begin(), v.end(), macroName)==v.end())
-    {
-        v.emplace_back( std::move(macroName) );
-        return true;
-    }
-
-    return false;
-}
-
 
 /** \brief Calculate an expression with macrolist
  *
@@ -583,7 +560,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         }
 
 
-        for(const pair<string,string>* pkpk: cutted)
+        for(const std::pair<string,string>* pkpk: cutted)
         {
             auto& p = *pkpk;
 
@@ -734,7 +711,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
                     if(config.doesPrintReplacements()){
-                        std::cout << "replaced '" << p.first << "' by '" << *replacedBy << '\'' << endl;
+                        std::cout << "replaced '" << p.first << "' by '" << *replacedBy << '\'' << std::endl;
                     }
 
                     // finally, let's replace-it in the expression
@@ -744,7 +721,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 }
 
                 if(config.doesPrintExprAtEveryStep())
-                    cout << expr << endl;
+                    std::cout << expr << std::endl;
 
 
                 break;
@@ -787,7 +764,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
 
                         if(config.doesPrintReplacements()){
-                            cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << endl;
+                            std::cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << std::endl;
                         }
 
                         #ifdef DEBUG_LOG_STRINGEVAL
@@ -808,10 +785,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         if(save_expr != expr)
         {
             #ifdef DEBUG_LOG_STRINGEVAL
-                cout << "S&R:" << expr << endl;
+                std::cout << "S&R:" << expr << std::endl;
             #endif
             if(config.doesPrintExprAtEveryStep()){
-                cout << expr << endl;
+                std::cout << expr << std::endl;
             }
 
             repeat = true;
@@ -887,7 +864,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             double value = evaluateSimpleArithmeticExpr(toBeCalculated);
 
             //std::cout << "there is op" << std::endl;
-            expr = (expr.substr(0,posOpenPar) + to_string(value)) + expr.substr(posClosePar+1);
+            expr = (expr.substr(0,posOpenPar) += std::to_string(value)) += expr.substr(posClosePar+1);
         }
         else
         {
@@ -934,7 +911,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         clearSpaces(expr);
 
         if(config.doesPrintExprAtEveryStep())
-            cout << expr << endl;
+            std::cout << expr << std::endl;
     }
 
     // If there is an operation character, the expr look good, and no parentheses
@@ -1063,7 +1040,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             booleanCounter++;
 
             if( config.doesPrintExprAtEveryStep()){
-                cout << expr << endl;
+                std::cout << expr << std::endl;
             }
         }
     }
@@ -1106,7 +1083,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         if(status != CalculationStatus::EVAL_ERROR)
         {
             if(result == static_cast<double>(static_cast<int>(result)) )
-                expr = to_string(static_cast<int>(result));
+                expr = std::to_string(static_cast<int>(result));
         }
     }
     else
@@ -1125,7 +1102,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     catch(std::exception const& ex)
     {
         if(printWarnings)
-            std::cout << "Eval error: " << ex.what() << endl;
+            std::cout << "Eval error: " << ex.what() << std::endl;
 
         //else throw;
 
