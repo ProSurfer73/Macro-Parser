@@ -3,9 +3,13 @@
 
 #include <vector>
 
+/// This file contains useful features related to vector manipulation.
 
-// This file contains useful features related to vector manipulation
 
+/** \brief remove duplicate values from a vector.
+ *
+ * \param vec the vector we want to remove duplicates values from.
+ */
 template<typename T>
 void removeDuplicates(std::vector<T>& vec)
 {
@@ -22,6 +26,11 @@ void removeDuplicates(std::vector<T>& vec)
     }
 }
 
+/** \brief remove a specific value from a vector.
+ *
+ * \param v the vector, from which we are going to remove the specific value provided.
+ * \param value the value we want to remove from the vector.
+ */
 template<typename T>
 void removeFromVector(std::vector<T>& v, const T& value)
 {
@@ -34,6 +43,11 @@ void removeFromVector(std::vector<T>& v, const T& value)
     }
 }
 
+/** \brief emplace a value (if it does not already exist in the vector).
+ *
+ * \param v the vector to which we want to add our value.
+ * \param macroName the value we want to add to our vector.
+ */
 template<typename T>
 void emplaceOnce(std::vector<T>& v, const T& macroName)
 {
@@ -43,6 +57,11 @@ void emplaceOnce(std::vector<T>& v, const T& macroName)
     }
 }
 
+/** \brief emplace a value (if it does not already exist in the vector).
+ *
+ * \param v the vector to which we want to add our value.
+ * \param macroName the value we want to add to our vector.
+ */
 template<typename T>
 void emplaceOnce(std::vector<T>& v, T&& macroName)
 {

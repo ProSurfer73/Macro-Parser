@@ -22,15 +22,16 @@
 
 /// General config option
 
-#define ENABLE_FILE_LOADING_BAR
-#define DISPLAY_FOLDER_IMPORT_TIME
-#define DISPLAY_USER_INFO
-#define IGNORE_MACRO_INSIDE_LONG_COMMENT
-#define OPTIONS_FILENAME "config.txt"
+#define ENABLE_FILE_LOADING_BAR /**< if defined, prints a loading bar to the end user when loading a big folder. */
+#define DISPLAY_FOLDER_IMPORT_TIME /**< if defined, it displays the time it took to import a folder. */
+#define IGNORE_MACRO_INSIDE_LONG_COMMENT /**< if defined, ignores #define expressions contained inside long comments. */
+#define OPTIONS_FILENAME "config.txt" /**< location at which the user configuration is saved. */
+#define ENABLE_CLOSESTR /**< if defined, it allows approximation from 1 or 2 character when the user is very close from a command name. */
 
 // Config parameters for the string evaluation
 
-#define READ_HEXADECIMAL
+
+#define READ_HEXADECIMAL /**< If defined, the program will be able to read hexadecimal values. */
 
 /// Debugging options
 

@@ -26,7 +26,7 @@ Macrospaces::Macrospaces()
     updateMsAll();
 }
 
-void Macrospaces::addMacroSpace(const std::string& macrospaceName, const MacroContainer& macrospace)
+void Macrospaces::addMacroSpace(const std::string& macrospaceName, const MacroLoader& macrospace)
 {
     macrospaces.emplace_back(macrospaceName, macrospace);
 
@@ -34,7 +34,7 @@ void Macrospaces::addMacroSpace(const std::string& macrospaceName, const MacroCo
         updateMsAll();
 }
 
-MacroContainer& Macrospaces::getMacroSpace(const std::string& macrospaceName)
+MacroLoader& Macrospaces::getMacroSpace(const std::string& macrospaceName)
 {
     if(macrospaceName=="msall")
         updateMsAll();
@@ -44,8 +44,8 @@ MacroContainer& Macrospaces::getMacroSpace(const std::string& macrospaceName)
             return p.second;
     }
 
-    macrospaces.emplace_back(macrospaceName, MacroContainer());
-    MacroContainer* kkk=nullptr;
+    macrospaces.emplace_back(macrospaceName, MacroLoader());
+    MacroLoader* kkk=nullptr;
     for(auto& p: macrospaces)
         kkk = &(p.second);
     return *kkk;
@@ -61,7 +61,7 @@ bool Macrospaces::doesMacrospaceExists(const std::string& macrospaceName)
     return false;
 }
 
-MacroContainer* Macrospaces::tryGetMacroSpace(const std::string& macroSpaceName)
+MacroLoader* Macrospaces::tryGetMacroSpace(const std::string& macroSpaceName)
 {
     if(macroSpaceName=="msall")
         updateMsAll();
@@ -98,14 +98,14 @@ std::size_t Macrospaces::size() const
 
 void Macrospaces::updateMsAll()
 {
-    MacroContainer *mc=nullptr;
+    MacroLoader *mc=nullptr;
     for(auto& p: macrospaces){
         if(p.first == "msall")
             mc = &(p.second);
     }
 
     if(!mc){
-        macrospaces.emplace_back("msall", MacroContainer());
+        macrospaces.emplace_back("msall", MacroLoader());
         mc = &(macrospaces[macrospaces.size()-1].second);
     }
 

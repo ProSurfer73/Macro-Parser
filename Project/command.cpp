@@ -28,9 +28,9 @@
 #include "stringeval.hpp"
 #include "macrospace.hpp"
 #include "vector.hpp"
-#include "filesystem.hpp"
 #include "config.hpp"
 #include "closestr.hpp"
+#include "macrosearch.hpp"
 
 using std::cout;
 using std::endl;
@@ -173,8 +173,8 @@ static bool isAllDigits(const std::string& str)
 static void printStatMacrospace(MacroContainer const& mc)
 {
     cout << mc.getDefines().size() << " macros were loaded." << endl;
-    cout << "|-> " << '?' << " macros have multiple definitions." << endl;
-    cout << "|-> " << '?' << " macros are empty or incorrect." << endl;
+    cout << "|-> " << mc.countRedefined() << " macro identifiers have multiple definitions." << endl;
+    cout << "|-> " << mc.countIncorrectOrEmpty() << " macros are empty or incorrect." << endl;
 }
 
 
@@ -796,7 +796,7 @@ bool CommandManager::runCommand(const string& input)
         }
         else
         {
-            if(FileSystem::directoryExists(parameters.front().c_str()))
+            if(directoryExists(parameters.front().c_str()))
             {
                 if(curMacroSpace.importFromFolder(parameters.front(), configuration)){
                     printStatMacrospace(curMacroSpace);
@@ -931,7 +931,7 @@ bool CommandManager::runCommand(const string& input)
                 // If we cannot open the folder
                 if(!searchDirectory(str2, parameters[1], configuration, results))
                 {
-                    if(FileSystem::directoryExists(str2.c_str()))
+                    if(directoryExists(str2.c_str()))
                         std::cout << "Can't open the directory '" << str2 << "'." << endl;
                     else
                         std::cout << "The directory '" << str2 << "' doesn't seem to exist." << std::endl;

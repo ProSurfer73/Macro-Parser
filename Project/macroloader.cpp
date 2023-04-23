@@ -1,75 +1,64 @@
-/**
-  ******************************************************************************
-  * @file    filesystem.cpp
-  * @author  MCD Application Team
-  * @brief   Macro-Parser
-  *
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
-
-#include <fstream>
-#include <thread>
-#include <chrono>
-#include <iomanip>
-#include <atomic>
 #include <iostream>
-#include <algorithm>
-
-#include "filesystem.hpp"
-#include "options.hpp"
+#include <iomanip>
+#include <fstream>
+#include <atomic>
+#include <thread>
 #include "stringeval.hpp"
+#include "macrosearch.hpp"
+#include "options.hpp"
+#include "macroloader.hpp"
 #include "config.hpp"
 
-// This function whether or not a cha   racter is equivalent to a space (for instance tabulations characters, ect..)
-inline static bool isBlank(char c)
+/**< detect looks for keywords among source code, when reading a file character by character. */
+class WordDetector
 {
-    return (c==' '||c=='\t'||c==9);
-}
+public:
+    /** \brief Only possible constructor.
+     *
+     * \param the string we want to detect, when reading character one by one.
+     */
+    WordDetector(const char* initialstr)
+    : str(initialstr), pos(0)
+    {}
 
-/// Word detector class
-
-WordDetector::WordDetector(const char* initialstr)
-: str(initialstr), pos(0)
-{}
-
-bool WordDetector::receive(char character)
-{
-    if(str[pos]=='\r')
+    /** \brief let's take into account a character read.
+     *
+     * \param character read from the file.
+     * \return true if it matches with the complete keyword initially provided, false if it does not.
+     */
+    bool receive(char character)
     {
-        pos=0;
-        if(isBlank(character)||character=='(')
-            return true;
-    }
-
-    else if(str[pos]==character
-         ||(str[pos]==' ' && isBlank(character)))
-    {
-        ++pos;
-        if(str[pos]=='\0'){
+        if(str[pos]=='\r')
+        {
             pos=0;
-            return true;
+            if(isspace(character)||character=='(')
+                return true;
         }
+
+        else if(str[pos]==character
+             ||(str[pos]==' ' && isspace(character)))
+        {
+            ++pos;
+            if(str[pos]=='\0'){
+                pos=0;
+                return true;
+            }
+        }
+
+        else
+            pos=0;
+
+        return false;
     }
 
-    else
-        pos=0;
+private:
+    /**< the string we want our detector to detect. */
+    const char* str;
+    /**< the position at which we are when matching with the keyword. */
+    int pos;
+};
 
-    return false;
-}
-
-
-
-bool hasEnding (std::string const &fullString, std::string const &ending)
+static bool hasEnding(std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
@@ -78,22 +67,18 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
     }
 }
 
+static std::string extractDirPathFromFilePath(const std::string& filepath)
+{
+    if(filepath.find("\\") != std::string::npos)
+            return filepath.substr(0, filepath.find_last_of('\\'));
+    else
+        return filepath.substr(0, filepath.find_last_of('/'));
+}
+
 static void skipShortComment(std::ifstream& file)
 {
     char characterRead;
     while(file.get(characterRead) && characterRead != '\n');
-}
-
-static bool destructShortComment(std::string& str)
-{
-    auto searched = str.find("//");
-    if(searched != std::string::npos)
-    {
-        str = str.substr(0, searched);
-        return true;
-    }
-
-    return false;
 }
 
 static void skipLongComment(std::ifstream& stream)
@@ -129,100 +114,8 @@ static bool destructLongComment(std::string& str)
     return false;
 }
 
-#if (defined(_WIN32) || defined(_WIN64))
 
-#include <windows.h>
-
-void explore_directory(std::string dirname, std::vector<std::string>& files)
-{
-    WIN32_FIND_DATA data;
-    HANDLE hFind;
-
-    if(dirname.back()!='\\')
-        dirname += '\\';
-
-    //std::cout << "dirname: " << dirname << std::endl;
-
-    if ((hFind = FindFirstFile((dirname+'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
-    {
-        do
-        {
-            if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                if(strcmp(data.cFileName, ".")!=0 && strcmp(data.cFileName, "..")!= 0){
-                    explore_directory(dirname+data.cFileName,files);
-                }
-
-            }
-            else {
-                files.emplace_back(dirname+data.cFileName);
-            }
-            //Sleep(500);
-        }
-        while (FindNextFile(hFind, &data) != 0);
-
-        FindClose(hFind);
-    }
-}
-
-
-bool FileSystem::directoryExists(const char* szPath)
-{
-  DWORD dwAttrib = GetFileAttributes(szPath);
-
-  return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-#else
-
-#include <dirent.h>
-#include <sys/types.h>
-
-void explore_directory(std::string basepath, std::vector<std::string>& vec)
-{
-    struct dirent *dp;
-    DIR *dir = opendir(basepath.c_str());
-    if(!dir)
-        return;
-
-    basepath += '/';
-
-
-    while ((dp = readdir(dir)) != NULL)
-    {
-
-
-        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
-        {
-
-            if(dp->d_type != DT_DIR){
-                vec.emplace_back(basepath+dp->d_name);
-            }
-            else {
-                // Construct new path from our base path
-                    explore_directory(basepath+dp->d_name, vec);
-            }
-        }
-    }
-
-    closedir(dir);
-}
-
-bool FileSystem::directoryExists(const char* basepath)
-{
-    DIR *dir = opendir(basepath);
-    bool isOpen = (dir != nullptr);
-
-    if(isOpen)
-        closedir(dir);
-
-    return isOpen;
-}
-
-
-#endif
-
-
-bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContainer, const Options& config, MacroContainer* origin)
+static bool importFile(const char* pathToFile, MacroContainer& macroContainer, const Options& config, MacroContainer* origin)
 {
     std::ifstream file(pathToFile);
 
@@ -299,7 +192,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 while(file.get(characterRead)){
                     if(characterRead == '\n')
                         break;
-                    else if(!isBlank(characterRead)){
+                    else if(!isspace(characterRead)){
                         str1 += characterRead;
                         break;
                     }
@@ -311,7 +204,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 string str2;
 
                 // Then we load the identifier (the complete word)
-                while(file.get(characterRead) && !isBlank(characterRead)){
+                while(file.get(characterRead) && !isspace(characterRead)){
                         if(characterRead == '\n'){
                             goto avoidValueGetting;
                         }
@@ -504,7 +397,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             string macroNameRead;
             while(file.get(characterRead))
             {
-                if(isBlank(characterRead) && !macroNameRead.empty())
+                if(isspace(characterRead) && !macroNameRead.empty())
                     break;
                 else if(isMacroCharacter(characterRead))
                     macroNameRead += characterRead;
@@ -541,7 +434,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
             string macroNameRead;
             while(file.get(characterRead))
             {
-                if(isBlank(characterRead) && !macroNameRead.empty())
+                if(isspace(characterRead) && !macroNameRead.empty())
                     break;
                 else if(isMacroCharacter(characterRead))
                     macroNameRead += characterRead;
@@ -633,7 +526,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                             //std::cout << 1 << endl;
                             keepTrack[keepTrack.size()-1] = 1;
                         }
-                        else if(conditionStr=="false")
+                        else if(conditionStr=="false" || conditionStr=="0")
                         {
                             //std::cout << -1 << endl;
                             keepTrack[keepTrack.size()-1] = 2;
@@ -693,7 +586,7 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
                 string pathDir = extractDirPathFromFilePath(pathToFile);
                 //std::cout << "asked import of: " << pathDir+'/'+wholeWord << std::endl;
                 if(!origin && !config.doDisableInterpretations())
-                    FileSystem::importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
+                    importFile((pathDir+'/'+wholeWord).c_str(), localContainer, config, &localContainer);
             }
         }
 
@@ -707,6 +600,15 @@ bool FileSystem::importFile(const char* pathToFile, MacroDatabase& macroContaine
 }
 
 
+
+bool MacroLoader::importFromFile(const std::string& filepath, const Options& config)
+{
+    if(importFile(filepath.c_str(), *this, config, nullptr)){
+        this->addOrigin(filepath);
+        return true;
+    }
+    return false;
+}
 
 #ifdef ENABLE_FILE_LOADING_BAR
 
@@ -760,8 +662,7 @@ static void printNbFilesLoaded(std::atomic<bool>& ended, std::atomic<unsigned>& 
 
 #endif
 
-
-bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, const Options& config)
+static bool importDirectory(string dir, MacroContainer& macroContainer, const Options& config)
 {
     std::vector<std::string> fileCollection;
     explore_directory(dir, fileCollection);
@@ -783,14 +684,22 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
+    // If interpretation is enabled
+    std::unordered_multimap<std::string,MacroContainer> database;
+
     for(const std::string& str: fileCollection)
     {
         if(!config.doesImportOnlySourceFileExtension() || hasEnding(str, ".h") || hasEnding(str, ".c") || hasEnding(str, ".cpp") || hasEnding(str, ".hpp"))
         {
             try
             {
-                if(!FileSystem::importFile(str.c_str(), macroContainer, config)){
+                MacroContainer mc;
+
+                if(!importFile(str.c_str(), mc, config, nullptr)){
                     std::cerr << "Couldn't read/open file : " << str << std::endl;
+                }
+                else {
+                    database.emplace(str, std::move(mc));
                 }
             }
             catch(const std::exception& ex)
@@ -822,60 +731,19 @@ bool FileSystem::importDirectory(string dir, MacroDatabase& macroContainer, cons
     std::cout << "Import time: " << importTime << " ms.\n";
     #endif // DISPLAY_FOLDER_IMPORT_TIME
 
+    for(auto& p: database) {
+        macroContainer.import(p.second);
+    }
+
 
     return true;
 }
 
-bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config)
+bool MacroLoader::importFromFolder(const std::string& folderpath, const Options& config)
 {
-    std::ifstream file(pathToFile);
-
-    if(!file.is_open())
-        return false;
-
-    string str;
-
-    while(file >> str)
-    {
-        if(str == "#define")
-        {
-            file >> str;
-            destructShortComment(str);
-
-            if(str == macroName)
-                return true;
-        }
+    if(importDirectory(folderpath.c_str(), *this, config)){
+        this->addOrigin(folderpath);
+        return true;
     }
-
     return false;
-}
-
-bool searchDirectory(string dir, const std::string& macroName, const Options& config, std::vector<std::string>& previousResults)
-{
-    std::vector<std::string> fileCollection;
-    explore_directory(dir, fileCollection);
-
-    if(fileCollection.empty())
-        return false;
-
-    for(auto& str: fileCollection)
-    {
-        if(std::find(previousResults.begin(), previousResults.end(), str) == previousResults.end()
-        && searchFile(str, macroName, config))
-        {
-            std::cout << str << std::endl;
-            previousResults.emplace_back(std::move(str));
-        }
-    }
-
-    return true;
-}
-
-
-std::string extractDirPathFromFilePath(const std::string& filepath)
-{
-    if(filepath.find("\\") != std::string::npos)
-            return filepath.substr(0, filepath.find_last_of('\\'));
-    else
-        return filepath.substr(0, filepath.find_last_of('/'));
 }

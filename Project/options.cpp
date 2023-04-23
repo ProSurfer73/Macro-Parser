@@ -25,6 +25,7 @@
 #include "container.hpp"
 #include "config.hpp"
 #include "closestr.hpp"
+#include "stringeval.hpp"
 
 Options::Options()
 {

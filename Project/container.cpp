@@ -22,21 +22,22 @@
 #include <algorithm>
 
 #include "container.hpp"
-#include "filesystem.hpp"
 #include "options.hpp"
+#include "vector.hpp"
+#include "stringeval.hpp"
 
 /*** MacroDatabase ***/
 
 // Default constructor
 
-MacroDatabase::MacroDatabase()
+MacroContainer::MacroContainer()
 {
-    // Set large default presize
-    // avoid reallocating small amount of memory each time
+    // Set large default presize fro the hashing table
     defines.reserve(50000);
+    nbRedefined = 0;
 }
 
-bool MacroDatabase::exists(const std::string& macroName) const
+bool MacroContainer::exists(const std::string& macroName) const
 {
     for(const auto& p: defines){
         if(p.first == macroName )
@@ -45,7 +46,7 @@ bool MacroDatabase::exists(const std::string& macroName) const
     return false;
 }
 
-bool MacroDatabase::alreadyExists(const std::string& macroName, const std::string& macroValue) const
+bool MacroContainer::alreadyExists(const std::string& macroName, const std::string& macroValue) const
 {
     auto range = defines.equal_range(macroName);
     for(auto it=range.first; it!=range.second; ++it){
@@ -56,7 +57,7 @@ bool MacroDatabase::alreadyExists(const std::string& macroName, const std::strin
     return false;
 }
 
-void MacroDatabase::compress()
+void MacroContainer::compress()
 {
     /*for(auto& p: defines)
     {
@@ -65,31 +66,31 @@ void MacroDatabase::compress()
     }*/
 }
 
-void MacroDatabase::emplace(const std::string& macroName, const std::string& macroValue)
+void MacroContainer::emplace(const std::string& macroName, const std::string& macroValue)
 {
-    if(!alreadyExists(macroName, macroValue))
-        defines.emplace(macroName,macroValue);
-}
+    auto range = defines.equal_range(macroName);
+    int occurences = 0;
 
-void MacroDatabase::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
-{
-    defines.erase(macroName);
+    for(auto it=range.first; it!=range.second; ++it)
+    {
+        if(macroValue==it->second)
+            return;
+
+        ++occurences;
+    }
+
+    // If something
+    if(occurences == 1)
+    {
+        ++nbRedefined;
+    }
+
     defines.emplace(macroName, macroValue);
-}
-
-bool MacroDatabase::importFromFile(const std::string& filepath, const Options& config)
-{
-    return FileSystem::importFile(filepath.c_str(), *this, config);
-}
-
-bool MacroDatabase::importFromFolder(const std::string& folderpath, const Options& config)
-{
-    return FileSystem::importDirectory(folderpath, *this, config);
 }
 
 // Getters
 
-void MacroDatabase::import(const MacroDatabase& mdatabase)
+void MacroContainer::import(const MacroContainer& mdatabase)
 {
     for(const auto& p : mdatabase.defines)
     {
@@ -98,20 +99,12 @@ void MacroDatabase::import(const MacroDatabase& mdatabase)
 }
 
 
-bool MacroDatabase::isRedefined(const std::string& macroName) const
+bool MacroContainer::isRedefined(const std::string& macroName) const
 {
     return defines.count(macroName) > 1;
 }
 
 /*** MacroContainer class implementation ***/
-
-MacroContainer::MacroContainer()
-: MacroDatabase(), origins()
-{}
-
-MacroContainer::MacroContainer(const MacroDatabase& database)
-: MacroDatabase(database)
-{}
 
 bool MacroContainer::isNameValid(const std::string& macroContainerName)
 {
@@ -160,37 +153,6 @@ unsigned MacroContainer::countMacroName(const std::string& macroName) const
             nb++;
     }
     return nb;
-}
-
-bool MacroContainer::isRedefined(std::string macroName) const
-{
-    unsigned nb=0;
-    for(const std::pair<std::string,std::string>& p : defines)
-    {
-        if(p.first == macroName){
-            if(++nb >= 2)
-                return true;
-        }
-    }
-    return false;
-}
-
-bool MacroContainer::importFromFile(const std::string& filepath, const Options& config)
-{
-    if(MacroDatabase::importFromFile(filepath, config)){
-        origins.emplace_back(filepath);
-        return true;
-    }
-    return false;
-}
-
-bool MacroContainer::importFromFolder(const std::string& folderpath, const Options& config)
-{
-    if(MacroDatabase::importFromFolder(folderpath, config)){
-        origins.emplace_back(folderpath);
-        return true;
-    }
-    return false;
 }
 
 void MacroContainer::printOrigins() const
@@ -517,7 +479,10 @@ void MacroContainer::getListOrigins(std::vector<std::string>& v) const
 void MacroContainer::emplaceAndReplace(const std::string& macroName, const std::string& macroValue)
 {
     // 1. Let's add or replace it in the database
-    MacroDatabase::emplaceAndReplace(macroName, macroValue);
+    if(defines.count(macroName)>1)
+        --nbRedefined;
+    defines.erase(macroName);
+    defines.emplace(macroName, macroValue);
 
     // 2. Let's note where it comes from
     std::string added = "define ";
@@ -532,4 +497,25 @@ const std::vector<std::string>& MacroContainer::getListOrigins() const
     return origins;
 }
 
+unsigned MacroContainer::countRedefined() const
+{
+    return nbRedefined;
+}
 
+unsigned MacroContainer::countIncorrectOrEmpty() const
+{
+    unsigned total=0;
+
+    for(const auto& p: defines)
+    {
+        if(!doesExprLookOk(p.second))
+            ++total;
+    }
+
+    return total;
+}
+
+void MacroContainer::addOrigin(const std::string& newOrigin)
+{
+    origins.emplace_back(newOrigin);
+}

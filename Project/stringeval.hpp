@@ -20,6 +20,8 @@
 #ifndef STRINGEVAL_HPP
 #define STRINGEVAL_HPP
 
+/// This file describes stirng evaluation procedures for macros.
+
 #include <vector>
 #include <string>
 
@@ -53,6 +55,7 @@ std::vector< std::pair<std::string, std::string> >* redef=nullptr);
 
 void calculateExprWithStrOutput(std::string& expr, const MacroContainer& macroContainer,
             const Options& options, bool expand=true, std::vector<std::pair<std::string,std::string> >* redef=nullptr);
+
 
 void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::string& expr);
 
