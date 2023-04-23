@@ -28,6 +28,7 @@
 #include "options.hpp"
 #include "config.hpp"
 #include "vector.hpp"
+#include "strings.hpp"
 
 using std::string;
 
@@ -38,11 +39,6 @@ static bool thereIsMacroLetter(const std::string& str)
             return true;
     }
     return false;
-}
-
-void clearSpaces(string& str)
-{
-    str.erase(std::remove_if(str.begin(), str.end(), isspace), str.end());
 }
 
 static bool isOperationCharacter(char c)
@@ -87,12 +83,6 @@ static bool seemLikeNumber(const std::string& str)
             return false;
     }
     return true;
-}
-
-void lowerString(std::string& str)
-{
-    for(unsigned i=0;i<str.size();++i)
-        str[i] = std::tolower(str[i]);
 }
 
 static void func(double &result, char op, double num)
@@ -299,15 +289,6 @@ double evaluateSimpleArithmeticExpr(const string& expr)
     double myreturn=numbers[0];
     delete[] operators;
     return myreturn;
-}
-
-bool simpleReplace(std::string& str, const std::string& from, const std::string& to)
-{
-    size_t start_pos = str.find(from);
-    if(start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
 }
 
 static bool treatOperationDouble(std::string& str, const std::string& operation, bool (*operateur)(double, double))

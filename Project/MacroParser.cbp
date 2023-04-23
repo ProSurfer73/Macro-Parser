@@ -51,6 +51,8 @@
 		<Unit filename="options.hpp" />
 		<Unit filename="stringeval.cpp" />
 		<Unit filename="stringeval.hpp" />
+		<Unit filename="strings.cpp" />
+		<Unit filename="strings.hpp" />
 		<Unit filename="vector.hpp" />
 		<Extensions>
 			<lib_finder disable_auto="1" />

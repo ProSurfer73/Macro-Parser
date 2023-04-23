@@ -8,6 +8,7 @@
 #include "options.hpp"
 #include "macroloader.hpp"
 #include "config.hpp"
+#include "strings.hpp"
 
 /**< detect looks for keywords among source code, when reading a file character by character. */
 class WordDetector
@@ -57,15 +58,6 @@ private:
     /**< the position at which we are when matching with the keyword. */
     int pos;
 };
-
-static bool hasEnding(std::string const &fullString, std::string const &ending)
-{
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
 
 static std::string extractDirPathFromFilePath(const std::string& filepath)
 {

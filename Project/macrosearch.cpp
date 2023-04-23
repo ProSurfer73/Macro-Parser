@@ -44,26 +44,6 @@ bool destructShortComment(std::string& str)
 }
 
 
-/** \brief check if a string has a specific ending.
- *
- * \param the full string.
- * \param the endind.
- * \return true if the full string has the string ending at its very end, false if it does not.
- */
-bool hasEnding (std::string const &fullString, std::string const &ending)
-{
-    if (fullString.length() >= ending.length()) {
-        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
-    } else {
-        return false;
-    }
-}
-
-
-
-
-
-
 #ifdef ENABLE_FILE_LOADING_BAR
 
 static void printNbFilesLoaded(std::atomic<bool>& ended, std::atomic<unsigned>& nbFiles, const unsigned maxNbFiles)

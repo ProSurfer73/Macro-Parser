@@ -18,7 +18,6 @@
   */
 
 #include <iostream>
-#include <algorithm>
 #include <fstream>
 
 #include "options.hpp"
@@ -26,6 +25,7 @@
 #include "config.hpp"
 #include "closestr.hpp"
 #include "stringeval.hpp"
+#include "strings.hpp"
 
 Options::Options()
 {

@@ -20,7 +20,7 @@
 #ifndef STRINGEVAL_HPP
 #define STRINGEVAL_HPP
 
-/// This file describes stirng evaluation procedures for macros.
+/// This file describes string evaluation procedures for macros.
 
 #include <vector>
 #include <string>
@@ -35,26 +35,15 @@ enum class CalculationStatus { EVAL_ERROR, EVAL_WARNING, EVAL_OKAY };
 
 bool isMacroCharacter(char c);
 
-void lowerString(std::string& str);
+
 
 void searchAndReplaceMacros(std::string& expr);
 
-void clearSpaces(std::string& str);
 
-void splitString(std::vector<std::string>& outputVector, std::string initialStr);
 
 bool doesExprLookOk(const std::string& expr);
 
 double evaluateSimpleArithmeticExpr(const std::string& expr);
-
-/** \brief replace a keyword to another inside a string
- *
- * \param str the main string.
- * \param the initial keyword.
- * \param the final keyword.
- * \return true if the keyword was found and replaced, false otherwise.
- */
-bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
 enum CalculationStatus calculateExpression(std::string& expr, const MacroContainer& macroContainer, const Options& config,
 std::vector<std::string>* printWarnings=nullptr, bool enableBoolean=true, std::vector<std::string>* outputs=nullptr,

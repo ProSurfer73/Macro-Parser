@@ -26,11 +26,13 @@
 #include "command.hpp"
 #include "container.hpp"
 #include "stringeval.hpp"
+#include "strings.hpp"
 #include "macrospace.hpp"
 #include "vector.hpp"
 #include "config.hpp"
 #include "closestr.hpp"
 #include "macrosearch.hpp"
+
 
 using std::cout;
 using std::endl;
