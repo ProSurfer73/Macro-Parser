@@ -42,7 +42,7 @@ static bool thereIsMacroLetter(const std::string& str)
 
 void clearSpaces(string& str)
 {
-    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+    str.erase(std::remove_if(str.begin(), str.end(), isspace), str.end());
 }
 
 static bool isOperationCharacter(char c)

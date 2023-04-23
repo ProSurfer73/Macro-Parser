@@ -132,16 +132,6 @@ static void extractList(std::vector<std::string>& outputList, const std::string&
 {
     std::istringstream iss(initialString);
     string str;
-    while(iss >> str)
-    {
-        outputList.emplace_back(str);
-    }
-}
-
-static void extractList2(std::vector<std::string>& outputList, const std::string& initialString)
-{
-    std::istringstream iss(initialString);
-    string str;
 
     while(iss >> str)
     {
@@ -183,7 +173,7 @@ bool CommandManager::runCommand(const string& input)
 {
     // Extract command and parameters from str
     std::vector<std::string> parameters;
-    extractList2(parameters, input);
+    extractList(parameters, input);
     if(parameters.empty())
         return true;
     std::string& commandStr = parameters[0];

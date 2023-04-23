@@ -34,6 +34,9 @@ int main()
     std::cout << "WELCOME TO MACRO PARSER.\n";
     std::cout << "Type 'help' to see the available commands.\n" << std::endl;
 
+    // let's show boolean values in plain letters, it's better :)
+    std::cout << std::boolalpha;
+
     try {
 
     // Command line manager

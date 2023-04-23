@@ -47,6 +47,13 @@ bool doesExprLookOk(const std::string& expr);
 
 double evaluateSimpleArithmeticExpr(const std::string& expr);
 
+/** \brief replace a keyword to another inside a string
+ *
+ * \param str the main string.
+ * \param the initial keyword.
+ * \param the final keyword.
+ * \return true if the keyword was found and replaced, false otherwise.
+ */
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
 enum CalculationStatus calculateExpression(std::string& expr, const MacroContainer& macroContainer, const Options& config,

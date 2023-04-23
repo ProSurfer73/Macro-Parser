@@ -35,7 +35,7 @@ Options::Options()
 
 void Options::resetToDefault()
 {
-    // Set default parameters for the option
+    // Set default parameters for the options.
     importOnlySourceFileExtension = true;
     importMacroCommented = false;
     printReplacements = false;
