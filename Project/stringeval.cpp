@@ -263,13 +263,13 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         throw std::runtime_error("getting first argument simple arthmetic expression.");
 
     unsigned pos=0;
-    while (mathStrm >> operators[pos] >> numbers[++pos]);
+    while ((mathStrm >> operators[pos]) >> numbers[(++pos)]);
 
     while(nbOperators > 0)
     {
         /// Look for the best position
 
-        // If there are * or / or % operators
+        // If there are * or / or % operators.
         pos=0;
         for(unsigned i=0; i<nbOperators; ++i){
             if(operators[i] == '*' || operators[i]=='/' || operators[i]=='%')
@@ -724,25 +724,29 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 auto& p = *it;
                 const string& mac = p.first;
 
-                // if the string has at the end "(x)", then it's a single param macro
+                // if the string has at the end "(x)", then it's a single param macro.
                 if(mac[mac.size()-1] == ')'
-                && mac[mac.size()-2] == 'x'
+                && isalpha(mac[mac.size()-2])
                 && mac[mac.size()-3] == '(')
                 {
-                    // If it's the same macro
+                    // If it's the same macro.
                     if(expr.find(mac.substr(0,mac.size()-3)) != string::npos
                     &&(expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == ' '
                     || expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == '('))
                     {
-                        // We delete the mac from the expr string
+                        // We delete the mac from the expr string.
                         string cop1 = expr;
 
                         simpleReplace(cop1, mac.substr(0,mac.size()-3), "");
 
-                        // In string p.second ; replace '(x)' <= expr
+                        // In string p.second ; replace '(x)' <= expr.
                         string cop2 = p.second;
 
-                        simpleReplace(cop2, "(x)", cop1); // replace 'def' -> 'klm'
+                        // let's replace the middle string.
+                        string klkl = "(x)";
+                        klkl[1] = mac[mac.size()-2];
+
+                        simpleReplace(cop2, klkl, cop1); // replace 'def' -> 'klm'.
 
                         if(config.doesPrintReplacements()){
                             std::cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << std::endl;
@@ -787,7 +791,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     while(repeat);
 
 
-    restartArithmeticEval:
+    //restartArithmeticEval:
 
     /// 2. Can the expression be evaluated ?
 
