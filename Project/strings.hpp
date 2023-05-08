@@ -26,6 +26,14 @@ void lowerString(std::string& str);
  */
 bool simpleReplace(std::string& str, const std::string& from, const std::string& to);
 
+/** \brief delete a substring inside of a string.
+ *
+ * \param str the string to be modified.
+ * \param toBeDeleted the substring to be deleted.
+ * \return true if the string is deleted, false otherwise.
+ */
+bool simpleDelete(std::string& str, const std::string& toBeDeleted);
+
 /** \brief check if a string has a specific ending.
  *
  * \param the full string.
@@ -38,7 +46,6 @@ bool hasEnding (std::string const &fullString, std::string const &ending);
  *
  * \param mainStr the big string.
  * \param beginning the beginning string.
- *
  * \return true if the beginning of mainStr is equal to beginning, false otherwise.
  */
 bool startsWith(const std::string& mainStr, const std::string& beginning);

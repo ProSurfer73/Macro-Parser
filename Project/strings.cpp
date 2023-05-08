@@ -21,6 +21,15 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
     return true;
 }
 
+bool simpleDelete(std::string& str, const std::string& toBeDeleted)
+{
+    size_t start_pos = str.find(toBeDeleted);
+    if(start_pos == std::string::npos)
+        return false;
+    str.erase(start_pos, toBeDeleted.size());
+    return true;
+}
+
 bool hasEnding (std::string const &fullString, std::string const &ending)
 {
     if (fullString.length() >= ending.length()) {

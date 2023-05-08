@@ -113,6 +113,13 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
             file >> str;
             destructShortComment(str);
 
+            // let's shorten a macroName
+            size_t pos = str.find('(');
+            if(pos != std::string::npos
+            && macroName==str.substr(0,pos))
+                return true;
+
+            // Let's compare it to the macroname we have.
             if(str == macroName)
                 return true;
         }
