@@ -144,6 +144,34 @@ static string extractLeftPart(const string& expr, size_t pos)
     return expr.substr(pos-i, i);
 }
 
+/** \brief suppress the paremetered macro with value inside an expression by its definition.
+ *
+ * \param expr the expression
+ * \param pfirst the value of the macro.
+ * \param psecond the definition of a macro.
+ */
+static void replaceParamMacro(string& expr, string pfirst, const string& psecond)
+{
+    // Let's remove some part of each expression.
+    pfirst = pfirst.substr(0, pfirst.find('('));
+
+    // For debugging purposes, let's print pfirst.
+    /*std::cout << "iexpr: " << expr << std::endl;
+    std::cout << "pfirst: " << pfirst << std::endl;
+    std::cout << "psecond: " << psecond << std::endl;*/
+
+    // Let's replace the string by another.
+    size_t pos = expr.find(pfirst);
+
+    if(pos == std::string::npos)
+        std::cout << "!!!!!!!!!!!!!!!" << std::endl;
+
+    expr.erase(pos, expr.find(')')-pos+1);
+    expr.insert(pos, psecond);
+
+    //std::cout << "expr: " << expr << std::endl;
+}
+
 
 static bool evaluateSimpleBooleanExpr(string& expr)
 {
@@ -231,7 +259,6 @@ bool doesExprLookOk(const string& expr)
     if(remainingParenthesis!=0)
         return false;
 
-
     // Two operator in a row => incorrect
     for(unsigned i=1; i<expr.size(); ++i){
         if(isOperationCharacter(expr[i]) && isOperationCharacter(expr[i-1]))
@@ -263,7 +290,8 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         throw std::runtime_error("getting first argument simple arthmetic expression.");
 
     unsigned pos=0;
-    while ((mathStrm >> operators[pos]) >> numbers[(++pos)]);
+    while (mathStrm >> operators[pos] >> numbers[pos+1])
+    { ++pos; }
 
     while(nbOperators > 0)
     {
@@ -508,10 +536,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
 
         // Look for the longest word to replace
-        /// TP DO: To be replaced by a more efficient implementation
+        /// TO DO: To be replaced by a more efficient implementation.
 
 
-        std::vector< std::pair<string,string>* > cutted;
+        std::vector<const std::pair<string,string>* > cutted;
 
         string currentWord;
         for(unsigned i=0; i<=expr.size();++i)
@@ -524,6 +552,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             }
             else if(!currentWord.empty())
             {
+                /* Let's look for the word (old implementation).
                 // If it is a parametered macro
                 if(c=='(') {
                     currentWord += "(x)";
@@ -534,6 +563,20 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 for(auto it=range.first; it!=range.second; ++it) {
                     if(doesExprLookOk(it->first))
                         cutted.push_back((std::pair<string,string>*)&(*it));
+                }*/
+
+                //std::cout << "currentWord: " << currentWord << std::endl;
+
+                /// Let's look for the word (new implementation).
+                /// The implementation could be better (we have to go through all the binary tree).
+                for(const std::pair<std::string,std::string>& p: dictionary)
+                {
+                    // if we find the occurence of the word.
+                    if(startsWith(p.first,currentWord))
+                    {
+                        //std::cout << "pushed. first:" << p.first << " p.second:" << p.second << std::endl;
+                        cutted.push_back(&p);
+                    }
                 }
 
                 currentWord.clear();
@@ -686,8 +729,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     }
 
-                    // Before making a mistake let's check that it is not a parametered macro by looking at its value
-                    if(p.first.find("(x)") == std::string::npos)
+                    // Before making a mistake let's check that it is not a parametered macro
+                    if(p.first.find('(') == std::string::npos)
                     {
 
 
@@ -723,6 +766,94 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             {
                 auto& p = *it;
                 const string& mac = p.first;
+
+
+                // Let's detect parameters inside the string
+                std::size_t pos = mac.find('(');
+                std::vector<char> paramNames;
+
+                // if there seems to be parameters
+                if(pos != std::string::npos
+                && mac.back()==')')
+                {
+                    do {
+                        if(isalpha(mac[pos+1]))
+                            paramNames.push_back(mac[pos+1]);
+                        else {
+                            paramNames.clear();
+                            break;
+                        }
+                    }
+                    // let's look for the next parameter.
+                    while(mac[(pos+=2)] == ',');
+                }
+
+                // if number of parameter > 0.
+                if(!paramNames.empty())
+                {
+                    // let's print the parameters found for debugging purposes.
+                    /*std::cout << '(';
+                    for(char c: paramNames)
+                        std::cout << c << "; ";
+                    std::cout << ')' << std::endl;*/
+
+                    // Let's delete the macro name from the initial expression.
+                    std::string initialExpr = expr;
+                    simpleReplace(initialExpr, mac.substr(0,mac.find('(')), "");
+
+                    //std::cout << "initialExpr: " << initialExpr << std::endl;
+
+                    // Let's detect parameters value from the string.
+                    std::vector<std::string> paramValues;
+                    for(unsigned i=1; i<initialExpr.size(); ++i)
+                    {
+                        std::string value;
+
+                        //
+                        if(initialExpr[i] != ',')
+                        {
+                            if(initialExpr[i] == ')')
+                                break;
+
+                            value += initialExpr[i];
+
+                            // let's add a value to the expression.
+                            paramValues.push_back(value);
+                        }
+
+                    }
+
+                    // Let's print parameter values for debugging purposes.
+                    /*std::cout << "*(";
+                    for(const std::string& s: paramValues) {
+                        std::cout << s << ';';
+                    }
+                    std::cout << ").\n";*/
+
+                    // Let's replace the paramaterized macro with values by
+                    // the parameterized macro with letters inside the expression.
+                    initialExpr = expr;
+                    replaceParamMacro(initialExpr, p.first, p.second);
+
+                    // Let's replace for each parameter.
+                    string klkl = "(x)";
+                    for(unsigned i=0; i<paramValues.size(); ++i)
+                    {
+                        // let's define the string to be replaced.
+                        klkl[1] = paramNames[i];
+
+                        // let's replace it.
+                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        while(simpleReplace(initialExpr, klkl, paramValues[i]));
+                    }
+
+                    // finally, let's replace the main expression.
+                    expr = initialExpr;
+
+                    //std::cout << "yes: " << initialExpr << std::endl;
+                }
+
+                #if 0
 
                 // if the string has at the end "(x)", then it's a single param macro.
                 if(mac[mac.size()-1] == ')'
@@ -762,6 +893,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         #endif
                     }
                 }
+
+                #endif
             }
 
 

@@ -34,5 +34,14 @@ bool simpleReplace(std::string& str, const std::string& from, const std::string&
  */
 bool hasEnding (std::string const &fullString, std::string const &ending);
 
+/** \brief check if the beginning of a string is equal to another.
+ *
+ * \param mainStr the big string.
+ * \param beginning the beginning string.
+ *
+ * \return true if the beginning of mainStr is equal to beginning, false otherwise.
+ */
+bool startsWith(const std::string& mainStr, const std::string& beginning);
+
 
 #endif // STRINGS_HPP

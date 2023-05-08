@@ -29,3 +29,13 @@ bool hasEnding (std::string const &fullString, std::string const &ending)
         return false;
     }
 }
+
+bool startsWith(const std::string& mainStr, const std::string& beginning)
+{
+    for(unsigned i=0; i<beginning.size(); ++i)
+    {
+        if(mainStr[i]!=beginning[i])
+            return false;
+    }
+    return true;
+}

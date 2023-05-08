@@ -67,11 +67,11 @@ static std::string extractDirPathFromFilePath(const std::string& filepath)
         return filepath.substr(0, filepath.find_last_of('/'));
 }
 
-static void skipShortComment(std::ifstream& file)
+/*static void skipShortComment(std::ifstream& file)
 {
     char characterRead;
     while(file.get(characterRead) && characterRead != '\n');
-}
+}*/
 
 static void skipLongComment(std::ifstream& stream)
 {
@@ -117,7 +117,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
     MacroContainer localContainer;
 
     #ifdef DEBUG_LOG_FILE_IMPORT
-        cout << "Opened " << pathToFile << endl;
+        std::cout << "Opened " << pathToFile << std::endl;
     #endif
 
     WordDetector defineDetector("#define ");
@@ -203,7 +203,6 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
                         str1 += characterRead;
                 }
 
-
                 // We get the value
                 while(file.get(characterRead) && characterRead != '\n')
                 {
@@ -245,7 +244,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
                 avoidValueGetting:
 
                 #ifdef DEBUG_LOG_FILE_IMPORT
-                cout << str1 << " => " << str2 << endl;
+                std::cout << str1 << " => " << str2 << std::endl;
                 #endif
 
 
@@ -253,6 +252,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
                 while(str2.back() == '\\')
                 {
                     str2.pop_back();
+                    std::cout << "2poped back!" << std::endl;
 
                     string inpLine;
 
@@ -546,6 +546,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
             if(keepTrack.size()>1){
                 //std::cout << "#endif => " << last << std::endl;
                 keepTrack.pop_back();
+                std::cout << "1poped back!" << std::endl;
             }
 
         }
@@ -665,11 +666,11 @@ static bool importDirectory(string dir, MacroContainer& macroContainer, const Op
     // Let's print the number of files loaded for debugging purposes
     std::cout << "Number of files listed: " << fileCollection.size() << std::endl;
 
+    unsigned localNbFile = 0;
     #ifdef ENABLE_FILE_LOADING_BAR
     std::cout << std::setprecision(3);
     std::atomic<bool> ended(false);
     std::atomic<unsigned> nbFiles(0);
-    unsigned localNbFile = 0;
     std::thread tr = std::thread(printNbFilesLoaded, std::ref(ended), std::ref(nbFiles), fileCollection.size());
     #endif
     #ifdef DISPLAY_FOLDER_IMPORT_TIME
@@ -705,12 +706,12 @@ static bool importDirectory(string dir, MacroContainer& macroContainer, const Op
 
         }
 
-        #ifdef ENABLE_FILE_LOADING_BAR
         localNbFile++;
-        #endif
 
+        #ifdef ENABLE_FILE_LOADING_BAR
         // let's write to our atomic variable
         nbFiles = localNbFile;
+        #endif
     }
 
     #ifdef ENABLE_FILE_LOADING_BAR
@@ -738,4 +739,36 @@ bool MacroLoader::importFromFolder(const std::string& folderpath, const Options&
         return true;
     }
     return false;
+}
+
+bool importProjectFile(const std::string& filepath, MacroContainer& macroContainer)
+{
+    enum{IAR, NONE} fileType;
+
+    // 1. Let's detect the type of file we are dealing with.
+    if(hasEnding(filepath, ".ewp"))
+    {
+        fileType = IAR;
+    }
+    else
+        // let's stop here, it does not match any project file known to the program.
+        return false;
+
+
+
+    // Let's open the file
+    std::ifstream file(filepath);
+
+    // if the file could not be opened.
+    if(!file)
+        return false;
+
+    // Let's then deal with the file according to its type.
+    if(fileType == IAR)
+    {
+
+    }
+
+
+    return true;
 }

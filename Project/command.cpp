@@ -32,6 +32,7 @@
 #include "config.hpp"
 #include "closestr.hpp"
 #include "macrosearch.hpp"
+#include "calculate.hpp"
 
 
 using std::cout;
@@ -197,8 +198,6 @@ bool CommandManager::runCommand(const string& input)
             parameters.emplace_back(commandStr.substr(5));
         parameters.erase(parameters.begin());
 
-        bool fine=true;
-
         bool eraseRe=false;
         bool eraseIn=false;
         bool eraseOk=false;
@@ -215,7 +214,7 @@ bool CommandManager::runCommand(const string& input)
                 eraseOk=eraseIn=eraseRe=true;
             else {
                 cout << "Incorrect option parameter '" << param << "'." << endl;
-                fine = false;
+                //fine = false;
             }
         }
         if(!eraseRe && !eraseOk && !eraseIn)
@@ -271,7 +270,7 @@ bool CommandManager::runCommand(const string& input)
         std::vector<std::string> warnings;
         std::vector<std::string> possibleValues;
         std::string expression=parameters[1];
-        auto status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
+        calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
 
         if(!warnings.empty() && possibleValues.size()>1)
         {
@@ -280,7 +279,7 @@ bool CommandManager::runCommand(const string& input)
                 warnings.clear();
                 possibleValues.clear();
                 expression=parameters[1];
-                status = calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
+                calculateExpression(expression, *mc, configuration, &warnings, true, &possibleValues);
 
                 if(warnings.empty())
                     break;
@@ -336,7 +335,7 @@ bool CommandManager::runCommand(const string& input)
                     numInput = -1;
                 }
 
-                if(numInput >= 1 && numInput <= possibilities.size()){
+                if(numInput >= 1 && numInput <= static_cast<int>(possibilities.size())){
                     mc->emplaceAndReplace(warnings.front(), possibilities[numInput-1]);
                 }
                 else {
@@ -409,7 +408,7 @@ bool CommandManager::runCommand(const string& input)
 
                 std::vector<std::string> warnings;
                 std::string expression=possibleValues.front();
-                auto status = calculateExpression(expression, *mc, configuration, &warnings );
+                calculateExpression(expression, *mc, configuration, &warnings );
                 expression=possibleValues.front();
 
                 if(!warnings.empty())
@@ -523,8 +522,6 @@ bool CommandManager::runCommand(const string& input)
             if(commandMacrospaces.empty())
                 commandMacrospaces.emplace_back("default");
 
-            bool found = false;
-
             if(commandMacrospaces.size()==1 && trueInputs.size()==1)
             {
                 bool foundSomething=false;
@@ -537,7 +534,6 @@ bool CommandManager::runCommand(const string& input)
                         std::vector<std::string> results, redefinedList;
                         string putput=p.second;
                         auto status = calculateExpression(putput, macrospaces.getMacroSpace(commandMacrospaces.front()), configuration, &redefinedList, true, &results);//&results);
-                        found=true;
 
                         // Let's show the redefined macros
                         if(!redefinedList.empty() && results.size()>1)
@@ -1217,6 +1213,75 @@ bool CommandManager::runCommand(const string& input)
 
         }
     }
+    else if(isRoughlyEqualTo("calculate", commandStr))
+    {
+        // Error: no parameters were entered.
+        if(parameters.empty())
+        {
+            std::cout << "Error: no parameters were entered." << std::endl;
+            std::cout << "Please enter first the name of a macro, and potentially the name of a macrospace." << std::endl;
+        }
+        else
+        {
+            // parameters were entered, let's go to the next step.
+
+
+            std::vector<std::string> files;
+
+            // 1. Let's ask the user for the file path in which the macro is contained.
+            std::string filePath;
+            while(1)
+            {
+                std::cout << "Please enter a file in which you would like the macro to be calculated:" << std::endl;
+
+                std::getline(std::cin, filePath);
+
+                if(filePath.empty())
+                {
+                    std::cout << "Command aborted." << std::endl;
+                    break;
+                }
+
+                // Let's check if the
+            }
+
+            if(filePath.empty())
+                return true;
+
+            // 2. Let's ask the user for source directory.
+            // (The directory in which will be contained all the source files).
+            std::string sourceDirectoryPath;
+            while(1)
+            {
+                std::cout << "Please enter the source directory: " << std::endl;
+
+                std::getline(std::cin, sourceDirectoryPath);
+
+                // Let's check that the directory exists.
+                if(directoryExists(sourceDirectoryPath.c_str()))
+                {
+
+                }
+            }
+
+            // the database of macros to be loaded.
+            MacroLoader macroDatabase;
+
+            // let's scan the file.
+            if(scanMainFile(filePath, sourceDirectoryPath, macroDatabase))
+            {
+                // let's evaluate the value of the macro given.
+
+
+
+
+
+            }
+        }
+
+
+
+    }
     else if(isRoughlyEqualTo("helpall",commandStr)
     || (parameters.size()==2 && commandStr=="help" && parameters[1]=="all"))
         printAdvancedHelp();
@@ -1244,6 +1309,9 @@ bool CommandManager::runCommand(const string& input)
         return false;
     else {
         cout << "This command is unknown." << endl;
+
+        if(commandStr == "quit")
+            std::cout << "Did you mean 'exit' instead to quit the program ?" << std::endl;
     }
 
     return true;

@@ -31,6 +31,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="calculate.cpp" />
+		<Unit filename="calculate.hpp" />
 		<Unit filename="closestr.cpp" />
 		<Unit filename="closestr.hpp" />
 		<Unit filename="command.cpp" />

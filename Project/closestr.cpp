@@ -6,7 +6,7 @@ bool isRoughlyEqualTo(const std::string& original, const std::string& current)
 {
     int errors=2;
 
-    for(int i=0, j=0;j<original.size(); ++i,++j)
+    for(unsigned i=0, j=0;j<original.size(); ++i,++j)
     {
         if(i>=current.size())
         {
