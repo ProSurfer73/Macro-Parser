@@ -763,7 +763,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         if(!maxSizeReplaceSig.empty())
         {
             // Look for single parameter macro
-            auto range = dictionary.equal_range(maxSizeReplaceSig);
+            //auto range = dictionary.equal_range(maxSizeReplaceSig);
+            auto range = std::make_pair(dictionary.begin(),dictionary.end());
             for(auto it=range.first; it!=range.second; ++it)
             {
                 auto& p = *it;
@@ -802,17 +803,21 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     // Let's delete the macro name from the initial expression.
                     std::string initialExpr = expr;
                     size_t ppp = mac.find('(');
-                    std::cout << "sbtr: " << mac.substr(0,ppp-1) << std::endl;
+                    //std::cout << "sbtr: " << mac.substr(0,ppp-1) << std::endl;
+                    //std::cout << "iinitialExpr: " << initialExpr << std::endl;
                     size_t mypos = initialExpr.find(mac.substr(0,ppp-1));
-                    if(mypos == std::string::npos)
-                        throw std::runtime_error("nope!");
+                    if(mypos == std::string::npos){
+                        continue;
+                        //throw std::runtime_error("nope!");
+                    }
+
                     initialExpr.erase(mypos, pos);
 
-                    std::cout << "initialExpr: " << initialExpr << std::endl;
+                    //std::cout << "initialExpr: " << initialExpr << std::endl;
 
                     // Let's detect parameters value from the string.
                     std::vector<std::string> paramValues;
-                    std::cout << "yuyu: " << expr << std::endl;
+                    //std::cout << "yuyu: " << expr << std::endl;
                     initialExpr = expr;
                     for(unsigned i=mypos+ppp; i<initialExpr.size(); ++i)
                     {
@@ -833,11 +838,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    std::cout << "*(";
+                    /*std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";
+                    std::cout << ").\n";*/
 
                     // Let's replace the paramaterized macro with values by
                     // the parameterized macro with letters inside the expression.
@@ -852,14 +857,14 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         klkl[1] = paramNames[i];
 
                         // let's replace it.
-                        std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
                         while(simpleReplace(initialExpr, klkl, paramValues[i]));
                     }
 
                     // finally, let's replace the main expression.
                     expr = initialExpr;
 
-                    std::cout << "yes: " << initialExpr << std::endl;
+                    //std::cout << "yes: " << initialExpr << std::endl;
                 }
 
                 #if 0
