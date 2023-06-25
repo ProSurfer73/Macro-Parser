@@ -284,12 +284,14 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         if(isOperationCharacter(c))
             ++nbOperators;
     }
+    if(isOperationCharacter(expr.front()))
+        nbOperators--;
     char* operators = (char*)new int8_t[nbOperators*sizeof(char)+(nbOperators+1)*sizeof(double)]; // operators.size => nbOperators
     double *numbers = (double*)((int8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1
 
     std::istringstream mathStrm(expr);
     if(!(mathStrm >> numbers[0]))
-        throw std::runtime_error("getting first argument simple arthmetic expression.");
+        throw std::runtime_error("getting first argument simple arithmetic expression.");
 
     unsigned pos=0;
     while (mathStrm >> operators[pos] >> numbers[pos+1])
