@@ -1105,15 +1105,25 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             size_t ppp = expr.find('?', posOpenPar);
             if(ppp != std::string::npos
             && ppp < posClosePar
-            &&!(ppp>4 && strncmp(&expr[ppp-4], "true", 4)==0)
-            &&!(ppp>5 && strncmp(&expr[ppp-5], "false", 5)==0)) {
-                posClosePar = ppp-1;
-                posOpenPar++;
+            && !(ppp>4 && strncmp(&expr[ppp-4], "true", 4)==0)
+            && !(ppp>5 && strncmp(&expr[ppp-5], "false", 5)==0))
+            {
+                begStr = expr.substr(0,posOpenPar+1);
+                subExpr = expr.substr(posOpenPar+1, (ppp-1)-(posOpenPar+1) +1 )  ;
+                endStr = &expr[ppp];
+            }
+            else
+            {
+                begStr = expr.substr(0,posOpenPar);
+                subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
+                endStr = &expr[posClosePar+1];
             }
 
-            begStr = expr.substr(0,posOpenPar);
-            subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
-            endStr = &expr[posClosePar+1];
+
+
+            //std::cout << "begStr: " << begStr << std::endl;
+            //std::cout << "subStr: " << subExpr << std::endl;
+            //std::cout << "endStr: " << endStr << std::endl;
 
             // If it is a number, let's just remove the parentheses for now
             /*bool isOnlyNumbers=true;
