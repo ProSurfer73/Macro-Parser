@@ -22,6 +22,7 @@
 #include <cassert>
 #include <algorithm>
 #include <memory>
+#include <cstring>
 
 #include "stringeval.hpp"
 #include "container.hpp"
@@ -1099,6 +1100,16 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             size_t posOpenPar = posClosePar;
 
             for(;expr[posOpenPar]!='('; posOpenPar--);
+
+            // lets here treat the case of the ? operator.
+            size_t ppp = expr.find('?', posOpenPar);
+            if(ppp != std::string::npos
+            && ppp < posClosePar
+            &&!(ppp>4 && strncmp(&expr[ppp-4], "true", 4)==0)
+            &&!(ppp>5 && strncmp(&expr[ppp-5], "false", 5)==0)) {
+                posClosePar = ppp-1;
+                posOpenPar++;
+            }
 
             begStr = expr.substr(0,posOpenPar);
             subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
