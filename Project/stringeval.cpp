@@ -833,7 +833,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         {
                             value += initialExpr[i];
                         }
-                        else
+                        else if(!value.empty())
                         {
                             paramValues.push_back(value);
                             value.clear();
@@ -845,11 +845,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    std::cout << "*(";
+                    /*std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";
+                    std::cout << ").\n";*/
 
                     // Let's replace the paramaterized macro with values by
                     // the parameterized macro with letters inside the expression.
