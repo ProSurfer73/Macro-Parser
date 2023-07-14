@@ -296,7 +296,9 @@ double evaluateSimpleArithmeticExpr(const string& expr)
 
     unsigned pos=0;
     while (mathStrm >> operators[pos] >> numbers[pos+1])
-    { ++pos; }
+    {
+        ++pos;
+    }
 
     while(nbOperators > 0)
     {
@@ -820,32 +822,34 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     // Let's detect parameters value from the string.
                     std::vector<std::string> paramValues;
+                    std::string value;
                     //std::cout << "yuyu: " << expr << std::endl;
                     initialExpr = expr;
                     for(unsigned i=mypos+ppp; i<initialExpr.size(); ++i)
                     {
-                        std::string value;
-
-                        //
-                        if(initialExpr[i] != ',' && initialExpr[i]!='(')
+                        if(initialExpr[i] != ','
+                        && initialExpr[i] != '('
+                        && initialExpr[i] != ')')
                         {
-                            if(initialExpr[i] == ')')
-                                break;
-
                             value += initialExpr[i];
-
-                            // let's add a value to the expression.
+                        }
+                        else
+                        {
                             paramValues.push_back(value);
+                            value.clear();
                         }
 
+                        // let's add a value to the expression.
+                        if(initialExpr[i] == ')')
+                            break;
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    /*std::cout << "*(";
+                    std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";*/
+                    std::cout << ").\n";
 
                     // Let's replace the paramaterized macro with values by
                     // the parameterized macro with letters inside the expression.
