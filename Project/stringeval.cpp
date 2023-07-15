@@ -36,7 +36,7 @@ using std::string;
 static bool thereIsMacroLetter(const std::string& str)
 {
     for(unsigned i=0; i<str.size(); ++i){
-        if(isalpha(str[i]) && str[i] != 'x')
+        if(isalpha(str[i]) && str[i] != 'x' && str[i] != 'X')
             return true;
     }
     return false;

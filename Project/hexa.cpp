@@ -33,31 +33,43 @@ static bool isStrictHexaLetter(char c)
 
 bool isHexaLetter(char c)
 {
-    return isStrictHexaLetter(c)||c=='x';
+    return isStrictHexaLetter(c)||c=='x'||c=='X';
+}
+
+static std::size_t findTheX(const std::string& str)
+{
+    // lets first try to look for a small x.
+    auto searchedX = str.find('x');
+
+    // if we didnt found anything, lets look for a big X.
+    if(searchedX == std::string::npos)
+        searchedX = str.find('X');
+
+    // lets return the result of our search.
+    return searchedX;
 }
 
 
 // This function looks for hexadecimal numbers and try to replace them by decimal number
 void locateAndReplaceHexa(std::string& str, const Options& options)
 {
-    auto searchedX = str.find('x');
+    auto searchedX = findTheX(str);
 
     // As long as there is an hexadecimal number ( we locate it by the 'x' character and the 2 digits around it)
     while(searchedX != std::string::npos
     //&& isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
     && isStrictHexaLetter(str[searchedX-1]) && isStrictHexaLetter(str[searchedX+1]))
     {
-
-        unsigned k=searchedX;
+        unsigned k = searchedX;
         while(isStrictHexaLetter(str[++k]));
 
         string endStr=string(&str[k]);
         string begStr=str.substr(0, searchedX-1);
         string midStr=str.substr(begStr.size(), str.size()-begStr.size()-endStr.size());
 
-        /* cout << "endStr:" << endStr << "'" << endl;
+        /*cout << "endStr:" << endStr << "'" << endl;
         cout << "begStr:" << begStr << "'" << endl;
-        cout << "midStr:" << midStr << "'" << endl; */
+        cout << "midStr:" << midStr << "'" << endl;*/
 
         str = begStr + std::to_string(convertHexaToDeci(midStr)) + endStr;
 
@@ -66,7 +78,7 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
             std::cout << str << std::endl;
         }
 
-        searchedX = str.find('x');
+        searchedX = findTheX(str);
     }
 
 }
@@ -102,8 +114,8 @@ long long convertHexaToDeci(const std::string& hex)
         {
             val = hex[i] - 65 + 10;
         }
-        else if(hex[i] != 'x') {
-            std::cerr << "/!\\\n";
+        else if(hex[i] != 'x' && hex[i] != 'X') {
+            std::cerr << "/!\\ Unknown character: " << hex[i] << ". /!\\\n";
             break;
         }
 
