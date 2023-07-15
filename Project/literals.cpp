@@ -26,7 +26,7 @@
 
 using std::string;
 
-/// HEXADECIMAL CONVERSIONS.
+/// HEXADECIMAL CONVERSIONS. ///
 
 static bool isStrictHexaLetter(char c)
 {
@@ -176,7 +176,7 @@ bool tryConvertToHexa(std::string& deciStr)
 }
 
 
-/// INTEGER SUFFIXES DELETION.
+/// INTEGER SUFFIXES DELETION. ///
 
 // lets delete integer suffixes from number contained inside of a string.
 void locateAndReplaceEnding(std::string& str, const Options& options)
@@ -213,7 +213,7 @@ void locateAndReplaceEnding(std::string& str, const Options& options)
 }
 
 
-/// OCTAL CONVERSIONS.
+/// OCTAL CONVERSIONS. ///
 
 static unsigned octalToDecimal(const string& s)
 {
@@ -231,7 +231,7 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
 {
     string s;
 
-    for(unsigned i=2; i<str.size(); ++i)
+    for(unsigned i=2; i<str.size()+1; ++i)
     {
         if(!isdigit(str[i-2]) && str[i-1]=='0' && isdigit(str[i]) && (str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
         {
@@ -251,13 +251,13 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
 }
 
 
-/// BINARY CONVERSIONS.
+/// BINARY CONVERSIONS. ///
 
 void locateAndReplaceBinary(std::string& str, const Options& options)
 {
     string binaryString;
 
-    for(unsigned i=2; i<str.size(); ++i)
+    for(unsigned i=2; i<str.size()+1; ++i)
     {
         if(str[i-2]=='0' && (str[i-1]=='b' || str[i-1]=='B') && (str[i]=='0' || str[i]=='1') )
         {
@@ -278,7 +278,7 @@ void locateAndReplaceBinary(std::string& str, const Options& options)
 }
 
 
-/// APOSTROPHES DELETION.
+/// APOSTROPHES DELETION. ///
 
 void removeApostrophes(std::string& str)
 {
