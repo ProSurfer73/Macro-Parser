@@ -32,6 +32,7 @@
 
 
 #define READ_HEXADECIMAL /**< If defined, the program will be able to read hexadecimal values. */
+#define READ_OCTAL /**< If defined, the program will be able to read octal values. */
 
 /// Debugging options
 

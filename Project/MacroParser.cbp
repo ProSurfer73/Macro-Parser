@@ -40,8 +40,8 @@
 		<Unit filename="config.hpp" />
 		<Unit filename="container.cpp" />
 		<Unit filename="container.hpp" />
-		<Unit filename="hexa.cpp" />
-		<Unit filename="hexa.hpp" />
+		<Unit filename="literals.cpp" />
+		<Unit filename="literals.hpp" />
 		<Unit filename="macroloader.cpp" />
 		<Unit filename="macroloader.hpp" />
 		<Unit filename="macrosearch.cpp" />

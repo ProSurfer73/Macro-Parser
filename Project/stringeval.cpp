@@ -529,6 +529,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         // Look and replace hexa
         locateAndReplaceHexa(expr, config);
     #endif
+    #ifdef READ_OCTAL
+        // look and replace octal values.
+        locateAndReplaceOctal(expr, config);
+    #endif // READ_OCTAL
 
 
     /// 1. Search and replace macros
@@ -763,6 +767,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             // Look and replace hexa
             locateAndReplaceHexa(expr, config);
         #endif
+        #ifdef READ_OCTAL
+            // look and replace octal values.
+            locateAndReplaceOctal(expr, config);
+        #endif // READ_OCTAL
 
         }
         if(!maxSizeReplaceSig.empty())
