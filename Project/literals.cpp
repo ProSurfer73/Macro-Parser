@@ -231,9 +231,9 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
 {
     string s;
 
-    for(unsigned i=2; i<str.size()+1; ++i)
+    for(unsigned i=1; i<str.size()+1; ++i)
     {
-        if(!isdigit(str[i-2]) && str[i-1]=='0' && isdigit(str[i]) && (str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
+        if((i<2 || !isdigit(str[i-2])) && str[i-1]=='0' && isdigit(str[i]) && (i<2 || str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
         {
             s = str[i];
         }
@@ -243,7 +243,7 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
         }
         else if(!s.empty())
         {
-            str.replace(i-s.size(), s.size(), std::to_string(octalToDecimal(s)));
+            str.replace(i-s.size()-1, s.size()+1, std::to_string(octalToDecimal(s)));
             locateAndReplaceOctal(str, options);
             break;
         }
