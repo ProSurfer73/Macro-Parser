@@ -227,19 +227,31 @@ static unsigned octalToDecimal(const string& s)
     return occ;
 }
 
+static bool isOctal(char c)
+{
+    return (c >= '0' && c <= '7');
+}
+
 void locateAndReplaceOctal(std::string& str, const Options& options)
 {
     string s;
 
     for(unsigned i=1; i<str.size()+1; ++i)
     {
-        if((i<2 || !isdigit(str[i-2])) && str[i-1]=='0' && isdigit(str[i]) && (i<2 || str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
+        if((i<2 || !isdigit(str[i-2])) && str[i-1]=='0' && isOctal(str[i]) && (i<2 || str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
         {
             s = str[i];
         }
         else if(!s.empty() && isdigit(str[i]))
         {
-            s += str[i];
+            if(isOctal(str[i]))
+            {
+                s += str[i];
+            }
+            else
+            {
+                s.clear();
+            }
         }
         else if(!s.empty())
         {
