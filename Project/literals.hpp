@@ -73,4 +73,11 @@ void locateAndReplaceEnding(std::string& str, const Options& options);
  */
 void locateAndReplaceOctal(std::string& str, const Options& options);
 
+/** \brief remove apostrophes between figures inside of a string.
+ *
+ * \param str the string where apostrophes should be removed.
+ */
+
+void removeApostrophes(std::string& str);
+
 #endif // HEXA_HPP

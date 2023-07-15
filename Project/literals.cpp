@@ -220,7 +220,7 @@ static unsigned octalToDecimal(const string& s)
 {
     unsigned occ=0;
 
-    for(int i=0; i<s.size(); ++i)
+    for(unsigned i=0; i<s.size(); ++i)
     {
         occ = occ + (s[i]-'0')*pow(8, s.size()-1-i);
     }
@@ -232,9 +232,9 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
 {
     string s;
 
-    for(int i=2; i<str.size(); ++i)
+    for(unsigned i=2; i<str.size(); ++i)
     {
-        if(!isdigit(str[i-2]) && str[i-1]=='0' && isdigit(str[i]))
+        if(!isdigit(str[i-2]) && str[i-1]=='0' && isdigit(str[i]) && (str[i-2]!='\'' || i<3 || !isdigit(str[i-3])))
         {
             s = str[i];
         }
@@ -245,6 +245,19 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
         else if(!s.empty())
         {
             str.replace(i-s.size(), s.size(), std::to_string(octalToDecimal(s)));
+        }
+    }
+}
+
+void removeApostrophes(std::string& str)
+{
+    for(unsigned i=1; i<str.size(); ++i)
+    {
+        if(isdigit(str[i-1]) && str[i]=='\'' && isdigit(str[i+1]) )
+        {
+            str.erase(str.begin()+i);
+            removeApostrophes(str);
+            break;
         }
     }
 }

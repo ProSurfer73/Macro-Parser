@@ -533,6 +533,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         // look and replace octal values.
         locateAndReplaceOctal(expr, config);
     #endif // READ_OCTAL
+    removeApostrophes(expr);
 
 
     /// 1. Search and replace macros
@@ -771,6 +772,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             // look and replace octal values.
             locateAndReplaceOctal(expr, config);
         #endif // READ_OCTAL
+        removeApostrophes(expr);
 
         }
         if(!maxSizeReplaceSig.empty())
