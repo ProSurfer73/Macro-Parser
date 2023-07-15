@@ -533,6 +533,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         // look and replace octal values.
         locateAndReplaceOctal(expr, config);
     #endif // READ_OCTAL
+    #ifdef READ_BINARY
+        locateAndReplaceBinary(expr, config);
+    #endif
     removeApostrophes(expr);
 
 
@@ -772,6 +775,9 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             // look and replace octal values.
             locateAndReplaceOctal(expr, config);
         #endif // READ_OCTAL
+        #ifdef READ_BINARY
+            locateAndReplaceBinary(expr, config);
+        #endif
         removeApostrophes(expr);
 
         }

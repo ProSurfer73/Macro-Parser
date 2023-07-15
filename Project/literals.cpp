@@ -26,7 +26,7 @@
 
 using std::string;
 
-/// HEXADECIMAL CONVERSIONS
+/// HEXADECIMAL CONVERSIONS.
 
 static bool isStrictHexaLetter(char c)
 {
@@ -85,7 +85,6 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
 
 }
 
-
 long long convertHexaToDeci(const std::string& hex)
 {
     long long decimal;
@@ -134,8 +133,6 @@ long long convertHexaToDeci(const std::string& hex)
     return decimal;
 }
 
-
-
 string convertDeciToHexa(long int num)
 {
    char arr[100];
@@ -179,6 +176,8 @@ bool tryConvertToHexa(std::string& deciStr)
 }
 
 
+/// INTEGER SUFFIXES DELETION.
+
 // lets delete integer suffixes from number contained inside of a string.
 void locateAndReplaceEnding(std::string& str, const Options& options)
 {
@@ -214,7 +213,7 @@ void locateAndReplaceEnding(std::string& str, const Options& options)
 }
 
 
-/// OCTAL CONVERSIONS
+/// OCTAL CONVERSIONS.
 
 static unsigned octalToDecimal(const string& s)
 {
@@ -245,9 +244,41 @@ void locateAndReplaceOctal(std::string& str, const Options& options)
         else if(!s.empty())
         {
             str.replace(i-s.size(), s.size(), std::to_string(octalToDecimal(s)));
+            locateAndReplaceOctal(str, options);
+            break;
         }
     }
 }
+
+
+/// BINARY CONVERSIONS.
+
+void locateAndReplaceBinary(std::string& str, const Options& options)
+{
+    string binaryString;
+
+    for(unsigned i=2; i<str.size(); ++i)
+    {
+        if(str[i-2]=='0' && (str[i-1]=='b' || str[i-1]=='B') && (str[i]=='0' || str[i]=='1') )
+        {
+            binaryString = str[i];
+        }
+        else if(!binaryString.empty() && (str[i]=='0' || str[i]=='1'))
+        {
+            binaryString += str[i];
+        }
+        else if(!binaryString.empty())
+        {
+            unsigned result = strtol(binaryString.c_str(), nullptr, 2);
+            str.replace(i-binaryString.size()-2, binaryString.size()+2, std::to_string(result));
+            locateAndReplaceOctal(str, options);
+            break;
+        }
+    }
+}
+
+
+/// APOSTROPHES DELETION.
 
 void removeApostrophes(std::string& str)
 {
