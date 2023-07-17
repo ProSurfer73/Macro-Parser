@@ -330,7 +330,7 @@ bool CommandManager::runCommand(const string& input)
                 {
                     numInput = std::stoi(userInput);
                 }
-                catch(std::exception& ex)
+                catch(std::exception& )
                 {
                     numInput = -1;
                 }
@@ -927,10 +927,10 @@ bool CommandManager::runCommand(const string& input)
                 else if(searchFile(str2, parameters[1], configuration))
                 {
                     std::cout << " - " << str2 << std::endl;
-                    results.emplace_back(std::move(str2));
+                    results.emplace_back(str2);
                 }
             }
-            unsigned total = results.size();
+            unsigned int total = results.size();
             if(total==0)
                 std::cout << "No result found." << std::endl;
             else if(total==1)

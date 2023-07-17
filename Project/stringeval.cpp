@@ -145,7 +145,7 @@ static string extractLeftPart(const string& expr, size_t pos)
     return expr.substr(pos-i, i);
 }
 
-/** \brief suppress the paremetered macro with value inside an expression by its definition.
+/** \brief suppress the parameterized macro with value inside an expression by its definition.
  *
  * \param expr the expression
  * \param pfirst the value of the macro.
@@ -161,18 +161,54 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     std::cout << "pfirst: " << pfirst << std::endl;
     std::cout << "psecond: " << psecond << std::endl;*/
 
-    // Let's replace the string by another.
-    size_t pos = expr.find(pfirst);
+    // replace here the param macro.
+    unsigned levelParenthesis = 0;
+    unsigned incrWord = 0;
+    \
+    int maxParLevel = -1;
+    unsigned positionWord = 0;
+
+    for(unsigned i=0; i<expr.size(); i++)
+    {
+        if(expr[i] == '(')
+            levelParenthesis++;
+        else if(expr[i] == ')')
+            levelParenthesis--;
+
+        if(expr[i] == pfirst[incrWord])
+        {
+            incrWord++;
+            std::cout << "bip" << std::endl;
+            if(incrWord == pfirst.size())
+            {
+                if(((int)levelParenthesis) > maxParLevel)
+                {
+                    std::cout << "got it" << std::endl;
+                    maxParLevel = levelParenthesis;
+                    positionWord = i-pfirst.size()+1;
+                }
+            }
+        }
+        else
+            incrWord = 0;
+    }
+
+    // Let's here spot the location inside the most parentheses here.
+    //size_t pos = expr.find(pfirst);
+    size_t pos = positionWord;
+
+    std::cout << "popo:" << pos << std::endl;
+
 
     if(pos == std::string::npos)
         std::cout << "!!!!!!!!!!!!!!!" << std::endl;
 
-    //std::cout << "1:" << expr << std::endl;
+    std::cout << "1:" << expr << std::endl;
     expr.erase(pos, expr.find(')',pos)-pos+1);
-    //std::cout << "2:" << expr << std::endl;
+    std::cout << "2:" << expr << std::endl;
     expr.insert(pos, psecond);
 
-    //std::cout << "expr: " << expr << std::endl;
+    std::cout << "expr: " << expr << std::endl;
 }
 
 
@@ -785,12 +821,53 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         {
             // Look for single parameter macro
             //auto range = dictionary.equal_range(maxSizeReplaceSig);
+
+            std::pair<const std::string,std::string> const* fg = nullptr;
+            int maxDeep = 0;
+            int currentDeep = 0;
+            unsigned exploreWord = 0;
+
             auto range = std::make_pair(dictionary.begin(),dictionary.end());
             for(auto it=range.first; it!=range.second; ++it)
             {
-                auto& p = *it;
-                const string& mac = p.first;
 
+                for(unsigned i=0; i<expr.size(); i++)
+                {
+                    // let count how deep we are inside the parenthesis.
+                    if(expr[i]=='(')
+                        currentDeep++;
+                    else if(expr[i]==')')
+                        currentDeep--;
+
+                    // lets see the expression itself.
+                    if(expr[i] == (*it).first[exploreWord])
+                    {
+                        exploreWord++;
+                        if(exploreWord==it->first.size())
+                        {
+                            if(!fg || currentDeep>maxDeep)
+                            {
+                                maxDeep = currentDeep;
+                                fg = &(*it);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        exploreWord=0;
+                    }
+
+
+                }
+
+            }
+
+
+            if(!fg)
+            {
+                auto& p = *fg;
+                //const string& mac = p.first;
+                const string& mac = fg->first;
 
                 // Let's detect parameters inside the string
                 std::size_t pos = mac.find('(');
@@ -827,7 +904,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     //std::cout << "sbtr: " << mac.substr(0,ppp-1) << std::endl;
                     //std::cout << "iinitialExpr: " << initialExpr << std::endl;
                     size_t mypos = initialExpr.find(mac.substr(0,ppp-1));
-                    if(mypos == std::string::npos){
+                    if(mypos == std::string::npos) {
                         continue;
                         //throw std::runtime_error("nope!");
                     }
@@ -841,11 +918,20 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     std::string value;
                     //std::cout << "yuyu: " << expr << std::endl;
                     initialExpr = expr;
-                    for(unsigned i=mypos+ppp; i<initialExpr.size(); ++i)
+
+                    //
+                    int state = 0;
+
+
+                    for(unsigned i=mypos+ppp+1; i<initialExpr.size(); ++i)
                     {
-                        if(initialExpr[i] != ','
-                        && initialExpr[i] != '('
-                        && initialExpr[i] != ')')
+                        if(initialExpr[i] == '(')
+                            state++;
+                        else if(initialExpr[i] == ')')
+                            state--;
+
+                        if((initialExpr[i] != ',' || state > 0)
+                        && (state>0 || initialExpr[i] != ')'))
                         {
                             value += initialExpr[i];
                         }
@@ -861,11 +947,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    /*std::cout << "*(";
+                    std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";*/
+                    std::cout << ").\n";
 
                     // Let's replace the paramaterized macro with values by
                     // the parameterized macro with letters inside the expression.
@@ -880,7 +966,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         klkl[1] = paramNames[i];
 
                         // let's replace it.
-                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
                         while(simpleReplace(initialExpr, klkl, paramValues[i]));
                     }
 
@@ -889,6 +975,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     //std::cout << "yes: " << initialExpr << std::endl;
                 }
+
 
                 #if 0
 
@@ -932,10 +1019,13 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 }
 
                 #endif
+
             }
 
 
         }
+
+
 
         if(save_expr != expr)
         {
@@ -1268,10 +1358,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     }
 
 
+    if(deleteRedef)
+        delete redef;
 
-    if(deleteRedef) delete redef;
     return status;
-
 
     }
     catch(std::exception const& ex)
@@ -1291,7 +1381,7 @@ void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContain
 {
     std::vector<std::string> output;
                 //std::cout << "Source 3" << std::endl;
-                auto status = calculateExpression(expr, macroContainer, options, nullptr, true, &output, redef);
+    auto status = calculateExpression(expr, macroContainer, options, nullptr, true, &output, redef);
     auto& results = output;
 
 
@@ -1356,5 +1446,7 @@ void listUndefinedFromExpr(std::vector<std::string>& missingMacros, const std::s
     }
 
     if(!word.empty())
+    {
         missingMacros.push_back( std::move(word) );
+    }
 }

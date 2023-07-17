@@ -155,7 +155,7 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
 
 #include <windows.h>
 
-void explore_directory(std::string dirname, std::vector<std::string>& files)
+void local_explore_directory(std::wstring dirname, std::vector<std::string>& files)
 {
     WIN32_FIND_DATA data;
     HANDLE hFind;
@@ -165,13 +165,13 @@ void explore_directory(std::string dirname, std::vector<std::string>& files)
 
     //std::cout << "dirname: " << dirname << std::endl;
 
-    if ((hFind = FindFirstFile((dirname+'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFile((dirname+L'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
     {
         do
         {
             if(data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){
-                if(strcmp(data.cFileName, ".")!=0 && strcmp(data.cFileName, "..")!= 0){
-                    explore_directory(dirname+data.cFileName,files);
+                if(wcscmp(data.cFileName, L".")!=0 && wcscmp(data.cFileName, L"..")!= 0){
+                    local_explore_directory(dirname+data.cFileName,files);
                 }
 
             }
@@ -186,8 +186,18 @@ void explore_directory(std::string dirname, std::vector<std::string>& files)
     }
 }
 
+void explore_directory(const std::string& dirname, std::vector<std::string>& files)
+{
+    std::wstring str;
 
-bool directoryExists(const char* szPath)
+    for (char c : dirname)
+        str += c;
+
+    local_explore_directory(str, files);
+}
+
+
+bool directoryExists(const wchar_t* szPath)
 {
   DWORD dwAttrib = GetFileAttributes(szPath);
 
