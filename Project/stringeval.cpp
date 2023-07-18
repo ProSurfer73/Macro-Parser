@@ -315,54 +315,41 @@ bool doesExprLookOk(const string& expr)
 // The arithmetic expression must be correct and must NOT contain spaces.
 double evaluateSimpleArithmeticExpr(const string& expr)
 {
-    // Let's allocate manually memory (for a operators[] and numbers[])
-    unsigned nbOperators=0;
-    for(char c: expr) {
-        if(isOperationCharacter(c))
-            ++nbOperators;
-    }
-    if(isOperationCharacter(expr.front()))
-        nbOperators--;
-    char* operators = (char*)new int8_t[nbOperators*sizeof(char)+(nbOperators+1/* safety*/+1) * sizeof(double)]; // operators.size => nbOperators
-    double *numbers = (double*)((int8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1.
+    struct mypair {
+        char operators;
+        double number;
+    };
+
+    struct mypair p;
 
     std::istringstream mathStrm(expr);
-    if(!(mathStrm >> numbers[0]))
+    if(!(mathStrm >> p.number))
         throw std::runtime_error("getting first argument simple arithmetic expression.");
 
-    unsigned pos=0;
-    while (mathStrm >> operators[pos] >> numbers[pos+1])
-    {
-        ++pos;
+    std::vector<struct mypair> v = { p };
 
-        if (pos >= nbOperators)
-            throw std::runtime_error("internal error line 339: post qn issue on github.");
+    while (mathStrm >> p.operators >> p.number)
+    {
+        v.push_back(p);
     }
 
-    while(nbOperators > 0)
+    while(v.size() > 1)
     {
         /// Look for the best position
 
         // If there are * or / or % operators.
-        pos=0;
-        for(unsigned i=0; i<nbOperators; ++i){
-            if(operators[i] == '*' || operators[i]=='/' || operators[i]=='%')
+        unsigned pos=1;
+        for(unsigned i=1; i<v.size(); ++i){
+            if(v[i].operators=='*' || v[i].operators=='/' || v[i].operators=='%')
                 pos=i;
         }
-        func(numbers[pos], operators[pos], numbers[1+pos]);
+        func(v[pos-1].number, v[pos].operators, v[pos].number);
 
         // let's move each array, one step to the left
-        for(unsigned i=pos; i<nbOperators; ++i)
-            operators[i]=operators[i+1];
-        for(unsigned i=pos+1; i<=nbOperators; ++i)
-            numbers[i]=numbers[i+1];
-
-        nbOperators--;
+        v.erase(v.begin() + pos);
     }
 
-    double myreturn=numbers[0];
-    delete[] operators;
-    return myreturn;
+    return v.front().number;
 }
 
 static bool treatOperationDouble(std::string& str, const std::string& operation, bool (*operateur)(double, double))
@@ -427,8 +414,6 @@ static bool treatOperationDouble(std::string& str, const std::string& operation,
 
 static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config, std::vector<std::pair<std::string,std::string> >& redef, std::vector<std::string>* warnings)
 {
-    //std::cout << "interrogation:" << expr << std::endl;
-
     bool didSomething=false;
     std::size_t searchedInterrogation;
 
