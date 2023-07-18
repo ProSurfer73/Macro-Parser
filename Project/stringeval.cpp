@@ -611,7 +611,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 for(const std::pair<std::string,std::string>& p: dictionary)
                 {
                     // if we find the occurence of the word.
-                    if(startsWith(p.first,currentWord))
+                    if(!p.first.empty() && startsWith(p.first,currentWord))
                     {
                         //std::cout << "pushed. first:" << p.first << " p.second:" << p.second << std::endl;
                         cutted.push_back(&p);
@@ -629,7 +629,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
             const string& mac = p.first;
 
-            if(p.first.back()!=')')
+            if(!p.first.empty() && p.first.back() != ')')
             {
                 #ifdef DEBUG_LOG_STRINGEVAL
                     cout << "found\n";
@@ -852,6 +852,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                 // if there seems to be parameters
                 if(pos != std::string::npos
+                && !mac.empty()
                 && mac.back()==')')
                 {
                     do {
