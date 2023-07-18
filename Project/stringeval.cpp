@@ -549,7 +549,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         assert(expr.find(' ') == string::npos);
     #endif
 
-    #ifdef READ_HEXADECIMAL
+    /*#ifdef READ_HEXADECIMAL
         // Look and replace hexa
         locateAndReplaceHexa(expr, config);
     #endif
@@ -559,7 +559,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     #endif // READ_OCTAL
     #ifdef READ_BINARY
         locateAndReplaceBinary(expr, config);
-    #endif
+    #endif*/
     removeApostrophes(expr);
 
 
@@ -791,18 +791,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             }
         }
 
-        #ifdef READ_HEXADECIMAL
-            // Look and replace hexa
-            locateAndReplaceHexa(expr, config);
-        #endif
-        #ifdef READ_OCTAL
-            // look and replace octal values.
-            locateAndReplaceOctal(expr, config);
-        #endif // READ_OCTAL
-        #ifdef READ_BINARY
-            locateAndReplaceBinary(expr, config);
-        #endif
-        removeApostrophes(expr);
+
 
         }
         if(!maxSizeReplaceSig.empty())
@@ -1026,6 +1015,22 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
             repeat = true;
 
+        }
+
+        if(!repeat)
+        {
+            #ifdef READ_HEXADECIMAL
+                // Look and replace hexa
+                locateAndReplaceHexa(expr, config);
+            #endif
+            #ifdef READ_OCTAL
+                // look and replace octal values.
+                locateAndReplaceOctal(expr, config);
+            #endif // READ_OCTAL
+            #ifdef READ_BINARY
+                locateAndReplaceBinary(expr, config);
+            #endif
+            removeApostrophes(expr);
         }
 
 
