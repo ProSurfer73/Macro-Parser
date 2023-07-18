@@ -55,14 +55,14 @@ static std::size_t findTheX(const std::string& str)
 // This function looks for hexadecimal numbers and try to replace them by decimal number
 void locateAndReplaceHexa(std::string& str, const Options& options)
 {
-    auto searchedX = findTheX(str);
+    std::size_t searchedX = findTheX(str);
 
     // As long as there is an hexadecimal number ( we locate it by the 'x' character and the 2 digits around it)
     while(searchedX != std::string::npos
     //&& isdigit(str[searchedX-1]) && isdigit(str[searchedX+1]) )
     && isStrictHexaLetter(str[searchedX-1]) && isStrictHexaLetter(str[searchedX+1]))
     {
-        unsigned k = searchedX;
+        std::size_t k = searchedX;
         while(isStrictHexaLetter(str[++k]));
 
         string endStr=string(&str[k]);
@@ -87,13 +87,13 @@ void locateAndReplaceHexa(std::string& str, const Options& options)
 
 long long convertHexaToDeci(const std::string& hex)
 {
-    long long decimal;
-    int i = 0, val = 0, len;
-
-    decimal = 0;
+    long long decimal = 0;
+    int i = 0, val = 0;
 
     /* Find the length of total number of hex digit */
-    len = hex.size();
+    std::size_t len = hex.size();
+    if (len == 0)
+        return 0;
     len--;
 
     /*
@@ -121,7 +121,7 @@ long long convertHexaToDeci(const std::string& hex)
         }
 
 
-        decimal += val * pow(16, len);
+        decimal += static_cast<long long>(val * pow(16, len));
         len--;
     }
 

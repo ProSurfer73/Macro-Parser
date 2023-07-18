@@ -930,7 +930,7 @@ bool CommandManager::runCommand(const string& input)
                     results.emplace_back(str2);
                 }
             }
-            unsigned int total = results.size();
+            std::size_t total = results.size();
             if(total==0)
                 std::cout << "No result found." << std::endl;
             else if(total==1)

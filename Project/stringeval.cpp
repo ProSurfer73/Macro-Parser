@@ -166,7 +166,7 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     unsigned incrWord = 0;
     \
     int maxParLevel = -1;
-    unsigned positionWord = 0;
+    std::size_t positionWord = 0;
 
     for(unsigned i=0; i<expr.size(); i++)
     {
@@ -378,7 +378,7 @@ static bool treatOperationDouble(std::string& str, const std::string& operation,
             value1=std::stod(str1);
             value2=std::stod(str2);
         }
-        catch(const std::exception& ex)
+        catch(const std::exception&)
         {
             if(operation=="==" && str1==str2)
             {
@@ -923,7 +923,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     int state = 0;
 
 
-                    for(unsigned i=mypos+ppp+1; i<initialExpr.size(); ++i)
+                    for(size_t i=mypos+ppp+1; i<initialExpr.size(); ++i)
                     {
                         if(initialExpr[i] == '(')
                             state++;
@@ -1327,7 +1327,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     {
         result = std::stod(expr);
     }
-    catch(const std::exception& ex)
+    catch(const std::exception&)
     {
         // Then it is not a numerical expression
 
