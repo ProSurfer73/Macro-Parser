@@ -221,7 +221,7 @@ static unsigned octalToDecimal(const string& s)
 
     for(unsigned i=0; i<s.size(); ++i)
     {
-        occ = occ + (s[i]-'0')*pow(8, s.size()-1-i);
+        occ = occ + (s[i]-'0')*static_cast<unsigned>(pow(8, s.size()-1-i));
     }
 
     return occ;

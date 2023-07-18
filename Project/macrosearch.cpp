@@ -157,7 +157,7 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
 
 void explore_directory(std::string dirname, std::vector<std::string>& files)
 {
-    WIN32_FIND_DATA data;
+    WIN32_FIND_DATAA data;
     HANDLE hFind;
 
     if(dirname.back()!='\\')
@@ -165,7 +165,7 @@ void explore_directory(std::string dirname, std::vector<std::string>& files)
 
     //std::cout << "dirname: " << dirname << std::endl;
 
-    if ((hFind = FindFirstFile((dirname+'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
+    if ((hFind = FindFirstFileA((dirname+'*').c_str(), &data)) != INVALID_HANDLE_VALUE)
     {
         do
         {
@@ -180,16 +180,15 @@ void explore_directory(std::string dirname, std::vector<std::string>& files)
             }
             //Sleep(500);
         }
-        while (FindNextFile(hFind, &data) != 0);
+        while (FindNextFileA(hFind, &data) != 0);
 
         FindClose(hFind);
     }
 }
 
-
 bool directoryExists(const char* szPath)
 {
-  DWORD dwAttrib = GetFileAttributes(szPath);
+  DWORD dwAttrib = GetFileAttributesA(szPath);
 
   return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
