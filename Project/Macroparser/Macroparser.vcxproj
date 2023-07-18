@@ -136,6 +136,7 @@
     <ClCompile Include="..\macrosearch.cpp" />
     <ClCompile Include="..\macrospace.cpp" />
     <ClCompile Include="..\main.cpp" />
+    <ClCompile Include="..\options.cpp" />
     <ClCompile Include="..\specialloader.cpp" />
     <ClCompile Include="..\stringeval.cpp" />
     <ClCompile Include="..\strings.cpp" />

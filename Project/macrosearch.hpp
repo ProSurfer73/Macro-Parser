@@ -46,7 +46,7 @@ bool searchDirectory(string dir, const std::string& macroName, const Options& co
  * \param files the complete list of the files contained inside the directory is going to be added to this array.
  *
  */
-void explore_directory(const std::string& dirname, std::vector<std::string>& files);
+void explore_directory(std::string dirname, std::vector<std::string>& files);
 
 /** \brief check if the path provided by the end user corresponds to directory or not.
  *
