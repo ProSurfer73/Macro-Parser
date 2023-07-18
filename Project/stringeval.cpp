@@ -324,7 +324,7 @@ double evaluateSimpleArithmeticExpr(const string& expr)
     if(isOperationCharacter(expr.front()))
         nbOperators--;
     char* operators = (char*)new int8_t[nbOperators*sizeof(char)+(nbOperators+1)*sizeof(double)]; // operators.size => nbOperators
-    double *numbers = (double*)((int8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1
+    double *numbers = (double*)((int8_t*)operators+sizeof(char)*nbOperators); // numbers.size => nbOperators+1.
 
     std::istringstream mathStrm(expr);
     if(!(mathStrm >> numbers[0]))
@@ -334,6 +334,9 @@ double evaluateSimpleArithmeticExpr(const string& expr)
     while (mathStrm >> operators[pos] >> numbers[pos+1])
     {
         ++pos;
+
+        if (pos >= nbOperators)
+            throw std::runtime_error("no time for that.");
     }
 
     while(nbOperators > 0)
@@ -717,7 +720,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                             bool oneThing=false;
 
                             auto range = dictionary.equal_range(p.first);
-                            for(auto it2=range.first; it2!=range.second; it2++)
+                            for(auto  it2=range.first; it2!=range.second; it2++)
                             {
                                 const auto& pp = *it2;
 
