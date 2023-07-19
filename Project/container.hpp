@@ -101,9 +101,17 @@ public:
      */
     unsigned countIncorrectOrEmpty() const;
 
-    /** \brief Compare two mqcro collection using special options.
+    /** \brief Compare a list of macro collection using special options.
      *
-     * \param mcs the other mqcro collection to be compared.
+     * \param mcs the other macro collection to be compared.
+     * \param configuration  general configuration of the program.
+     * \param param list of ordering and filtering rules. Please look at the implementation of the function for more information.
+     */
+    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param);
+
+    /** \brief Compare two macro collection using special options.
+     *
+     * \param mcs the other macro collection to be compared.
      * \param configuration  general configuration of the program.
      * \param param list of ordering and filtering rules. Please look at the implementation of the function for more information.
      */
@@ -111,7 +119,7 @@ public:
 
     /** \brief get the list of the origins of the collection (files, folders, user...)
      *
-     * \param v an array of string (each of them correponds to a source from which the collection was loaded).
+     * \param v an array of string (each of them corresponds to a source from which the collection was loaded).
      */
     void getListOrigins(std::vector<std::string>& v) const;
 
