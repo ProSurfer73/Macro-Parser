@@ -22,7 +22,7 @@ public:
      *
      * \param folderpath the folder path.
      * \param config the list of options (preprocessor instructions interpretation enabled ?)
-     * \return
+     * \return false if the directory could not be opened or if there is no file inside it, otherwise true if at least one file was listed.
      */
     bool importFromFolder(const std::string& folderpath, const Options& config);
 };

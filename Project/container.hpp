@@ -74,12 +74,10 @@ public:
      */
     void clearDatabase(bool clearOkay, bool clearRedefined, bool clearIncorrect);
 
-    /** \brief
+    /** \brief if a macro name contains one of the keyord, it will be printed on the output stream result.
      *
-     * \param
-     * \param
-     * \return
-     *
+     * \param keywords a list of keyword to look for.
+     * \param outputStreamResults generally std::cout.
      */
     void searchKeywords(const std::vector<std::string>& keywords, std::ostream& outputStreamResults) const;
 
@@ -103,25 +101,18 @@ public:
      */
     unsigned countIncorrectOrEmpty() const;
 
-
-    /** \brief
+    /** \brief Compare two mqcro collection using special options.
      *
-     * \param
-     * \param
-     * \return
-     *
-     */
-    static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param);
-
-    /** \brief
-     *
-     * \param
-     * \param
-     * \return
-     *
+     * \param mcs the other mqcro collection to be compared.
+     * \param configuration  general configuration of the program.
+     * \param param list of ordering and filtering rules. Please look at the implementation of the function for more information.
      */
     void printDiff(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param) const;
 
+    /** \brief get the list of the origins of the collection (files, folders, user...)
+     *
+     * \param v an array of string (each of them correponds to a source from which the collection was loaded).
+     */
     void getListOrigins(std::vector<std::string>& v) const;
 
     /** \brief get the list of the origins of the macros. It describes from where the macros originates (file, user, ect..).
@@ -130,12 +121,10 @@ public:
      */
     const std::vector<std::string>& getListOrigins() const;
 
-    /** \brief
+    /** \brief add a macro and its definition to the collection (and replace old macro(s) definition(s) ).
      *
-     * \param
-     * \param
-     * \return
-     *
+     * \param macroName the name of the macro.
+     * \param macroValue the definition of the macro.
      */
     void emplaceAndReplace(const std::string& macroName, const std::string& macroValue);
 

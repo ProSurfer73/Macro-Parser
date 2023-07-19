@@ -162,7 +162,7 @@ void MacroContainer::printOrigins() const
     }
 }
 
-void MacroContainer::printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param)
+static void printDiffFromList(std::vector<MacroContainer*>& mcs, const Options& configuration, const std::vector<std::string>& param)
 {
     // Delete all pointers equald to 0 from the vector
     for(auto it=mcs.begin(); it!=mcs.end();){

@@ -68,7 +68,7 @@ private:
     /** \brief convert a string to a boolean value when possible.
      *
      * \param input the string to be converted to a boolean value.
-     * \param a variable variable, that will contains the value of the convertion if it is possible.
+     * \param boolean a variable variable, that will contains the value of the convertion if it is possible.
      * \return true if the convertion occured successfully, false otherwise.
      */
     static bool loadBooleanValue(std::string input, bool& boolean);

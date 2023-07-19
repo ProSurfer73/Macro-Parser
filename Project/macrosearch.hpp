@@ -34,7 +34,7 @@ bool searchFile(const string& pathToFile, const std::string& macroName, const Op
  * \param macroName the name of the macro we are looking for.
  * \param config the configuration (list of options set by the user).
  * \param previousResults the list of the files found are going ot be added to this array.
- * \return
+ * \return false if no file could be listed inside the given directory or if the directory could not be opened, true otherwise.
  */
 bool searchDirectory(string dir, const std::string& macroName, const Options& config, std::vector<std::string>& previousResults);
 

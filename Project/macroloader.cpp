@@ -16,7 +16,7 @@ class WordDetector
 public:
     /** \brief Only possible constructor.
      *
-     * \param the string we want to detect, when reading character one by one.
+     * \param initialstr the string we want to detect, when reading character one by one.
      */
     WordDetector(const char* initialstr)
     : str(initialstr), pos(0)

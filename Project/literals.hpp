@@ -76,7 +76,7 @@ void locateAndReplaceEnding(std::string& str, const Options& options);
 
 /** \brief automatically localize and convert all octal values contained inside a string of text.
  *
- * \param the string where octal values will be converted into decimal values.
+ * \param str the string where octal values will be converted into decimal values.
  * \param options the program options.
  */
 void locateAndReplaceOctal(std::string& str, const Options& options);
@@ -86,7 +86,7 @@ void locateAndReplaceOctal(std::string& str, const Options& options);
 
 /** \brief automatically localize and convert all binary values contained inside a string of text.
  *
- * \param the string where octal values will be converted into decimal values.
+ * \param str the string where octal values will be converted into decimal values.
  * \param options the program options.
  */
 void locateAndReplaceBinary(std::string& str, const Options& options);
