@@ -281,7 +281,7 @@ void locateAndReplaceBinary(std::string& str, const Options& options)
         }
         else if(!binaryString.empty())
         {
-            unsigned result = strtol(binaryString.c_str(), nullptr, 2);
+            long result = strtol(binaryString.c_str(), nullptr, 2);
             str.replace(i-binaryString.size()-2, binaryString.size()+2, std::to_string(result));
             locateAndReplaceOctal(str, options);
             break;
