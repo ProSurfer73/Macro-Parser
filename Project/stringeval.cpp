@@ -864,7 +864,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         }
                     }
                     // let's look for the next parameter.
-                    while(mac.at(pos+=2) == ',');
+                    while(pos+2 <= mac.size() && mac[pos+=2] == ',');
                 }
 
                 // if number of parameter > 0.
@@ -1209,18 +1209,20 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             size_t ppp = expr.find('?', posOpenPar);
             if(ppp != std::string::npos
             && ppp < posClosePar
-            && !(ppp>4 && strncmp(&expr.at(ppp-4), "true", 4)==0)
-            && !(ppp>5 && strncmp(&expr.at(ppp-5), "false", 5)==0))
+            && !(ppp>4 && strncmp(&expr[ppp-4], "true", 4)==0)
+            && !(ppp>5 && strncmp(&expr[ppp-5], "false", 5)==0))
             {
                 begStr = expr.substr(0,posOpenPar+1);
                 subExpr = expr.substr(posOpenPar+1, (ppp-1)-(posOpenPar+1) +1 )  ;
-                endStr = &expr.at(ppp);
+                endStr = &expr[ppp];
             }
             else
             {
                 begStr = expr.substr(0,posOpenPar);
                 subExpr = expr.substr(posOpenPar+1, (posClosePar-1)-(posOpenPar+1) +1 )  ;
-                endStr = &expr.at(posClosePar+1);
+
+                if(expr.empty() || posClosePar+1<expr.size())
+                    endStr = &expr[posClosePar+1];
             }
 
 
