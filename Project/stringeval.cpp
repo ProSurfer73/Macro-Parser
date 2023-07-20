@@ -178,12 +178,10 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
         if(expr[i] == pfirst[incrWord])
         {
             incrWord++;
-            std::cout << "bip" << std::endl;
             if(incrWord == pfirst.size())
             {
                 if(((int)levelParenthesis) > maxParLevel)
                 {
-                    std::cout << "got it" << std::endl;
                     maxParLevel = levelParenthesis;
                     positionWord = i-pfirst.size()+1;
                 }
@@ -197,18 +195,18 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     //size_t pos = expr.find(pfirst);
     size_t pos = positionWord;
 
-    std::cout << "popo:" << pos << std::endl;
+    //std::cout << "popo:" << pos << std::endl;
 
 
     if(pos == std::string::npos)
         std::cout << "!!!!!!!!!!!!!!!" << std::endl;
 
-    std::cout << "1:" << expr << std::endl;
+    //std::cout << "1:" << expr << std::endl;
     expr.erase(pos, expr.find(')',pos)-pos+1);
-    std::cout << "2:" << expr << std::endl;
+    //std::cout << "2:" << expr << std::endl;
     expr.insert(pos, psecond);
 
-    std::cout << "expr: " << expr << std::endl;
+    //std::cout << "expr: " << expr << std::endl;
 }
 
 
@@ -807,7 +805,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             auto range = std::make_pair(dictionary.begin(),dictionary.end());
             for(auto it=range.first; it!=range.second; ++it)
             {
-
                 for(unsigned i=0; i<expr.size(); i++)
                 {
                     // let count how deep we are inside the parenthesis.
@@ -817,15 +814,16 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         currentDeep--;
 
                     // lets see the expression itself.
-                    if(expr[i] == (*it).first[exploreWord])
+                    if(expr[i] == it->first[exploreWord])
                     {
                         exploreWord++;
-                        if(exploreWord==it->first.size())
+                        if(it->first[exploreWord] == '(')
                         {
-                            if(!fg || currentDeep>maxDeep)
+                            if(!fg || currentDeep>=maxDeep)
                             {
                                 maxDeep = currentDeep;
                                 fg = &(*it);
+                                exploreWord = 0;
                             }
                         }
                     }
@@ -925,11 +923,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    std::cout << "*(";
+                    /*std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";
+                    std::cout << ").\n";*/
 
                     // Let's replace the paramaterized macro with values by
                     // the parameterized macro with letters inside the expression.
@@ -944,7 +942,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         klkl[1] = paramNames[i];
 
                         // let's replace it.
-                        std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
                         while(simpleReplace(initialExpr, klkl, paramValues[i]));
                     }
 
