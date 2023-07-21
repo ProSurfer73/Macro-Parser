@@ -147,7 +147,7 @@ static string extractLeftPart(const string& expr, size_t pos)
 
 /** \brief suppress the parameterized macro with value inside an expression by its definition.
  *
- * \param expr the expression
+ * \param expr the expression.
  * \param pfirst the value of the macro.
  * \param psecond the definition of a macro.
  */
@@ -157,14 +157,14 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     pfirst = pfirst.substr(0, pfirst.find('('));
 
     // For debugging purposes, let's print pfirst.
-    /*std::cout << "iexpr: " << expr << std::endl;
-    std::cout << "pfirst: " << pfirst << std::endl;
-    std::cout << "psecond: " << psecond << std::endl;*/
+    //std::cout << "iexpr: " << expr << std::endl;
+    //std::cout << "pfirst: " << pfirst << std::endl;
+    //std::cout << "psecond: " << psecond << std::endl;
 
     // replace here the param macro.
     unsigned levelParenthesis = 0;
     unsigned incrWord = 0;
-    \
+
     int maxParLevel = -1;
     std::size_t positionWord = 0;
 
@@ -206,7 +206,7 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     //std::cout << "2:" << expr << std::endl;
     expr.insert(pos, psecond);
 
-    //std::cout << "expr: " << expr << std::endl;
+    //::cout << "expr: " << expr << std::endl;
 }
 
 
@@ -494,7 +494,6 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
 
     return didSomething;
 }
-
 
 /** \brief Calculate an expression with macrolist
  *
@@ -831,16 +830,13 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     {
                         exploreWord=0;
                     }
-
-
                 }
-
             }
 
 
             if(fg)
             {
-                auto& p = *fg;
+                 auto& p = *fg;
                 //const string& mac = p.first;
                 const string& mac = fg->first;
 
@@ -875,7 +871,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     std::cout << ')' << std::endl;*/
 
                     // Let's delete the macro name from the initial expression.
-                    std::string initialExpr = expr;
+                    /*std::string initialExpr = expr;
                     size_t ppp = mac.find('(');
                     //std::cout << "sbtr: " << mac.substr(0,ppp-1) << std::endl;
                     //std::cout << "iinitialExpr: " << initialExpr << std::endl;
@@ -885,7 +881,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         //throw std::runtime_error("nope!");
                     }
 
-                    initialExpr.erase(mypos, pos);
+                    if(mypos == 0)
+                        throw std::runtime_error("prof cest bien.");
+
+                    initialExpr.erase(mypos, pos);*/
 
                     //std::cout << "initialExpr: " << initialExpr << std::endl;
 
@@ -893,21 +892,61 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     std::vector<std::string> paramValues;
                     std::string value;
                     //std::cout << "yuyu: " << expr << std::endl;
-                    initialExpr = expr;
+                    //initialExpr = expr;
 
                     //
                     int state = 0;
 
+                    string initialExpr = expr;
 
-                    for(size_t i=mypos+ppp+1; i<initialExpr.size(); ++i)
+                    size_t ppp = mac.find('(');
+                    //size_t mypos = expr.find(mac.substr(0,ppp-1));
+
+                    // replace here the param macro.
+    unsigned levelParenthesis = 0;
+    unsigned incrWord = 0;
+
+    int maxParLevel = -1;
+    std::size_t positionWord = 0;
+    std::string pfirst = fg->first;
+
+    for(unsigned i=0; i<expr.size(); i++)
+    {
+        if(expr[i] == '(')
+            levelParenthesis++;
+        else if(expr[i] == ')')
+            levelParenthesis--;
+
+        if(expr[i] == pfirst[incrWord])
+        {
+            incrWord++;
+            if(pfirst[incrWord] == '(')
+            {
+                if(((int)levelParenthesis) > maxParLevel)
+                {
+                    maxParLevel = levelParenthesis;
+                    positionWord = i;
+                }
+            }
+        }
+        else
+            incrWord = 0;
+    }
+
+    // Let's here spot the location inside the most parentheses here.
+    //size_t pos = expr.find(pfirst);
+    size_t mypos = positionWord;
+
+
+                    for(size_t i=mypos+1+1; i<initialExpr.size(); ++i)
                     {
                         if(initialExpr[i] == '(')
                             state++;
                         else if(initialExpr[i] == ')')
                             state--;
 
-                        if((initialExpr[i] != ',' || state > 0)
-                        && (state>0 || initialExpr[i] != ')'))
+                        if((state > 0 || initialExpr[i] != ',')
+                        && (state > 0 || initialExpr[i] != ')'))
                         {
                             value += initialExpr[i];
                         }
@@ -917,9 +956,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                             value.clear();
                         }
 
-                        // let's add a value to the expression.
-                        if(initialExpr[i] == ')')
-                            break;
+                    }
+                    if(!value.empty())
+                    {
+                        paramValues.push_back(value);
+                        value.clear();
                     }
 
                     // Let's print parameter values for debugging purposes.
@@ -929,9 +970,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
                     std::cout << ").\n";*/
 
-                    // Let's replace the paramaterized macro with values by
+
+                    // Let's replace the parameterized macro with values by
                     // the parameterized macro with letters inside the expression.
-                    initialExpr = expr;
+                    //initialExpr = expr;
                     replaceParamMacro(initialExpr, p.first, p.second);
 
                     // Let's replace for each parameter.
@@ -1134,7 +1176,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                 //std::cout << "after: " << expr << std::endl;
             }
-            else{
+            else {
                 break;
             }
 
