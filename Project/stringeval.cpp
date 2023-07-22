@@ -218,16 +218,20 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
         {
             counter--;
             if(counter==0)
+            {
                 endingFound=i;
+                break;
+            }
+
         }
     }
 
-    std::cout << "1:" << expr << std::endl;
+    //std::cout << "1:" << expr << std::endl;
     expr.erase(pos, endingFound-pos+1);
-    std::cout << "2:" << expr << std::endl;
+    //std::cout << "2:" << expr << std::endl;
     expr.insert(pos, psecond);
 
-    std::cout << "expr: " << expr << std::endl;
+    //std::cout << "expr: " << expr << std::endl;
 }
 
 
@@ -902,9 +906,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         //throw std::runtime_error("nope!");
                     }
 
-                    if(mypos == 0)
-                        throw std::runtime_error("prof cest bien.");
-
                     initialExpr.erase(mypos, pos);*/
 
                     //std::cout << "initialExpr: " << initialExpr << std::endl;
@@ -986,11 +987,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    std::cout << "*(";
+                    /*std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";
+                    std::cout << ").\n";*/
 
 
                     // Let's replace the parameterized macro with values by
@@ -1006,7 +1007,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         klkl[1] = paramNames[i];
 
                         // let's replace it.
-                        std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
                         while(simpleReplace(initialExpr, klkl, paramValues[i]));
                     }
 
