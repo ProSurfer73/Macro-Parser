@@ -252,7 +252,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
                 while(str2.back() == '\\')
                 {
                     str2.pop_back();
-                    std::cout << "2poped back!" << std::endl;
+                    //std::cout << "2poped back!" << std::endl;
 
                     string inpLine;
 
@@ -546,7 +546,7 @@ static bool importFile(const char* pathToFile, MacroContainer& macroContainer, c
             if(keepTrack.size()>1){
                 //std::cout << "#endif => " << last << std::endl;
                 keepTrack.pop_back();
-                std::cout << "1poped back!" << std::endl;
+                //std::cout << "1poped back!" << std::endl;
             }
 
         }

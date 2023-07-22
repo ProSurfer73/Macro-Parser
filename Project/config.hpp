@@ -38,7 +38,7 @@
 /// Debugging options
 
 #define DEBUG_ENABLE_ASSERTIONS
-#define DEBUG_LOG_FILE_IMPORT
+//#define DEBUG_LOG_FILE_IMPORT
 //#define DEBUG_LOG_STRINGEVAL
 
 #endif // CONFIG_HPP
