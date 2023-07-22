@@ -201,12 +201,33 @@ static void replaceParamMacro(string& expr, string pfirst, const string& psecond
     if(pos == std::string::npos)
         std::cout << "!!!!!!!!!!!!!!!" << std::endl;
 
-    //std::cout << "1:" << expr << std::endl;
-    expr.erase(pos, expr.find(')',pos)-pos+1);
-    //std::cout << "2:" << expr << std::endl;
+    // lets count ending parenthesis befor edeleting them.
+
+    int counter=1;
+    int maxCounter=0;
+    int endingFound=-1;
+    for(size_t i=pos+pfirst.size()+1; i<expr.size(); i++)
+    {
+        if(expr[i]=='(')
+        {
+            counter++;
+            maxCounter++;
+        }
+
+        else if(expr[i] == ')')
+        {
+            counter--;
+            if(counter==0)
+                endingFound=i;
+        }
+    }
+
+    std::cout << "1:" << expr << std::endl;
+    expr.erase(pos, endingFound-pos+1);
+    std::cout << "2:" << expr << std::endl;
     expr.insert(pos, psecond);
 
-    //::cout << "expr: " << expr << std::endl;
+    std::cout << "expr: " << expr << std::endl;
 }
 
 
@@ -216,7 +237,7 @@ static bool evaluateSimpleBooleanExpr(string& expr)
 
     // We don't deal with parentheses here
     if(!(expr.find(')')==string::npos && expr.find('(')==string::npos)){
-        throw std::runtime_error("Internal error: Can't evaluate simple boolean expr with parenthesis.");
+        throw std::runtime_error("Can't evaluate simple boolean expr with parenthesis.");
     }
 
     // First, let's treat AND operator
@@ -945,8 +966,10 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         else if(initialExpr[i] == ')')
                             state--;
 
-                        if((state > 0 || initialExpr[i] != ',')
-                        && (state > 0 || initialExpr[i] != ')'))
+                        if(state < 0 && initialExpr[i]==')')
+                            break;
+
+                        if(state > 0 || initialExpr[i] != ',')
                         {
                             value += initialExpr[i];
                         }
@@ -955,7 +978,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                             paramValues.push_back(value);
                             value.clear();
                         }
-
                     }
                     if(!value.empty())
                     {
@@ -964,11 +986,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     }
 
                     // Let's print parameter values for debugging purposes.
-                    /*std::cout << "*(";
+                    std::cout << "*(";
                     for(const std::string& s: paramValues) {
                         std::cout << s << ';';
                     }
-                    std::cout << ").\n";*/
+                    std::cout << ").\n";
 
 
                     // Let's replace the parameterized macro with values by
@@ -984,7 +1006,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                         klkl[1] = paramNames[i];
 
                         // let's replace it.
-                        //std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
+                        std::cout << "y: " << klkl << " -> " << paramValues[i] << " inside " << initialExpr << std::endl;
                         while(simpleReplace(initialExpr, klkl, paramValues[i]));
                     }
 
