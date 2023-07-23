@@ -571,17 +571,6 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
         assert(expr.find(' ') == string::npos);
     #endif
 
-    /*#ifdef READ_HEXADECIMAL
-        // Look and replace hexa
-        locateAndReplaceHexa(expr, config);
-    #endif
-    #ifdef READ_OCTAL
-        // look and replace octal values.
-        locateAndReplaceOctal(expr, config);
-    #endif // READ_OCTAL
-    #ifdef READ_BINARY
-        locateAndReplaceBinary(expr, config);
-    #endif*/
     removeApostrophes(expr);
 
 
@@ -630,6 +619,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                 /// Let's look for the word (new implementation).
                 /// The implementation could be better (we have to go through all the binary tree).
+                unsigned lk = 0;
                 for(const std::pair<std::string,std::string>& p: dictionary)
                 {
                     // if we find the occurence of the word.
@@ -637,7 +627,15 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     {
                         //std::cout << "pushed. first:" << p.first << " p.second:" << p.second << std::endl;
                         cutted.push_back(&p);
+                        lk++;
                     }
+                }
+
+                if(lk >= 2 && printWarnings != nullptr)
+                {
+                    printWarnings->push_back(
+                    cutted.back()->first.substr(cutted.back()->first.find('(')));
+                    status = CalculationStatus::EVAL_WARNING;
                 }
 
                 currentWord.clear();
@@ -706,7 +704,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     // if the macro is redefined
                     if(range.first != range.second)
                     {
-                        bool foundRedef=false;
+                        bool foundRedef = false;
 
                         for(const auto& pp: *redef)
                         {
@@ -865,11 +863,11 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                 //const string& mac = p.first;
                 const string& mac = fg->first;
 
-                // Let's detect parameters inside the string
+                // Let's detect parameters inside the string.
                 std::size_t pos = mac.find('(');
                 std::vector<char> paramNames;
 
-                // if there seems to be parameters
+                // if there seems to be parameters.
                 if(pos != std::string::npos
                 && !mac.empty()
                 && mac.back()==')')
@@ -1014,52 +1012,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
                     // finally, let's replace the main expression.
                     expr = initialExpr;
 
-                    //std::cout << "yes: " << initialExpr << std::endl;
+                    std::cout << "yes: " << initialExpr << std::endl;
                 }
-
-
-                #if 0
-
-                // if the string has at the end "(x)", then it's a single param macro.
-                if(mac[mac.size()-1] == ')'
-                && isalpha(mac[mac.size()-2])
-                && mac[mac.size()-3] == '(')
-                {
-                    // If it's the same macro.
-                    if(expr.find(mac.substr(0,mac.size()-3)) != string::npos
-                    &&(expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == ' '
-                    || expr[expr.find(mac.substr(0,mac.size()-3))+(mac.size()-3)] == '('))
-                    {
-                        // We delete the mac from the expr string.
-                        string cop1 = expr;
-
-                        simpleReplace(cop1, mac.substr(0,mac.size()-3), "");
-
-                        // In string p.second ; replace '(x)' <= expr.
-                        string cop2 = p.second;
-
-                        // let's replace the middle string.
-                        string klkl = "(x)";
-                        klkl[1] = mac[mac.size()-2];
-
-                        simpleReplace(cop2, klkl, cop1); // replace 'def' -> 'klm'.
-
-                        if(config.doesPrintReplacements()){
-                            std::cout << "rreplaced '" << p.first << "' by '" << p.second << '\'' << std::endl;
-                        }
-
-                        #ifdef DEBUG_LOG_STRINGEVAL
-                        cout << "before: " << expr << "==" << mac << endl;
-                        #endif
-                        expr = cop2;
-
-                        #ifdef DEBUG_LOG_STRINGEVAL
-                        cout << "after: " << expr << endl;
-                        #endif
-                    }
-                }
-
-                #endif
 
             }
 
