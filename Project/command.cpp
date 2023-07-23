@@ -94,7 +94,7 @@ static void printAdvancedHelp()
     cout << "spacediff options: different=keep only macros with different values, notunknown/notundefined: don't show macros with unknown/undefined macro values, increasing/decreasing: sort the macros by macro values in increasing/decreasing order" << std::endl;
     cout << "msall is a macrospace that designate all the macrospaces unified." << endl;
 
-    /*cout << "\nSPECIAL PARAMETERS (to be implemnted)" << endl;
+    /*cout << "\nSPECIAL PARAMETERS (to be implemented)" << endl;
     cout << "--alphaorder : show results in an alphabetical order" << endl;
     cout << "--increasing : show results in an increasing order" << endl;
     cout << "--decreasing : show results in a decreasing order" << endl;
@@ -941,6 +941,13 @@ bool CommandManager::runCommand(const string& input)
     }
     else if(isRoughlyEqualTo("evaluate",commandStr))
     {
+        if(parameters.size() <= 1)
+        {
+            std::cout << "Error: Please enter an expression you would like to evaluate." << std::endl;
+        }
+        else
+        {
+
         string expr = input.substr(9);
 
         // Extract a macrospace from the command
@@ -1075,6 +1082,8 @@ bool CommandManager::runCommand(const string& input)
                 std::cout << "for instance: 'define " << needToBeDefinedMacros.front() << " 1.49'" << std::endl;
             }
         }
+
+        }
     }
     else if(isRoughlyEqualTo("list",commandStr.substr(0,4)))
     {
@@ -1153,7 +1162,8 @@ bool CommandManager::runCommand(const string& input)
         }
 
     }
-    else if(isRoughlyEqualTo("printsources",commandStr)){
+    else if(isRoughlyEqualTo("printsources",commandStr))
+    {
         if(parameters.size()==1)
             std::cout << "Error: you need to specify at least one macrospace." << std::endl;
         else {
