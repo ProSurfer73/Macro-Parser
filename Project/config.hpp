@@ -22,7 +22,7 @@
 
 /// General config option
 
-//#define ENABLE_FILE_LOADING_BAR /**< if defined, prints a loading bar to the end user when loading a big folder. */
+#define ENABLE_FILE_LOADING_BAR /**< if defined, prints a loading bar to the end user when loading a big folder. */
 #define DISPLAY_FOLDER_IMPORT_TIME /**< if defined, it displays the time it took to import a folder. */
 #define IGNORE_MACRO_INSIDE_LONG_COMMENT /**< if defined, ignores #define expressions contained inside long comments. */
 #define OPTIONS_FILENAME "config.txt" /**< location at which the user configuration is saved. */
