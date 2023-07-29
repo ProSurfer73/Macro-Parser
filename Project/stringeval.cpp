@@ -368,7 +368,7 @@ double evaluateSimpleArithmeticExpr(const string& expr)
         }
         func(v[pos-1].number, v[pos].operators, v[pos].number);
 
-        // let's move each array, one step to the left
+        // let's move each array, one step to the left.
         v.erase(v.begin() + pos);
     }
 
@@ -520,7 +520,7 @@ static bool treatInterrogationOperator(std::string& expr, const MacroContainer& 
     return didSomething;
 }
 
-/** \brief Calculate an expression with macrolist
+/** \brief Calculate an expression with macrolist.
  *
  * \param expr expression
  * \param macroContainer the list of macros loaded
@@ -919,7 +919,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 
                     string initialExpr = expr;
 
-                    size_t ppp = mac.find('(');
+                    //size_t ppp = mac.find('(');
                     //size_t mypos = expr.find(mac.substr(0,ppp-1));
 
                     // replace here the param macro.

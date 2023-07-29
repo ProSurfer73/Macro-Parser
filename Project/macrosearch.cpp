@@ -43,60 +43,6 @@ bool destructShortComment(std::string& str)
     return false;
 }
 
-
-#ifdef ENABLE_FILE_LOADING_BAR
-
-static void printNbFilesLoaded(std::atomic<bool>& ended, std::atomic<unsigned>& nbFiles, const unsigned maxNbFiles)
-{
-    // First initial delay before starting to diplay loading status
-    const auto start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
-    int delayFirstSleep = 4000;
-
-    while(delayFirstSleep > 0)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(120));
-        delayFirstSleep -= 120;
-
-        // we read our atomic variable
-        bool myend = ended;
-
-        if(myend)
-            break;
-    }
-
-    // We display the loading status, yeah
-
-    int notEverytime=0;
-
-    while(true)
-    {
-        ++notEverytime;
-
-        if(notEverytime == 10)
-        {
-            // we read our atomic variable
-            unsigned currentNbFiles = nbFiles;
-
-            std::cout << '[' << currentNbFiles*100/static_cast<float>(maxNbFiles) << "%] " << currentNbFiles << " files over " << maxNbFiles << " are loaded. ~"
-            << maxNbFiles*(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count()-start)/(currentNbFiles+1)/60000 << "min left\n" ;
-
-            notEverytime = 0;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(400));
-
-        // we read our atomic variable
-        bool myend = ended;
-
-        if(myend)
-            break;
-    }
-}
-
-#endif
-
-
 bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config)
 {
     std::ifstream file(pathToFile);
