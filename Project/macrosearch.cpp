@@ -43,7 +43,7 @@ bool destructShortComment(std::string& str)
     return false;
 }
 
-bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config)
+bool searchFile(const string& pathToFile, const std::string& macroName)
 {
     std::ifstream file(pathToFile);
 

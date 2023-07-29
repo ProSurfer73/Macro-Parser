@@ -435,7 +435,8 @@ static bool treatOperationDouble(std::string& str, const std::string& operation,
 }
 
 
-static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config, std::vector<std::pair<std::string,std::string> >& redef, std::vector<std::string>* warnings)
+static bool treatInterrogationOperator(std::string& expr, const MacroContainer& mc, const Options& config,
+std::vector<std::pair<std::string,std::string> >& redef)
 {
     bool didSomething=false;
     std::size_t searchedInterrogation;
@@ -1092,8 +1093,8 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
     while(expr.find('(') != string::npos && expr.find(')') != string::npos)
     {
         size_t posClosePar = expr.find_first_of(')');
-        size_t posOpenPar = posClosePar;
-        for(;posOpenPar>=0 && expr[posOpenPar]!='('; posOpenPar--);
+        int posOpenPar = (int)posClosePar;
+        for(; expr[posOpenPar]!='('; posOpenPar--);
 
         if(posOpenPar < 0){
             throw std::runtime_error("')' found but '(' not found.");
@@ -1306,7 +1307,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
             repeat=true;
         }
 
-        else if(treatInterrogationOperator(subExpr, macroContainer, config, *redef, printWarnings))
+        else if(treatInterrogationOperator(subExpr, macroContainer, config, *redef))
         {
             expr = begStr+subExpr+endStr;
             repeat=true;
@@ -1390,7 +1391,7 @@ std::vector<std::string>* printWarnings, bool enableBoolean, std::vector<std::st
 }
 
 
-void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, bool expand, std::vector<std::pair<std::string,std::string> >* redef)
+void calculateExprWithStrOutput(string& expr, const MacroContainer& macroContainer, const Options& options, std::vector<std::pair<std::string,std::string> >* redef)
 {
     std::vector<std::string> output;
                 //std::cout << "Source 3" << std::endl;

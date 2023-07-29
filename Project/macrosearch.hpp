@@ -23,10 +23,9 @@ bool destructShortComment(std::string& str);
  *
  * \param pathToFile the path to the file in which we want to find the macro.
  * \param macroName the name of the macro we want to find.
- * \param config user configuration.
  * \return true if the macro definition exists in the file, false if not or if the file could not be opened.
  */
-bool searchFile(const string& pathToFile, const std::string& macroName, const Options& config);
+bool searchFile(const string& pathToFile, const std::string& macroName);
 
 /** \brief look for a macro name definition maong files contained inside a folder.
  *

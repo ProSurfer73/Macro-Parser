@@ -22,6 +22,7 @@
 #include "macrospace.hpp"
 
 Macrospaces::Macrospaces()
+: macrospaces()
 {
     updateMsAll();
 }

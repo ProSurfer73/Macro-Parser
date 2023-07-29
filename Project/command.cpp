@@ -42,6 +42,7 @@ static auto* gg = std::cout.rdbuf();
 
 
 CommandManager::CommandManager()
+: configuration(), macrospaces()
 {}
 
 CommandManager::CommandManager(const Options& options)
@@ -661,7 +662,7 @@ bool CommandManager::runCommand(const string& input)
                 {
                     cout << commandMacrospaces[i] << " => ";
                     string expr = trueInputs.front();
-                    calculateExprWithStrOutput(expr, macrospaces.getMacroSpace(commandMacrospaces[i]), configuration, true);
+                    calculateExprWithStrOutput(expr, macrospaces.getMacroSpace(commandMacrospaces[i]), configuration);
                     cout << expr << endl;
                 }
             }

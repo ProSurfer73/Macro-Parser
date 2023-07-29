@@ -31,10 +31,10 @@
 // Default constructor
 
 MacroContainer::MacroContainer()
+: defines(), origins(), nbRedefined(0)
 {
     // Set large default presize fro the hashing table
     defines.reserve(50000);
-    nbRedefined = 0;
 }
 
 bool MacroContainer::exists(const std::string& macroName) const
@@ -357,7 +357,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             {
                 std::string str2 = itf->second;
 
-                calculateExprWithStrOutput(str2, *mc, configuration, false);
+                calculateExprWithStrOutput(str2, *mc, configuration);
 
                 if(dontdisplayUnknown && str2.find("unknown:") != std::string::npos){
                     rrr.clear();
@@ -444,7 +444,7 @@ void MacroContainer::printDiff(std::vector<MacroContainer*>& mcs, const Options&
             {
                 std::string str2 = itf->second;
 
-                calculateExprWithStrOutput(str2, *mc, configuration, false);
+                calculateExprWithStrOutput(str2, *mc, configuration);
 
                 std::cout << str2;
 
